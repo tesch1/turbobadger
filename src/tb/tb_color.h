@@ -39,9 +39,27 @@ public:
 	/** Write color to string with format #rrggbbaa */
 	void GetString(TBStr & str) const;
 
-	operator uint32_t () const		{ return bgra; }
-	//bool operator == (const TBColor &c) const { return bgra == (uint32_t)c; }
-	//bool operator != (const TBColor &c) const { return bgra != (uint32_t)c; }
+	inline operator uint32_t () const		{ return bgra; }
+	//inline bool operator == (const TBColor &c) const { return bgra == (uint32_t)c; }
+	//inline bool operator != (const TBColor &c) const { return bgra != (uint32_t)c; }
+
+	/** Premultiply alpha on the r, g, b components */
+	inline void Premultiply() {
+		const uint32_t a32 = a;
+		r = (r * a32 + 1) >> 8;
+		g = (g * a32 + 1) >> 8;
+		b = (b * a32 + 1) >> 8;
+	}
+
+	/** Unpremultiply alpha on the r, g, b components */
+	inline void Unpremultiply() {
+		const uint32_t a32 = a;
+		if (a32) {
+			r = r * 255 / a32;
+			g = g * 255 / a32;
+			b = b * 255 / a32;
+		}
+	}
 };
 
 /** TBColorManager contains a map of global color names. */
