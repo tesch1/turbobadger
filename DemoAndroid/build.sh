@@ -38,3 +38,5 @@ esac
 
 $ANDROID update project --path . --target android-19
 $NDKBUILD -j $NCPUS
+adb install -r bin/TBDemo-debug.apk
+adb shell am start -n com.fiffigt.tb.demo/.TBActivity
