@@ -138,7 +138,7 @@ TBRendererGL::TBRendererGL()
 {
 #if defined(TB_RENDERER_GLES_2) || defined(TB_RENDERER_GL3)
 	GLchar vertexShaderString[] =  
-#if defined(TB_RENDERER_GL3)
+#if defined(TB_RENDERER_GL3)&&!defined(ANDROID)
 		"#version 150                          \n"
 		"#define attribute in                  \n"
 		"#define varying out                   \n"
@@ -157,7 +157,7 @@ TBRendererGL::TBRendererGL()
 		"  color = col;                        \n"
 		"}                                     \n";
 	GLchar fragmentShaderString[] =
-#if defined(TB_RENDERER_GL3)
+#if defined(TB_RENDERER_GL3)&&!defined(ANDROID)
 		"#version 150                                  \n"
 		"#define varying in                            \n"
 		"out vec4 fragData[1];                         \n"
