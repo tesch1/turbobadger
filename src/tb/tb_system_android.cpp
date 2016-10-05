@@ -100,7 +100,10 @@ private:
 
 TBFile *TBFile::Open(const char *filename, TBFileMode mode)
 {
-	AAsset *f = nullptr;
+#ifdef TB_RUNTIME_DEBUG_INFO
+		TBDebugPrint("TBFile::Open, opening file '%s'\n", filename);
+#endif
+AAsset *f = nullptr;
 	switch (mode)
 	{
 	case MODE_READ:
@@ -110,10 +113,20 @@ TBFile *TBFile::Open(const char *filename, TBFileMode mode)
 		break;
 	}
 	if (!f)
+        {
+#ifdef TB_RUNTIME_DEBUG_INFO
+		TBDebugPrint("TBFile::Open, cannot open file at AAssetManager_open( '%s'\n", filename);
+#endif
 		return nullptr;
+        }
 	TBAndroidFile *tbf = new TBAndroidFile(f);
 	if (!tbf)
-		AAsset_close(f);
+        {
+#ifdef TB_RUNTIME_DEBUG_INFO
+		TBDebugPrint("TBFile::Open, cannot open file '%s'\n", filename);
+#endif
+		AAsset_close(f); 
+        }
 	return tbf;
 }
 
