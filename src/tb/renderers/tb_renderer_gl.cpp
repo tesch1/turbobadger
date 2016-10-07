@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <EGL/egl.h>
+
 namespace tb {
 
 #ifdef TB_RUNTIME_DEBUG_INFO
@@ -138,7 +140,7 @@ TBRendererGL::TBRendererGL()
 {
 #if defined(TB_RENDERER_GLES_2) || defined(TB_RENDERER_GL3)
 	GLchar vertexShaderString[] =  
-#if defined(TB_RENDERER_GL3)&&!defined(ANDROID)
+#if defined(TB_RENDERER_GL3)
 		"#version 150                          \n"
 		"#define attribute in                  \n"
 		"#define varying out                   \n"
@@ -157,7 +159,7 @@ TBRendererGL::TBRendererGL()
 		"  color = col;                        \n"
 		"}                                     \n";
 	GLchar fragmentShaderString[] =
-#if defined(TB_RENDERER_GL3)&&!defined(ANDROID)
+#if defined(TB_RENDERER_GL3)
 		"#version 150                                  \n"
 		"#define varying in                            \n"
 		"out vec4 fragData[1];                         \n"
@@ -212,6 +214,12 @@ TBRendererGL::TBRendererGL()
 
 	m_orthoLoc = glGetUniformLocation(m_program, "ortho");
 	m_texLoc = glGetUniformLocation(m_program, "tex");
+
+
+PFNGLGENVERTEXARRAYSOESPROC glGenVertexArraysOES;
+PFNGLBINDVERTEXARRAYOESPROC glBindVertexArrayOES;
+glGenVertexArraysOES = (PFNGLGENVERTEXARRAYSOESPROC)eglGetProcAddress ( "glGenVertexArraysOES" );
+glBindVertexArrayOES = (PFNGLBINDVERTEXARRAYOESPROC)eglGetProcAddress ( "glBindVertexArrayOES" );
 
 	GLCALL(glGenVertexArrays(1, &m_vao));
 	GLCALL(glBindVertexArray(m_vao));
@@ -272,6 +280,8 @@ void TBRendererGL::BeginPaint(int render_target_w, int render_target_h)
 	g_current_batch = nullptr;
 
 #if defined(TB_RENDERER_GLES_2) || defined(TB_RENDERER_GL3)
+PFNGLBINDVERTEXARRAYOESPROC glBindVertexArrayOES;
+glBindVertexArrayOES = (PFNGLBINDVERTEXARRAYOESPROC)eglGetProcAddress ( "glBindVertexArrayOES" );
 	GLCALL(glBindVertexArray(m_vao));
 	GLCALL(glUseProgram(m_program));
 	static float ortho[16];
