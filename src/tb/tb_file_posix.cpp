@@ -48,6 +48,9 @@ TBFile *TBFile::Open(const char *filename, TBFileMode mode)
 		pathfile.Append(filename);
 	else
 		pathfile.Set(filename);
+#ifdef TB_RUNTIME_DEBUG_INFO
+		TBDebugPrint("TBFile::Open, opening file '%s'\n", pathfile.CStr());
+#endif
 	switch (mode)
 	{
 	case MODE_READ:

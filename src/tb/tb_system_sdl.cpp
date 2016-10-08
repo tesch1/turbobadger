@@ -26,13 +26,24 @@
 #endif
 
 #ifdef TB_RUNTIME_DEBUG_INFO
+#ifdef ANDROID
+ #include <android/log.h>
+ #define  LOG_TAG    "TB"
+ #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+ #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+	void TBDebugOut(const char *str)
+	{
+		LOGI("%s", str);
+	}
+
+#else //ANDROID
 
 void TBDebugOut(const char *str)
 {
 	SDL_Log("%s", str);
 	//SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s", str);
 }
-
+#endif //ANDROID
 #endif // TB_RUNTIME_DEBUG_INFO
 
 namespace tb {
@@ -197,6 +208,9 @@ char * TBSystem::GetRoot()
     static char *basepath = NULL;
 	if (!basepath)
 		basepath = SDL_GetBasePath();
+#ifdef ANDROID
+        basepath=(char*)"/sdcard/";
+#endif
 	return basepath;
 }
 
