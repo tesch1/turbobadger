@@ -54,7 +54,7 @@ TBTextFragmentContent *TBTextFragmentContentFactory::CreateFragmentContent(const
 	return nullptr;
 }
 
-// == PHorizontalLineContent ================================================================================
+// == HorizontalLineContent ================================================================================
 
 TBTextFragmentContentHR::TBTextFragmentContentHR(int32_t width_in_percent, int32_t height)
 	: width_in_percent(width_in_percent)
@@ -62,45 +62,37 @@ TBTextFragmentContentHR::TBTextFragmentContentHR(int32_t width_in_percent, int32
 {
 }
 
-void TBTextFragmentContentHR::Paint(TBTextFragment *fragment, int32_t translate_x, int32_t translate_y, TBTextProps *props)
+void TBTextFragmentContentHR::Paint(const TBBlock * block, TBTextFragment *fragment, int32_t translate_x, int32_t translate_y, TBTextProps *props)
 {
 	int x = translate_x + fragment->xpos;
 	int y = translate_y + fragment->ypos;
 
-	int w = fragment->block->styledit->layout_width * width_in_percent / 100;
-	x += (fragment->block->styledit->layout_width - w) / 2;
+	int w = block->styledit->layout_width * width_in_percent / 100;
+	x += (block->styledit->layout_width - w) / 2;
 
-	TBStyleEditListener *listener = fragment->block->styledit->listener;
+	TBStyleEditListener *listener = block->styledit->listener;
 	listener->DrawRectFill(TBRect(x, y, w, height), props->data->text_color);
 }
 
-int32_t TBTextFragmentContentHR::GetWidth(TBFontFace * /*font*/, TBTextFragment * fragment)
+int32_t TBTextFragmentContentHR::GetWidth(const TBBlock * block, TBFontFace * /*font*/, TBTextFragment * fragment)
 {
-	return MAX(fragment->block->styledit->layout_width, 0);
+	return MAX(block->styledit->layout_width, 0);
 }
 
-int32_t TBTextFragmentContentHR::GetHeight(TBFontFace * /*font*/, TBTextFragment * /*fragment*/) { return height; }
-
-#if 0
-int32_t TBTextFragmentContentTextSize::GetWidth(TBFontFace * font, TBTextFragment * fragment)
+int32_t TBTextFragmentContentHR::GetHeight(const TBBlock * block, TBFontFace * /*font*/, TBTextFragment * /*fragment*/)
 {
-	return font->
+	return height;
 }
-int32_t TBTextFragmentContentTextSize::GetHeight(TBFontFace * font, TBTextFragment * /*fragment*/)
-{
-	return font->GetHeight();
-}
-#endif
 
-// ============================================================================
+// == UnderlineContent ======================================================================================
 
-void TBTextFragmentContentUnderline::Paint(TBTextFragment * /*fragment*/, int32_t /*translate_x*/, int32_t /*translate_y*/, TBTextProps * props)
+void TBTextFragmentContentUnderline::Paint(const TBBlock * block, TBTextFragment * /*fragment*/, int32_t /*translate_x*/, int32_t /*translate_y*/, TBTextProps * props)
 {
 	if (TBTextProps::Data *data = props->Push())
 		data->underline = true;
 }
 
-void TBTextFragmentContentTextColor::Paint(TBTextFragment * /*fragment*/, int32_t /*translate_x*/, int32_t /*translate_y*/, TBTextProps * props)
+void TBTextFragmentContentTextColor::Paint(const TBBlock * block, TBTextFragment * /*fragment*/, int32_t /*translate_x*/, int32_t /*translate_y*/, TBTextProps * props)
 {
 	if (TBTextProps::Data *data = props->Push())
 		data->text_color = color;
@@ -112,7 +104,7 @@ void TBTextFragmentContentTextSize::Paint(TBTextFragment * /*fragment*/, int32_t
 		data->font_desc.SetSize(_size);
 }
 
-void TBTextFragmentContentStylePop::Paint(TBTextFragment * /*fragment*/, int32_t /*translate_x*/, int32_t /*translate_y*/, TBTextProps *props)
+void TBTextFragmentContentStylePop::Paint(const TBBlock * block, TBTextFragment * /*fragment*/, int32_t /*translate_x*/, int32_t /*translate_y*/, TBTextProps *props)
 {
 	props->Pop();
 }
