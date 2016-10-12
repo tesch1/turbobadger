@@ -45,21 +45,40 @@ void TBDebugOut(const char *str)
 	LOGI("%s", str);
 }
 #endif // TB_RUNTIME_DEBUG_INFO
-#define JNI_VOID_TB_LIB(func) JNIEXPORT void JNICALL Java_org_libsdl_app_##func
+
+#define JNI_VOID_TB_LIB(func) JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_##func
+
+
+JNIEnv *jnienv = nullptr;
+void set_jnienv(JNIEnv *env) { jnienv = env; }
+JNIEnv *get_jnienv() { return jnienv; }
+
+AAssetManager *g_pManager = NULL;
+
+void SetAssetManager(AAssetManager *pManager)
+{
+	g_pManager = pManager;
+}
 
 extern "C"
 {
 	JNI_VOID_TB_LIB(createAssetManager)(JNIEnv * env, jobject obj, jobject assetManager);
 }
 
-AAssetManager * g_pManager = NULL;
-JNI_VOID_TB_LIB(createAssetManager)(JNIEnv * env, jobject obj, jobject assetManager)
+JNI_VOID_TB_LIB(createAssetManager)(JNIEnv* env, jobject obj, jobject assetManager)
 {
-	AAssetManager * mgr = AAssetManager_fromJava(env, assetManager);
+	TBDebugOut("createAssetManager in native side");
+    set_jnienv(env);
+	
+    TBDebugOut("createAssetManager - enviroment set ");
+	AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
 	assert(mgr);
+    if (!mgr) TBDebugOut("Failed to create Asset manager");
+
 	// Store the assest manager for future use.
-	g_pManager = mgr;
+	SetAssetManager(mgr);
 }
+
 
 #else // ANDROID
 
