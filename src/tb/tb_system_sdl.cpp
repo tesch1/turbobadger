@@ -50,6 +50,14 @@ void TBDebugOut(const char *str)
 
 
 JNIEnv *jnienv = nullptr;
+const char *myRootPath = NULL;
+
+void SetmyRootPath(const char *nativeString)
+{
+	myRootPath = nativeString;
+    LOGI("The RootPath is finally set to:   %s" , myRootPath);
+}
+
 void set_jnienv(JNIEnv *env) { jnienv = env; }
 JNIEnv *get_jnienv() { return jnienv; }
 
@@ -78,6 +86,26 @@ JNI_VOID_TB_LIB(createAssetManager)(JNIEnv* env, jobject obj, jobject assetManag
 	// Store the assest manager for future use.
 	SetAssetManager(mgr);
 }
+
+
+extern "C"
+{
+	JNI_VOID_TB_LIB(SetUpRootPath)(JNIEnv * env, jobject obj, jstring RootPath);
+}
+
+JNI_VOID_TB_LIB(SetUpRootPath)(JNIEnv* env, jobject obj, jstring RootPath)
+{
+	TBDebugOut("Setting up RootPath in native environment.");
+    set_jnienv(env);
+	
+    const char *nativeString = env->GetStringUTFChars(RootPath, JNI_FALSE);
+
+   // use your string
+
+   env->ReleaseStringUTFChars(RootPath, nativeString);
+   SetmyRootPath(nativeString);
+}
+
 
 
 #else // ANDROID
@@ -255,6 +283,7 @@ char * TBSystem::GetRoot()
 	if (!basepath)
 		basepath = SDL_GetBasePath();
 #ifdef ANDROID
+    LOGI("The RootPath is :   %s" , myRootPath);;
         basepath=(char*)"/sdcard/";
 #endif
 	return basepath;
