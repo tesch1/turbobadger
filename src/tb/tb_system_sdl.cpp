@@ -50,12 +50,12 @@ void TBDebugOut(const char *str)
 
 
 JNIEnv *jnienv = nullptr;
-const char *myRootPath = NULL;
+static char *myRootPath;
 
 void SetmyRootPath(const char *nativeString)
 {
-	myRootPath = nativeString;
-    LOGI("The RootPath is finally set to:   %s" , myRootPath);
+	myRootPath = (char*) nativeString;
+    TBDebugPrint("The RootPath is finally set to:   %s" , myRootPath);
 }
 
 void set_jnienv(JNIEnv *env) { jnienv = env; }
@@ -98,11 +98,12 @@ JNI_VOID_TB_LIB(SetUpRootPath)(JNIEnv* env, jobject obj, jstring RootPath)
 	TBDebugOut("Setting up RootPath in native environment.");
     set_jnienv(env);
 	
-    const char *nativeString = env->GetStringUTFChars(RootPath, JNI_FALSE);
-
+    char * nativeString;
+    const char * _nativeString = env->GetStringUTFChars(RootPath, JNI_FALSE);
+    nativeString = strdup (_nativeString);
    // use your string
 
-   env->ReleaseStringUTFChars(RootPath, nativeString);
+   env->ReleaseStringUTFChars(RootPath, _nativeString);
    SetmyRootPath(nativeString);
 }
 
@@ -283,8 +284,9 @@ char * TBSystem::GetRoot()
 	if (!basepath)
 		basepath = SDL_GetBasePath();
 #ifdef ANDROID
-    LOGI("The RootPath is :   %s" , myRootPath);;
-        basepath=(char*)"/sdcard/";
+    //LOGI("The RootPath is :   %s" , myRootPath);
+        //basepath=(char*)"/sdcard/";
+    basepath=myRootPath;
 #endif
 	return basepath;
 }
