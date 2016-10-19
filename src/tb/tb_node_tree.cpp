@@ -344,7 +344,6 @@ void TBNode::Clear()
 
 bool TBNode::WriteFile(const char *filename)
 {
-#ifndef ANDROID
 	TBStr selfstr;
 	TBFile * f = TBFile::Open(filename, TBFile::MODE_WRITETRUNC);
 	if (!f)
@@ -353,7 +352,6 @@ bool TBNode::WriteFile(const char *filename)
 	bool success = selfstr.Length() == (int)f->Write(selfstr.CStr(), sizeof(char), selfstr.Length());
 	delete f;
 	return success;
-#endif
 }
 
 void TBNode::WriteNode(TBStr & str, int depth)
