@@ -55,7 +55,6 @@
 #else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GLES3/gl3.h>
 #endif
 
 #else
