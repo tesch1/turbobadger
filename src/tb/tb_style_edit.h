@@ -168,6 +168,17 @@ public:
 	Data *data;
 };
 
+/** TBPaintProps holds paint related data during paint of TBStyleEdit. */
+
+class TBPaintProps
+{
+public:
+	TBBlock *block;
+	TBTextProps *props;
+	int32_t translate_x;
+	int32_t translate_y;
+};
+
 /** A block of text (a line, that might be wrapped) */
 
 class TBBlock : public TBLinkOf<TBBlock>
@@ -282,10 +293,9 @@ public:
 
 	void UpdateContentPos(const TBBlock * block);
 
-	void BuildSelectionRegion(const TBBlock * block, int32_t translate_x, int32_t translate_y, TBTextProps *props,
-		TBRegion &bg_region, TBRegion &fg_region);
-	void Paint(const TBBlock * block, int32_t translate_x, int32_t translate_y, TBTextProps *props);
-	void Click(const TBBlock * block, int button, uint32_t modifierkeys);
+	void BuildSelectionRegion(const TBPaintProps *props, TBRegion &bg_region, TBRegion &fg_region);
+	void Paint(const TBPaintProps *props);
+	void Click(const TBBlock *block, int button, uint32_t modifierkeys);
 
 	bool IsText() const					{ return !IsEmbedded(); }
 	bool IsEmbedded() const				{ return content ? true : false; }
