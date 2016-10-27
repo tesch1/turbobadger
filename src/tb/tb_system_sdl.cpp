@@ -25,16 +25,8 @@
 #include "SDL.h"
 #endif
 
-#ifdef ANDROID
-
-// for native asset manager
-#include <sys/types.h>
-#include <android/asset_manager.h>
-#include <android/asset_manager_jni.h>
-#include <android/configuration.h>
-
-
 #ifdef TB_RUNTIME_DEBUG_INFO
+#ifdef ANDROID
 #include <android/log.h>
 #define  LOG_TAG    "TB"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -44,82 +36,16 @@ void TBDebugOut(const char *str)
 {
 	LOGI("%s", str);
 }
-#endif // TB_RUNTIME_DEBUG_INFO
-
-#define JNI_VOID_TB_LIB(func) JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_##func
-
-
-JNIEnv *jnienv = nullptr;
-static char *myRootPath;
-
-void SetmyRootPath(const char *nativeString)
-{
-	myRootPath = (char*) nativeString;
-    TBDebugPrint("The RootPath is finally set to:   %s" , myRootPath);
-}
-
-void set_jnienv(JNIEnv *env) { jnienv = env; }
-JNIEnv *get_jnienv() { return jnienv; }
-
-AAssetManager *g_pManager = NULL;
-
-void SetAssetManager(AAssetManager *pManager)
-{
-	g_pManager = pManager;
-}
-
-extern "C"
-{
-	JNI_VOID_TB_LIB(createAssetManager)(JNIEnv * env, jobject obj, jobject assetManager);
-}
-
-JNI_VOID_TB_LIB(createAssetManager)(JNIEnv* env, jobject obj, jobject assetManager)
-{
-	TBDebugOut("createAssetManager in native side");
-    set_jnienv(env);
-	
-    TBDebugOut("createAssetManager - enviroment set ");
-	AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
-	assert(mgr);
-    if (!mgr) TBDebugOut("Failed to create Asset manager");
-
-	// Store the assest manager for future use.
-	SetAssetManager(mgr);
-}
-
-
-extern "C"
-{
-	JNI_VOID_TB_LIB(SetUpRootPath)(JNIEnv * env, jobject obj, jstring RootPath);
-}
-
-JNI_VOID_TB_LIB(SetUpRootPath)(JNIEnv* env, jobject obj, jstring RootPath)
-{
-	TBDebugOut("Setting up RootPath in native environment.");
-    set_jnienv(env);
-	
-    char * nativeString;
-    const char * _nativeString = env->GetStringUTFChars(RootPath, JNI_FALSE);
-    nativeString = strdup (_nativeString);
-   // use your string
-
-   env->ReleaseStringUTFChars(RootPath, _nativeString);
-   SetmyRootPath(nativeString);
-}
-
-
-
 #else // ANDROID
 
-#ifdef TB_RUNTIME_DEBUG_INFO
 void TBDebugOut(const char *str)
 {
 	SDL_Log("%s", str);
 	//SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s", str);
 }
+#endif // ANDROID
 #endif // TB_RUNTIME_DEBUG_INFO
 
-#endif // ANDROID
 
 namespace tb {
 
@@ -284,13 +210,13 @@ char * TBSystem::GetRoot()
 	if (!basepath)
 		basepath = SDL_GetBasePath();
 #ifdef ANDROID
-    //LOGI("The RootPath is :   %s" , myRootPath);
-        //basepath=(char*)"/sdcard/";
-    basepath=myRootPath;
+    TBStr ExtPath(SDL_AndroidGetExternalStoragePath());
+    ExtPath.Append("/");
+	basepath = strdup(ExtPath.CStr());
 #endif
 	return basepath;
 }
 
 } // namespace tb
 
-#endif // TB_SYSTEM_LINUX
+#endif // TB_SYSTEM_SDL
