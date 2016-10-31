@@ -694,6 +694,7 @@ TBBlock::TBBlock(TBStyleEdit *styledit)
 	, align(styledit->align)
 	, line_width_max(0)
 	, str_len(0)
+	, syntax_data(0)
 {
 }
 
@@ -914,6 +915,8 @@ void TBBlock::Layout(bool update_fragments, bool propagate_height)
 			if (!more)
 				break;
 		}
+		if (styledit->syntax_highlighter)
+			styledit->syntax_highlighter->OnFragmentsUpdated(this);
 	}
 
 	// Layout
@@ -1162,10 +1165,20 @@ void TBBlock::Paint(int32_t translate_x, int32_t translate_y, TBTextProps *props
 	paint_props.translate_x = translate_x;
 	paint_props.translate_y = translate_y + ypos;
 
+	if (styledit->syntax_highlighter)
+		styledit->syntax_highlighter->OnPaintBlock(&paint_props);
+
 	TBTextFragment *fragment = fragments.GetFirst();
 	while (fragment)
 	{
+		if (styledit->syntax_highlighter)
+			styledit->syntax_highlighter->OnBeforePaintFragment(&paint_props, fragment);
+
 		fragment->Paint(&paint_props);
+
+		if (styledit->syntax_highlighter)
+			styledit->syntax_highlighter->OnAfterPaintFragment(&paint_props, fragment);
+
 		fragment = fragment->GetNext();
 	}
 }
@@ -1367,6 +1380,7 @@ bool TBTextFragment::GetAllowBreakAfter(const TBBlock * block) const
 TBStyleEdit::TBStyleEdit()
 	: listener(nullptr)
 	, content_factory(&default_content_factory)
+	, syntax_highlighter(nullptr)
 	, layout_width(0)
 	, layout_height(0)
 	, content_width(0)
@@ -1413,6 +1427,12 @@ void TBStyleEdit::SetContentFactory(TBTextFragmentContentFactory *content_factor
 		this->content_factory = content_factory;
 	else
 		this->content_factory = &default_content_factory;
+}
+
+void TBStyleEdit::SetSyntaxHighlighter(TBSyntaxHighlighter *syntax_highlighter)
+{
+	this->syntax_highlighter = syntax_highlighter;
+	Reformat(true);
 }
 
 void TBStyleEdit::SetFont(const TBFontDescription &font_desc)
@@ -1747,7 +1767,7 @@ bool TBStyleEdit::KeyDown(int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifi
 
 	// Hooks
 	if (!move_caret && handled)
-		listener->OnChange();
+		InvokeOnChange();
 	if (special_key == TB_KEY_ENTER && !(modifierkeys & TB_CTRL))
 	{
 		if (listener->OnEnter())
@@ -1781,7 +1801,7 @@ void TBStyleEdit::Paste()
 	{
 		InsertText(text.CStr(), text.Length());
 		ScrollIfNeeded(true, true);
-		listener->OnChange();
+		InvokeOnChange();
 	}
 }
 
@@ -1790,7 +1810,7 @@ void TBStyleEdit::Delete()
 	if (selection.IsSelected())
 	{
 		selection.RemoveContent();
-		listener->OnChange();
+		InvokeOnChange();
 	}
 }
 
@@ -1799,7 +1819,7 @@ void TBStyleEdit::Undo()
 	if (CanUndo())
 	{
 		undoredo.Undo(this);
-		listener->OnChange();
+		InvokeOnChange();
 	}
 }
 
@@ -1808,7 +1828,7 @@ void TBStyleEdit::Redo()
 	if (CanRedo())
 	{
 		undoredo.Redo(this);
-		listener->OnChange();
+		InvokeOnChange();
 	}
 }
 
@@ -1934,7 +1954,7 @@ bool TBStyleEdit::SetText(const TBStr & text, TB_CARET_POS pos)
 	if (pos == TB_CARET_POS_END)
 		caret.Place(blocks.GetLast(), blocks.GetLast()->str_len);
 
-	listener->OnChange();
+	InvokeOnChange();
 	return true;
 }
 
@@ -1943,6 +1963,13 @@ bool TBStyleEdit::GetText(TBStr &text) const
 	TBSelection tmp_selection(this);
 	tmp_selection.SelectAll();
 	return tmp_selection.GetText(text);
+}
+
+void TBStyleEdit::InvokeOnChange()
+{
+	listener->OnChange();
+	if (syntax_highlighter)
+		syntax_highlighter->OnChange(this);
 }
 
 bool TBStyleEdit::IsEmpty() const
