@@ -405,7 +405,13 @@ void TBEditField::OnInflate(const INFLATE_INFO &info)
 		SetVirtualWidth(g_tb_skin->GetDimensionConverter()->GetPxFromString(virtual_width, GetVirtualWidth()));
 	if (TBStr text = info.node->GetValueString("placeholder", nullptr))
 		SetPlaceholderText(text);
-	if (TBStr type = info.node->GetValueString("type", nullptr))
+	if (const TBStr text_align = info.node->GetValueString("text-align", nullptr))
+	{
+		if (!strcmp(text_align, "left"))		SetTextAlign(TB_TEXT_ALIGN_LEFT);
+		else if (!strcmp(text_align, "center"))	SetTextAlign(TB_TEXT_ALIGN_CENTER);
+		else if (!strcmp(text_align, "right"))	SetTextAlign(TB_TEXT_ALIGN_RIGHT);
+	}
+	if (const TBStr type = info.node->GetValueString("type", nullptr))
 	{
 		if (stristr(type, "text"))			SetEditType(EDIT_TYPE_TEXT);
 		else if (stristr(type, "search"))	SetEditType(EDIT_TYPE_SEARCH);
