@@ -748,8 +748,11 @@ bool TBMover::OnEvent(const TBWidgetEvent &ev)
 		if (target->GetParent())
 		{
 			// Apply limit.
-			rect.x = CLAMP(rect.x, -pointer_down_widget_x, target->GetParent()->GetRect().w - pointer_down_widget_x);
-			rect.y = CLAMP(rect.y, -pointer_down_widget_y, target->GetParent()->GetRect().h - pointer_down_widget_y);
+			//! fixed - the target xy should be constrained to its parent, not the pointer xy!
+			//rect.x = CLAMP(rect.x, -pointer_down_widget_x, target->GetParent()->GetRect().w - pointer_down_widget_x);
+			//rect.y = CLAMP(rect.y, -pointer_down_widget_y, target->GetParent()->GetRect().h - pointer_down_widget_y);
+			rect.x = CLAMP(rect.x, 50 - rect.w, target->GetParent()->GetRect().w - 50);
+			rect.y = CLAMP(rect.y, 50 - rect.w, target->GetParent()->GetRect().h - 50);
 		}
 		target->SetRect(rect);
 		return true;
