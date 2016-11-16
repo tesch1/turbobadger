@@ -12,10 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef ANDROID
-  #include <EGL/egl.h>
-#endif
-
 namespace tb {
 
 #ifdef TB_RUNTIME_DEBUG_INFO
@@ -217,13 +213,6 @@ TBRendererGL::TBRendererGL()
 	m_orthoLoc = glGetUniformLocation(m_program, "ortho");
 	m_texLoc = glGetUniformLocation(m_program, "tex");
 
-#ifdef ANDROID
-PFNGLGENVERTEXARRAYSOESPROC glGenVertexArraysOES;
-PFNGLBINDVERTEXARRAYOESPROC glBindVertexArrayOES;
-glGenVertexArraysOES = (PFNGLGENVERTEXARRAYSOESPROC)eglGetProcAddress ( "glGenVertexArraysOES" );
-glBindVertexArrayOES = (PFNGLBINDVERTEXARRAYOESPROC)eglGetProcAddress ( "glBindVertexArrayOES" );
-#endif
-
 	GLCALL(glGenVertexArrays(1, &m_vao));
 	GLCALL(glBindVertexArray(m_vao));
 
@@ -283,10 +272,6 @@ void TBRendererGL::BeginPaint(int render_target_w, int render_target_h)
 	g_current_batch = nullptr;
 
 #if defined(TB_RENDERER_GLES_2) || defined(TB_RENDERER_GL3)
-  #ifdef ANDROID
-     PFNGLBINDVERTEXARRAYOESPROC glBindVertexArrayOES;
-     glBindVertexArrayOES = (PFNGLBINDVERTEXARRAYOESPROC)eglGetProcAddress ( "glBindVertexArrayOES" );
-  #endif
 	GLCALL(glBindVertexArray(m_vao));
 	GLCALL(glUseProgram(m_program));
 	static float ortho[16];
