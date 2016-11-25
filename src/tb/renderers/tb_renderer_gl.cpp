@@ -99,7 +99,7 @@ static bool gl_supports_ext(const char * extname)
 // == Batching ====================================================================================
 
 GLuint g_current_texture = (GLuint)-1;
-TBRendererBatcher::Batch *g_current_batch = 0;
+TBRendererBatcher::Batch *g_current_batch = nullptr;
 
 void BindBitmap(TBBitmap *bitmap)
 {

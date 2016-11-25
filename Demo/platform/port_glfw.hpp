@@ -14,7 +14,7 @@ public:
 	bool Init(App *app);
 	AppBackendGLFW()	: m_app(nullptr)
 						, m_renderer(nullptr)
-						, mainWindow(0)
+						, mainWindow(nullptr)
 						, m_cursor_i_beam(nullptr)
 						, m_has_pending_update(false)
 						, m_quit_requested(false) {}
