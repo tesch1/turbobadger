@@ -30,18 +30,23 @@ public:
 	int GetWidth(TBWidget *widget);
 	int GetHeight(TBWidget *widget);
 
-	bool SetText(const TBStr & text) { return m_text.Set(text); }
-	bool GetText(TBStr &text) const { return text.Set(m_text); }
+	bool SetText(const TBStr &text);
+	bool GetText(TBStr &text) const;
 
 	bool IsEmpty() const { return m_text.IsEmpty(); }
+	bool Equals(const TBStr &str) const { return m_text == str; }
 
 	/** Set which alignment the text should have if the space
 		given when painting is larger than the text. */
 	void SetTextAlign(TB_TEXT_ALIGN align) { m_text_align = align; }
 	TB_TEXT_ALIGN GetTextAlign() const { return m_text_align; }
-public:
+private:
 	TBStr m_text;
 	TB_TEXT_ALIGN m_text_align;
+	// Cached data
+	int m_width, m_height;
+	TBFontDescription m_fd;
+	void ValidatCachedSize(TBWidget *widget);
 };
 
 /** TBTextField is a one line text field that is not editable. */
@@ -56,7 +61,7 @@ public:
 
 	/** Set the text of the text field. */
 	virtual bool SetText(const TBStr & text);
-	virtual bool GetText(TBStr &text) const { return m_text.GetText(text); }
+	virtual bool GetText(TBStr &text) const;
 	using TBWidget::GetText; ///< Make all versions in base class available.
 
 	/** Set the value in double precision. */
