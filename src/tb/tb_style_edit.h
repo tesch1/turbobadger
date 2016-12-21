@@ -353,9 +353,12 @@ public:
 			uint32_t is_space		: 1;  ///< Fragment is white space
 			uint32_t is_tab			: 1;  ///< Fragment is tab
 			uint32_t syntax_data	: 10; ///< Free to use in any way from TBSyntaxHighlighter subclasses
+			uint32_t width			: 11; ///< width cache. Bit number need to match shift in WIDTH_CACHE_MASK.
+			uint32_t is_width_valid	: 1;  ///< width cache is set
 		} m_packed;
 		uint32_t m_packed_init;
 	};
+	static const uint32_t WIDTH_CACHE_MASK = (1 << 11) - 1;
 	TBTextFragmentContent *content;
 };
 
