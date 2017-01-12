@@ -210,13 +210,15 @@ void TBSystem::SetDPI(int dpi)
 char * TBSystem::GetRoot()
 {
     static char * basepath = NULL;
-	if (!basepath)
-		basepath = SDL_GetBasePath();
+	if (!basepath) {
 #ifdef ANDROID
-    TBStr ExtPath(SDL_AndroidGetExternalStoragePath());
-    ExtPath.Append("/");
-	basepath = strdup(ExtPath.CStr());
+		TBStr ExtPath(SDL_AndroidGetExternalStoragePath());
+		ExtPath.Append("/");
+		basepath = strdup(ExtPath.CStr());
+#else
+		basepath = SDL_GetBasePath();
 #endif
+	}
 	return basepath;
 }
 
