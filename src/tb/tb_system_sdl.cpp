@@ -38,10 +38,11 @@ void TBDebugOut(const char *str)
 }
 #else // ANDROID
 
+#if defined(TB_RUNTIME_DEBUG_INFO) || 1
 void TBDebugOut(const char *str)
 {
 	SDL_Log("%s", str);
-	//SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s", str);
+	SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s", str);
 }
 #endif // ANDROID
 #endif // TB_RUNTIME_DEBUG_INFO
@@ -199,17 +200,17 @@ int TBSystem::_dpi = 96;
 
 int TBSystem::GetDPI()
 {
-    return _dpi;
+	return _dpi;
 }
 
 void TBSystem::SetDPI(int dpi)
 {
-    _dpi = dpi;
+	_dpi = dpi;
 }
 
 char * TBSystem::GetRoot()
 {
-    static char * basepath = NULL;
+	static char * basepath = NULL;
 	if (!basepath) {
 #ifdef ANDROID
 		TBStr ExtPath(SDL_AndroidGetExternalStoragePath());
@@ -224,7 +225,7 @@ char * TBSystem::GetRoot()
 
 char * TBSystem::GetPrefPath()
 {
-    static char * prefpath = NULL;
+	static char * prefpath = NULL;
 	if (!prefpath)
 		prefpath = SDL_GetPrefPath("spindrops", "SpinDrops");
 	return prefpath;
