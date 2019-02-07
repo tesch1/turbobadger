@@ -7,7 +7,9 @@ packaged programming interface.
 
 <a href="https://github.com/fruxo/turbobadger">The original GitHub repository is here.</a>
 
-<a href="https://github.com/tesch1/turbobadger">The branch GitHub repository is here.</a>
+<a href="https://github.com/tesch1/turbobadger">The branch GitHub
+repository is here -- notice that the default git branch is
+'hastybadger'.</a>
 
 Here's an example of TurboBadgerDemo running in the browser via Emscripten:
   <A HREF="TurboBadgerDemoSDL.html">TurboBadgerDemoSDL.html</A>
@@ -134,7 +136,7 @@ Needs to be implemented for file loading.
 
 */
 
-/** @page page_widgets Widgets
+/** @defgroup group_widgets Widgets
 
 \section sec_commonwidg List of common widgets
 

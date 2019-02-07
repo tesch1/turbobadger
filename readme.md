@@ -20,6 +20,7 @@ Current TravisCI build status: [![Build Status](https://travis-ci.com/tesch1/tur
 Differences from TurboBadger
 ----------------------------
 
+- [Online Documentation](http://tesch1.github.io/turbobadger/)
 - [SDL2 Platform Demo](Demo/platform/port_sdl2.cpp)
 - [Android Studio Project](DemoAndroid2/)
 - [Emscripten Platform Demo](http://tesch1.github.io/turbobadger/TurboBadgerDemoSDL.html)

@@ -50,6 +50,8 @@ usage:
   -glfw    build for glfw
   -clang   set CC=clang CXX=clang++
 
+  -doc     build doxygen docs in doc/
+
   -v       be more verbose
   -q       be less verbose
 EOF
@@ -69,6 +71,7 @@ case "${unameOut}" in
     *)          machine="UNKNOWN:${unameOut}"
 esac
 echo "CMAKE_FLAGS: ${CMAKE_FLAGS}"
+cd "${SRC_DIR}"
 
 # process command line args
 while [ $# -gt 0 ]; do
@@ -80,6 +83,9 @@ while [ $# -gt 0 ]; do
             export CXX=clang++
             ;;
         -doc*)
+            for skin in resources/*skin*/ ; do
+                ./doc/skindoc.py "$skin/skin.tb.txt"
+            done
             # take a detour, update the gh-pages branch
             ./doc/ghpages.sh
             echo "Made docs"
@@ -132,7 +138,6 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-cd "${SRC_DIR}"
 if [ ! -f ./integration.txt ]; then
     echo "run build.sh from turbobadger root directory"
     exit 1
@@ -147,6 +152,7 @@ if [ ! -z "${BUILD_DIR}" ] && [ -d "${BUILD_DIR}" ]; then
     rm -rf "${BUILD_DIR}"
 fi
 mkdir -p "${BUILD_DIR}"
+
+cmake --H"${SRC_DIR}" -B"${BUILD_DIR}" ${CMAKE_FLAGS} -G 'Unix Makefiles'
 cd "${BUILD_DIR}"
-cmake "${SRC_DIR}" ${CMAKE_FLAGS} -G 'Unix Makefiles'
 make -j${NPROC} ${MAKE_FLAGS}

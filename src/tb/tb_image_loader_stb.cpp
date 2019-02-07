@@ -77,15 +77,15 @@ TBImageLoader *TBImageLoader::CreateFromFile(const TBStr & filename, float dpi)
 				unsigned char * img_data = (unsigned char *)malloc(image->width * image->height * 4);
 				nsvgRasterize(rast, image, 0,0,1, img_data, image->width, image->height, image->width * 4);
 				nsvgDeleteRasterizer(rast);
-				nsvgDelete(image);
 				if (NSVG_Loader * img = new NSVG_Loader()) {
 					img->width = image->width;
 					img->height = image->height;
 					img->data = img_data;
+					nsvgDelete(image);
 					return img;
 				}
-				else
-					free(img_data);
+				nsvgDelete(image);
+				free(img_data);
 			}
 		}
 		else if (unsigned char *img_data = stbi_load_from_memory(

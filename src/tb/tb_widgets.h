@@ -401,6 +401,9 @@ enum WIDGET_HIT_STATUS {
 	WIDGET_HIT_STATUS_HIT_NO_CHILDREN		///< The widget was hit, no children should be hit.
 };
 
+/** @addtogroup group_widgets
+ * @{
+ */
 /** The base TBWidget class.
 
 	Subclass this to implement UI controls.  Each widget has a
@@ -1201,6 +1204,8 @@ private:
 	/** Returns the opacity for this widget multiplied with its skin opacity and state opacity. */
 	float CalculateOpacityInternal(WIDGET_STATE state, TBSkinElement *skin_element);
 };
+
+/** @} */
 
 } // namespace tb
 
