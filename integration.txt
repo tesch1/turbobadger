@@ -111,3 +111,18 @@ Needs to be implemented for clipboard support.
 
 TBFile
 Needs to be implemented for file loading.
+
+Custom widgets
+-----------------------------------------------------------------------------------
+
+Widgets are cheap to create and layout and using many widgets to get what you want
+is encouraged. A custom widget should typically not implement any layouting and
+drawing of sub-elements if it can be solved by wrapping a TBLayout and other
+existing widgets.
+
+Any widget may contain other widgets and may control into which sub-widget other
+widgets are inflated from resources (using `TBWidget::GetContentRoot`).
+
+Custom widgets can be inflated from UI resources too. See the use of the
+`TB_WIDGET_FACTORY` macro in `tb_widgets_reader.cpp` for examples on how to do
+this.
