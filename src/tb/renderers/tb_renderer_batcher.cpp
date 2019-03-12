@@ -188,6 +188,15 @@ void TBRendererBatcher::DrawBitmapColored(const TBRect &dst_rect, const TBRect &
 					src_rect, VER_COL(color.r, color.g, color.b, a), bitmap, nullptr);
 }
 
+void TBRendererBatcher::DrawBitmapColored(const TBPoint dst_poly[4], const TBRect &src_rect, const TBColor &color, TBBitmap *bitmap)
+{
+	uint32_t a = (color.a * m_opacity) / 255;
+	TBPoint moved_poly[4];
+	for (size_t i = 0; i < 4; ++i)
+		moved_poly[i] = TBPoint(dst_poly[i].x + m_translation_x, dst_poly[i].y + m_translation_y);
+	AddPoly4Internal(moved_poly, src_rect, VER_COL(color.r, color.g, color.b, a), bitmap, nullptr);
+}
+
 void TBRendererBatcher::DrawBitmapTile(const TBRect &dst_rect, TBBitmap *bitmap)
 {
 	AddQuadInternal(dst_rect.Offset(m_translation_x, m_translation_y),
@@ -205,6 +214,18 @@ void TBRendererBatcher::DrawBitmapTileColored(const TBRect &dst_rect, const TBCo
 
 void TBRendererBatcher::AddQuadInternal(const TBRect &dst_rect, const TBRect &src_rect, uint32_t color, TBBitmap *bitmap, TBBitmapFragment *fragment)
 {
+	TBPoint dst_poly[4] = {
+		// clang-format off
+		TBPoint(dst_rect.x, dst_rect.y+dst_rect.h), TBPoint(dst_rect.x+dst_rect.w, dst_rect.y+dst_rect.h),
+		TBPoint(dst_rect.x, dst_rect.y           ), TBPoint(dst_rect.x+dst_rect.w, dst_rect.y           )
+		// clang-format on
+	};
+
+	AddPoly4Internal(dst_poly, src_rect, color, bitmap, fragment);
+}
+
+void TBRendererBatcher::AddPoly4Internal(const TBPoint dst_poly[4], const TBRect &src_rect, uint32_t color, TBBitmap *bitmap, TBBitmapFragment *fragment)
+{
 	if (batch.bitmap != bitmap)
 	{
 		batch.Flush(this);
@@ -220,34 +241,34 @@ void TBRendererBatcher::AddQuadInternal(const TBRect &dst_rect, const TBRect &sr
 	m_vv = (float) (src_rect.y + src_rect.h) / bitmap_h;
 
 	Vertex *ver = batch.Reserve(this, 6);
-	ver[0].x = (float) dst_rect.x;
-	ver[0].y = (float) (dst_rect.y + dst_rect.h);
+	ver[0].x = (float) dst_poly[0].x;
+	ver[0].y = (float) dst_poly[0].y;
 	ver[0].u = m_u;
 	ver[0].v = m_vv;
 	ver[0].col = color;
-	ver[1].x = (float) (dst_rect.x + dst_rect.w);
-	ver[1].y = (float) (dst_rect.y + dst_rect.h);
+	ver[1].x = (float) dst_poly[1].x;
+	ver[1].y = (float) dst_poly[1].y;
 	ver[1].u = m_uu;
 	ver[1].v = m_vv;
 	ver[1].col = color;
-	ver[2].x = (float) dst_rect.x;
-	ver[2].y = (float) dst_rect.y;
+	ver[2].x = (float) dst_poly[2].x;
+	ver[2].y = (float) dst_poly[2].y;
 	ver[2].u = m_u;
 	ver[2].v = m_v;
 	ver[2].col = color;
 
-	ver[3].x = (float) dst_rect.x;
-	ver[3].y = (float) dst_rect.y;
+	ver[3].x = (float) dst_poly[2].x;
+	ver[3].y = (float) dst_poly[2].y;
 	ver[3].u = m_u;
 	ver[3].v = m_v;
 	ver[3].col = color;
-	ver[4].x = (float) (dst_rect.x + dst_rect.w);
-	ver[4].y = (float) (dst_rect.y + dst_rect.h);
+	ver[4].x = (float) dst_poly[1].x;
+	ver[4].y = (float) dst_poly[1].y;
 	ver[4].u = m_uu;
 	ver[4].v = m_vv;
 	ver[4].col = color;
-	ver[5].x = (float) (dst_rect.x + dst_rect.w);
-	ver[5].y = (float) dst_rect.y;
+	ver[5].x = (float) dst_poly[3].x;
+	ver[5].y = (float) dst_poly[3].y;
 	ver[5].u = m_uu;
 	ver[5].v = m_v;
 	ver[5].col = color;

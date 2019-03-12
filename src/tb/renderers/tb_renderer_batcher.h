@@ -66,6 +66,7 @@ public:
 	virtual void DrawBitmap(const TBRect &dst_rect, const TBRect &src_rect, TBBitmap *bitmap);
 	virtual void DrawBitmapColored(const TBRect &dst_rect, const TBRect &src_rect, const TBColor &color, TBBitmapFragment *bitmap_fragment);
 	virtual void DrawBitmapColored(const TBRect &dst_rect, const TBRect &src_rect, const TBColor &color, TBBitmap *bitmap);
+	virtual void DrawBitmapColored(const TBPoint dst_poly[4], const TBRect &src_rect, const TBColor &color, TBBitmap *bitmap);
 	virtual void DrawBitmapTile(const TBRect &dst_rect, TBBitmap *bitmap);
     virtual void DrawBitmapTileColored(const TBRect &dst_rect, const TBColor &color, TBBitmap *bitmap);
 	virtual void FlushBitmap(TBBitmap *bitmap);
@@ -89,6 +90,7 @@ protected:
 	Batch batch; ///< The one and only batch. this should be improved.
 
 	void AddQuadInternal(const TBRect &dst_rect, const TBRect &src_rect, uint32_t color, TBBitmap *bitmap, TBBitmapFragment *fragment);
+	void AddPoly4Internal(const TBPoint dst_poly[4], const TBRect &src_rect, uint32_t color, TBBitmap *bitmap, TBBitmapFragment *fragment);
 	void FlushAllInternal();
 };
 
