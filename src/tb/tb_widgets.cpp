@@ -40,7 +40,7 @@ TBWidget::TOUCH_INFO *TBWidget::GetTouchInfo(uint32_t id)
 	return s_touch_info.Get(id);
 }
 
-static TBWidget::TOUCH_INFO *NewTouchInfo(uint32_t id)
+static TBWidget::TOUCH_INFO *AddTouchInfo(uint32_t id)
 {
 	assert(!s_touch_info.Get(id));
 	TBWidget::TOUCH_INFO *ti = new TBWidget::TOUCH_INFO;
@@ -1505,108 +1505,100 @@ void TBWidget::InvokePointerCancel()
 		captured_widget->ReleaseCapture();
 }
 
-bool TBWidget::InvokeTouchDown(int x, int y, uint32_t id, int click_count, MODIFIER_KEYS modifierkeys)
+bool TBWidget::InvokeTouchDown(int x, int y, float tx, float ty, uint32_t id, int click_count, MODIFIER_KEYS modifierkeys)
 {
-	if (id == 0)
-		return InvokePointerDown(x, y, click_count, modifierkeys, true);
+	TOUCH_INFO *ti = AddTouchInfo(id);
 
-	TOUCH_INFO *ti = NewTouchInfo(id);
 	if (!ti)
-		return false;
+        return false;
 
 	if (!ti->captured_widget)
 		ti->captured_widget = GetWidgetAt(x, y, true);
 	if (ti->captured_widget && !ti->captured_widget->GetState(WIDGET_STATE_DISABLED))
 		ti->hovered_widget = ti->captured_widget;
 
-	if (ti->captured_widget)
-	{
-		ti->captured_widget->ConvertFromRoot(x, y);
-		ti->move_widget_x = ti->down_widget_x = x;
-		ti->move_widget_y = ti->down_widget_y = y;
-		TBWidgetEvent ev(EVENT_TYPE_TOUCH_DOWN, x, y, true, modifierkeys);
-		ev.count = click_count;
-		ev.ref_id = id;
-		ti->captured_widget->InvokeEvent(ev);
-		return true;
-	}
-	return false;
+	if (!ti->captured_widget)
+	    return false;
+
+    ti->captured_widget->ConvertFromRoot(x, y);
+    ti->move_widget_x = ti->down_widget_x = x;
+    ti->move_widget_y = ti->down_widget_y = y;
+    TBWidgetEvent ev(EVENT_TYPE_TOUCH_DOWN, x, y, true, modifierkeys);
+    ev.count = click_count;
+    ev.ref_id = id;
+    ti->captured_widget->InvokeEvent(ev);
+    return true;
 }
 
-bool TBWidget::InvokeTouchUp(int x, int y, uint32_t id, MODIFIER_KEYS modifierkeys)
+bool TBWidget::InvokeTouchUp(int x, int y, float tx, float ty, uint32_t id, MODIFIER_KEYS modifierkeys)
 {
-	if (id == 0)
-		return InvokePointerUp(x, y, 1, modifierkeys, true);
 	TOUCH_INFO *ti = GetTouchInfo(id);
-	if (ti && ti->captured_widget)
-	{
-		ti->captured_widget->ConvertFromRoot(x, y);
-		TBWidgetEvent ev(EVENT_TYPE_TOUCH_UP, x, y, true, modifierkeys);
-		ev.ref_id = id;
-		ti->captured_widget->InvokeEvent(ev);
-		DeleteTouchInfo(id);
-		return true;
-	}
-	return false;
+	if (!ti)
+	    return false;
+
+    if (!ti->captured_widget) {
+        DeleteTouchInfo(id);
+        return false;
+    }
+
+    ti->captured_widget->ConvertFromRoot(x, y);
+    TBWidgetEvent ev(EVENT_TYPE_TOUCH_UP, x, y, true, modifierkeys);
+    ev.ref_id = id;
+    ti->captured_widget->InvokeEvent(ev);
+    DeleteTouchInfo(id);
+    return true;
 }
 
-void TBWidget::InvokeTouchMove(int x, int y, uint32_t id, MODIFIER_KEYS modifierkeys)
+void TBWidget::InvokeTouchMove(int x, int y, float tx, float ty, uint32_t id, MODIFIER_KEYS modifierkeys)
 {
-	if (id == 0)
-		return InvokePointerMove(x, y, modifierkeys, true);
-
 	TOUCH_INFO *ti = GetTouchInfo(id);
 	if (!ti)
 		return;
 
 	ti->hovered_widget = GetWidgetAt(x, y, true);
-	if (ti->captured_widget)
-	{
-		ti->captured_widget->ConvertFromRoot(x, y);
-		ti->move_widget_x = x;
-		ti->move_widget_y = y;
-		TBWidgetEvent ev(EVENT_TYPE_TOUCH_MOVE, x, y, true, modifierkeys);
-		ev.ref_id = id;
-		if (ti->captured_widget->InvokeEvent(ev))
-			return;
-	}
+	if (!ti->captured_widget)
+	    return;
+
+    ti->captured_widget->ConvertFromRoot(x, y);
+    ti->move_widget_x = x;
+    ti->move_widget_y = y;
+    TBWidgetEvent ev(EVENT_TYPE_TOUCH_MOVE, x, y, true, modifierkeys);
+    ev.ref_id = id;
+    ti->captured_widget->InvokeEvent(ev);
 }
 
 void TBWidget::InvokeTouchCancel(uint32_t id)
 {
-	if (id == 0)
-		return InvokePointerCancel();
-
 	TOUCH_INFO *ti = GetTouchInfo(id);
-	if (ti)
-	{
-		if (ti->captured_widget)
-		{
-			TBWidgetEvent ev(EVENT_TYPE_TOUCH_CANCEL, 0, 0, true);
-			ev.ref_id = id;
-			ti->captured_widget->InvokeEvent(ev);
-		}
-		DeleteTouchInfo(id);
-	}
+	if (!ti)
+	    return;
+
+    if (!ti->captured_widget) {
+        DeleteTouchInfo(id);
+        return;
+    }
+
+    TBWidgetEvent ev(EVENT_TYPE_TOUCH_CANCEL, 0, 0, true);
+    ev.ref_id = id;
+    ti->captured_widget->InvokeEvent(ev);
+    DeleteTouchInfo(id);
 }
 
-bool TBWidget::InvokeTouchGesture(int x, int y, float dTheta, float dDist, uint16_t numFingers)
+bool TBWidget::InvokeTouchGesture(int x, int y, float tx, float ty, float dTheta, float dDist, uint16_t numFingers)
 {
 	SetHoveredWidget(GetWidgetAt(x, y, true), true);
 
 	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
-	if (target)
-	{
-		target->ConvertFromRoot(x, y);
-		TBWidgetEvent ev(x, y, dTheta, dDist, numFingers);
-		target->InvokeEvent(ev);
+	if (!target)
+	    return false;
 
-		// Return true when we have a target instead of InvokeEvent result. If a widget is
-		// hit is more interesting for callers than if the event was handled or not.
-		return true;
-	}
+    target->ConvertFromRoot(x, y);
+    TBWidgetEvent ev(x, y, tx, ty, dTheta, dDist, numFingers);
+    target->InvokeEvent(ev);
 
-	return false;
+    // Return true when we have a target instead of InvokeEvent result. If a widget is
+    // hit is more interesting for callers than if the event was handled or not.
+    return true;
 }
 
 bool TBWidget::InvokeWheel(int x, int y, int delta_x, int delta_y, MODIFIER_KEYS modifierkeys)
@@ -1614,22 +1606,20 @@ bool TBWidget::InvokeWheel(int x, int y, int delta_x, int delta_y, MODIFIER_KEYS
 	SetHoveredWidget(GetWidgetAt(x, y, true), true);
 
 	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
-	if (target)
-	{
-		target->ConvertFromRoot(x, y);
-		pointer_move_widget_x = x;
-		pointer_move_widget_y = y;
-		TBWidgetEvent ev(EVENT_TYPE_WHEEL, x, y, true, modifierkeys);
-		ev.delta_x = delta_x;
-		ev.delta_y = delta_y;
-		target->InvokeEvent(ev);
+	if (!target)
+	    return false;
 
-		// Return true when we have a target instead of InvokeEvent result. If a widget is
-		// hit is more interesting for callers than if the event was handled or not.
-		return true;
-	}
+    target->ConvertFromRoot(x, y);
+    pointer_move_widget_x = x;
+    pointer_move_widget_y = y;
+    TBWidgetEvent ev(EVENT_TYPE_WHEEL, x, y, true, modifierkeys);
+    ev.delta_x = delta_x;
+    ev.delta_y = delta_y;
+    target->InvokeEvent(ev);
 
-	return false;
+    // Return true when we have a target instead of InvokeEvent result. If a widget is
+    // hit is more interesting for callers than if the event was handled or not.
+    return true;
 }
 
 bool TBWidget::InvokeKey(int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifierkeys, bool down)

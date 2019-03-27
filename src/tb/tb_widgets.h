@@ -119,6 +119,8 @@ public:
 						///  Set for EVENT_TYPE_KEY_*, EVENT_TYPE_TOUCH_* and EVENT_TYPE_WHEEL
 	int target_y;		///< Y position in target widget.
 						///  Set for EVENT_TYPE_KEY_*, EVENT_TYPE_TOUCH_* and EVENT_TYPE_WHEEL
+    float touch_x;      ///< Set for EVENT_TYPE_TOUCH_*, relative X position on the touch device.
+    float touch_y;      ///< Set for EVENT_TYPE_TOUCH_*, relative Y position on the touch device.
 	int delta_x;		///< Set for EVENT_TYPE_WHEEL. Positive is a turn right.
 	int delta_y;		///< Set for EVENT_TYPE_WHEEL. Positive is a turn against the user.
 	float delta_theta;  ///< Set for EVENT_TYPE_TOUCH_GESTURE. Positive is clockwise rotation during this motion
@@ -137,26 +139,26 @@ public:
 	TBOBJECT_SUBCLASS(TBWidgetEvent, TBTypedObject);
 
 	TBWidgetEvent(EVENT_TYPE type)
-		: target(nullptr), type(type), target_x(0), target_y(0), delta_x(0), delta_y(0),
-		  delta_theta(.0f), delta_dist(.0f), count(1), key(0), special_key(TB_KEY_UNDEFINED),
-		  modifierkeys(TB_MODIFIER_NONE), touch(false) {}
+		: target(nullptr), type(type), target_x(0), target_y(0), touch_x(0), touch_y(0),
+		  delta_x(0), delta_y(0), delta_theta(.0f), delta_dist(.0f), count(1), key(0),
+		  special_key(TB_KEY_UNDEFINED), modifierkeys(TB_MODIFIER_NONE), touch(false) {}
 
 	TBWidgetEvent(EVENT_TYPE type, int x, int y, bool touch, MODIFIER_KEYS modifierkeys = TB_MODIFIER_NONE)
-		: target(nullptr), type(type), target_x(x), target_y(y), delta_x(0), delta_y(0),
-		  delta_theta(.0f), delta_dist(.0f), count(1), key(0), special_key(TB_KEY_UNDEFINED),
-		  modifierkeys(modifierkeys), touch(touch) {}
+		: target(nullptr), type(type), target_x(x), target_y(y), touch_x(0), touch_y(0),
+		  delta_x(0), delta_y(0), delta_theta(.0f), delta_dist(.0f), count(1), key(0),
+		  special_key(TB_KEY_UNDEFINED), modifierkeys(modifierkeys), touch(touch) {}
 
 	// TouchUp, TouchDown, TouchMove, TouchCancel constructor
-	TBWidgetEvent(EVENT_TYPE type, int x, int y, int fingerid)
-		: target(nullptr), type(type), target_x(x), target_y(y), delta_x(0), delta_y(0),
-		  delta_theta(.0f), delta_dist(.0f), count(1), key(fingerid), special_key(TB_KEY_UNDEFINED),
-		  modifierkeys(TB_MODIFIER_NONE), touch(true) {}
+	TBWidgetEvent(EVENT_TYPE type, int x, int y, float tx, float ty, int fingerid)
+		: target(nullptr), type(type), target_x(x), target_y(y), touch_x(tx), touch_y(ty),
+		  delta_x(0), delta_y(0), delta_theta(.0f), delta_dist(.0f), count(1), key(fingerid),
+		  special_key(TB_KEY_UNDEFINED), modifierkeys(TB_MODIFIER_NONE), touch(true) {}
 
 	// TouchGesture constructor
-	TBWidgetEvent(int x, int y, float dTheta, float dDist, uint16_t numFingers)
-		: target(nullptr), type(EVENT_TYPE_TOUCH_GESTURE), target_x(x), target_y(y), delta_x(0), delta_y(0),
-		  delta_theta(dTheta), delta_dist(dDist), count(numFingers), key(0), special_key(TB_KEY_UNDEFINED),
-		  modifierkeys(TB_MODIFIER_NONE), touch(true) {}
+	TBWidgetEvent(int x, int y, float tx, float ty, float dTheta, float dDist, uint16_t numFingers)
+		: target(nullptr), type(EVENT_TYPE_TOUCH_GESTURE), target_x(x), target_y(y), touch_x(tx), touch_y(ty),
+		  delta_x(0), delta_y(0), delta_theta(dTheta), delta_dist(dDist), count(numFingers), key(0),
+		  special_key(TB_KEY_UNDEFINED), modifierkeys(TB_MODIFIER_NONE), touch(true) {}
 
 	/** The count value may be 1 to infinity. If you f.ex want to see which count it is for something
 		handling click and double click, call GetCountCycle(2). If you also handle triple click, call
@@ -1039,14 +1041,23 @@ public:
 	void InvokePointerCancel();
 
 	/** Invoke touch events with ref_id set as the given id.
-		Note: For id 0, it will invoke EVENT_TYPE_POINTER_DOWN (with touch flag set to true), and EVENT_TYPE_TOUCH_DOWN
-		for other id > 0. This results in normal interaction for first finger, and optional handling of other
-		simultaneous interaction. GetTouchInfo(id) can be used to get additional interaction info. */
-	bool InvokeTouchDown(int x, int y, uint32_t id, int click_count, MODIFIER_KEYS modifierkeys);
+		- x and y is the screen pointer position (0 to ScreenWidth and 0 to ScreenHeight)
+		- tx and ty are the relative positions of the touch compared to the touch device (both 0 to 1)
+		- GetTouchInfo(id) can be used to get additional interaction info.
+		- Touch-Screens invoke touch events as well as pointer events, in those
+		  cases tx=x/ScreenWidth and ty=y/ScreenHeight
+		- Touch-Pads invoke invoke only touch events, their touch positions do
+		  not translate to the screen positions in any way. Touch-Pads either
+		  have a separate left/right click buttons beneath the Touch-Pad (classic
+		  laptops) or a two level push sensitivity with a higher threshold (Macs).
+		  Pushing hard shortly invokes a left click, holding it longer invokes a
+		  right click.
+	*/
+	bool InvokeTouchDown(int x, int y, float tx, float ty, uint32_t id, int click_count, MODIFIER_KEYS modifierkeys);
 	/** See TBWidget::InvokeTouchDown */
-	bool InvokeTouchUp(int x, int y, uint32_t id, MODIFIER_KEYS modifierkeys);
+	bool InvokeTouchUp(int x, int y, float tx, float ty, uint32_t id, MODIFIER_KEYS modifierkeys);
 	/** See TBWidget::InvokeTouchDown */
-	void InvokeTouchMove(int x, int y, uint32_t id, MODIFIER_KEYS modifierkeys);
+	void InvokeTouchMove(int x, int y, float tx, float ty, uint32_t id, MODIFIER_KEYS modifierkeys);
 	/** See TBWidget::InvokeTouchDown */
 	void InvokeTouchCancel(uint32_t id);
 
@@ -1055,7 +1066,7 @@ public:
 	 *  - change of the center of mass coordinates
 	 *  - an internal rotation theta around the center
 	 *  - pinching a certain distance away/towards the center */
-	bool InvokeTouchGesture(int x, int y, float dtheta, float dDist, uint16_t numFingers);
+	bool InvokeTouchGesture(int x, int y, float tx, float ty, float dtheta, float dDist, uint16_t numFingers);
 	/** Event triggered by the mouse wheel */
 
 	bool InvokeWheel(int x, int y, int delta_x, int delta_y, MODIFIER_KEYS modifierkeys);
