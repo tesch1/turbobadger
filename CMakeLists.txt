@@ -5,13 +5,13 @@ project (TurboBadger CXX)
 cmake_minimum_required (VERSION 3.4.3)
 include (CheckCXXCompilerFlag)
 set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 set (VERSION_MAJOR "0")
 set (VERSION_MINOR "1")
 set (VERSION_PATCH "0")
 set (VERSION_BUILD "") # ie "-beta1", or empty string if release: ""
 set (VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
-set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 #
 # This approach to labeling beta versions is in line with Apple's
@@ -39,6 +39,9 @@ option (TB_GENERATE_CONFIG "Generate the tb_config.h file from provided paramete
 
 set (CMAKE_BUILD_TYPE "Release" CACHE STRING "Set build type")
 set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set (CMAKE_BUILD_TYPE "Release")
+endif (NOT CMAKE_BUILD_TYPE)
 
 # Which types to generate for for Xcode and VS, default to Release
 if (XCODE OR MSVS)
@@ -84,34 +87,30 @@ else ()
   set (TB_LIB_EXCLUDE_FROM_ALL "")
 endif (TB_BUILD_DEMO_GLFW)
 
-# could try to auto-detect these
+# could try to auto-detect TB_SYSTEM
 if (UNIX)
   cmake_dependent_option (TB_SYSTEM_LINUX "Set System to Linux" ON
-    "NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_MACOSX;NOT TB_SYSTEM_SDL2" OFF)
+    "NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_MACOSX;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_IOS" OFF)
 endif (UNIX)
 if (ANDROID)
   cmake_dependent_option (TB_SYSTEM_ANDROID "Set System to Android" ON
-    "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_MACOSX;NOT TB_SYSTEM_SDL2" OFF)
+    "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_MACOSX;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_IOS" OFF)
 endif (ANDROID)
 if (WIN32)
   cmake_dependent_option (TB_SYSTEM_WINDOWS "Set System to Windows" ON
-    "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_MACOSX;NOT TB_SYSTEM_SDL2" OFF)
+    "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_MACOSX;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_IOS" OFF)
 endif (WIN32)
 if (APPLE)
-  cmake_dependent_option (TB_SYSTEM_MACOSX "Set System to MacOSX" ON
-    "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_SDL2" OFF)
+  if (IOS)
+    cmake_dependent_option (TB_SYSTEM_IOS "Set System to iOS" ON
+      "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_MACOS" OFF)
+  else (IOS)
+    cmake_dependent_option (TB_SYSTEM_MACOSX "Set System to MacOSX" ON
+      "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_IOS" OFF)
+  endif (IOS)
 endif (APPLE)
 cmake_dependent_option (TB_SYSTEM_SDL2 "Set System to SDL2" ${TB_BUILD_DEMO_SDL2}
-  "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_MACOSX" OFF)
-
-cmake_dependent_option (TB_CLIPBOARD_DUMMY "Clipboard Dummy" ON
-  "NOT TB_CLIPBOARD_GLFW; NOT TB_CLIPBOARD_WINDOWS; NOT TB_CLIPBOARD_SDL2" OFF)
-cmake_dependent_option (TB_CLIPBOARD_GLFW "Clipboard GLFW" ON
-  "NOT TB_CLIPBOARD_DUMMY; NOT TB_CLIPBOARD_WINDOWS; NOT TB_CLIPBOARD_SDL2" OFF)
-cmake_dependent_option (TB_CLIPBOARD_WINDOWS "Clipboard WINDOWS" ON
-  "NOT TB_CLIPBOARD_GLFW; NOT TB_CLIPBOARD_DUMMY; NOT TB_CLIPBOARD_SDL2" OFF)
-cmake_dependent_option (TB_CLIPBOARD_SDL2 "Clipboard SDL2" ON
-  "NOT TB_CLIPBOARD_GLFW; NOT TB_CLIPBOARD_WINDOWS; NOT TB_CLIPBOARD_DUMMY" OFF)
+  "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_MACOSX;NOT_SYSTEM_IOS" OFF)
 
 # System defaults
 if (TB_SYSTEM_ANDROID)
@@ -143,6 +142,15 @@ if (TB_SYSTEM_SDL2)
 endif ()
 
 # Clipboard
+cmake_dependent_option (TB_CLIPBOARD_DUMMY "Clipboard Dummy" ON
+  "NOT TB_CLIPBOARD_GLFW; NOT TB_CLIPBOARD_WINDOWS; NOT TB_CLIPBOARD_SDL2" OFF)
+cmake_dependent_option (TB_CLIPBOARD_GLFW "Clipboard GLFW" ON
+  "NOT TB_CLIPBOARD_DUMMY; NOT TB_CLIPBOARD_WINDOWS; NOT TB_CLIPBOARD_SDL2" OFF)
+cmake_dependent_option (TB_CLIPBOARD_WINDOWS "Clipboard WINDOWS" ON
+  "NOT TB_CLIPBOARD_GLFW; NOT TB_CLIPBOARD_DUMMY; NOT TB_CLIPBOARD_SDL2" OFF)
+cmake_dependent_option (TB_CLIPBOARD_SDL2 "Clipboard SDL2" ON
+  "NOT TB_CLIPBOARD_GLFW; NOT TB_CLIPBOARD_WINDOWS; NOT TB_CLIPBOARD_DUMMY" OFF)
+
 if (TB_CLIPBOARD_DUMMY)
   set (TB_CLIPBOARD_CONFIG "#define TB_CLIPBOARD_DUMMY")
 endif ()
@@ -261,6 +269,7 @@ if (EMSCRIPTEN)
   set (TB_BUILD_GLFW OFF CACHE INTERNAL "auto")
 endif (EMSCRIPTEN)
 
+#################################################################################
 #
 # Add thirdparty dependencies
 #
@@ -296,7 +305,10 @@ endif ()
 # Include the now-built thirdparty dependencies
 add_subdirectory (thirdparty EXCLUDE_FROM_ALL)
 
+#################################################################################
+#
 # Add TurboBadgerLib project
+#
 #add_subdirectory (src/tb ${TB_LIB_EXCLUDE_FROM_ALL})
 if (TB_BUILD_DEMO_GLFW OR TB_BUILD_DEMO_SDL2 OR TB_BUILD_DEMO_ANDROID)
   add_subdirectory (src/tb EXCLUDE_FROM_ALL)
@@ -320,7 +332,6 @@ if (TB_BUILD_DEMO_ANDROID)
     )
   #set_target_properties (TurboBadger ANDROID_ASSETS_DIRECTORIES "${CMAKE_SOURCE_DIR}/resources/default_skin")
   target_link_libraries (TurboBadger TurboBadgerLib)
-  #add_dependencies (TurboBadger )
 endif (TB_BUILD_DEMO_ANDROID)
 
 # Generate Doxygen documentation
@@ -388,3 +399,5 @@ if (NOT TB_BUILD_DEMO_GLFW AND NOT TB_BUILD_DEMO_SDL2 AND NOT TB_BUILD_DEMO_ANDR
   include (CPack)
 
 endif (NOT TB_BUILD_DEMO_GLFW AND NOT TB_BUILD_DEMO_SDL2 AND NOT TB_BUILD_DEMO_ANDROID)
+
+message ("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")

@@ -42,7 +42,7 @@ include_directories(".")
 add_executable (TurboBadgerDemo WIN32 ${LOCAL_SRCS})
 target_link_libraries (TurboBadgerDemo TurboBadgerLib ${EXTRA_LIBS})
 install (TARGETS TurboBadgerDemo
-  DESTINATION "/"
+  DESTINATION "./"
   COMPONENT demoapp)
 install (
   DIRECTORY ${CMAKE_SOURCE_DIR}/resources

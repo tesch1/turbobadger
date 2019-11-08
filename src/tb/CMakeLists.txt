@@ -125,6 +125,9 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL AND FALSE)
     PATTERN "*.mm" EXCLUDE
     PATTERN "*.txt" EXCLUDE
     PATTERN "test files" EXCLUDE
-    PATTERN "*.h"
-    )
+    PATTERN "*.h")
+  install (
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/tb_config.h
+    DESTINATION include/tb
+    COMPONENT library)
 endif ()
