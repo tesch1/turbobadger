@@ -8,10 +8,10 @@ bool port_main(int argc, char* argv[])
 {
 	App *app = app_create();
 
-#ifdef TB_CLIPBOARD_GLFW
+#ifdef TB_BACKEND_GLFW
 	AppBackendGLFW *backend = new AppBackendGLFW();
 #endif
-#ifdef TB_SYSTEM_SDL2
+#ifdef TB_BACKEND_SDL2
 	AppBackendSDL2 *backend = new AppBackendSDL2();
 #endif
 

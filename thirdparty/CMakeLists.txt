@@ -7,7 +7,6 @@ project (turbobadger_thirdparty NONE)
 
 include (ExternalProject)
 option (CMAKE_BUILD_TYPE "build type." "")
-set (TB_THIRDPARTY_ROOT "${CMAKE_CURRENT_BINARY_DIR}")
 get_directory_property (hasParent PARENT_DIRECTORY)
 
 if (NOT WIN32)
@@ -18,6 +17,43 @@ endif (NOT WIN32)
 
 # quiet warning messages
 message ("${CMAKE_CONFIGURATION_TYPES} ${ANDROID}")
+
+if (TB_BUILD_FREETYPE)
+  #
+  # freetype
+  #
+  ExternalProject_Add (freetypeX
+    PREFIX freetypeX
+    URL http://download.savannah.gnu.org/releases/freetype/freetype-2.9.1.tar.gz
+    URL_HASH MD5=3adb0e35d3c100c456357345ccfa8056
+    #URL http://download.savannah.gnu.org/releases/freetype/freetype-2.8.1.tar.gz
+    #URL_HASH MD5=c947b6b1c513e814cc9d7617a44bc6cf
+    DOWNLOAD_DIR ${DOWNLOAD_DIR}
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+    LOG_DOWNLOAD ON )
+  ExternalProject_Get_Property (freetypeX source_dir)
+  if (hasParent)
+    set (FREETYPE_SRC_DIR "${source_dir}")
+    message (" FREETYPE_SRC_DIR: ${FREETYPE_SRC_DIR}")
+    # freetype config variables
+    set (FT_WITH_ZLIB OFF CACHE STRING "" FORCE)
+    set (FT_WITH_BZIP2 OFF CACHE STRING "" FORCE)
+    set (FT_WITH_PNG OFF CACHE STRING "" FORCE)
+    set (FT_WITH_HARFBUZZ OFF CACHE STRING "" FORCE)
+    set (CMAKE_DISABLE_FIND_PACKAGE_ZLIB ON CACHE STRING "" FORCE)
+    set (CMAKE_DISABLE_FIND_PACKAGE_BZip2 ON CACHE STRING "" FORCE)
+    set (CMAKE_DISABLE_FIND_PACKAGE_PNG ON CACHE STRING "" FORCE)
+    set (CMAKE_DISABLE_FIND_PACKAGE_HarfBuzz ON CACHE STRING "" FORCE)
+    set (FREETYPE_NO_DIST ON CACHE STRING "" FORCE)
+    add_subdirectory ("${FREETYPE_SRC_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/freetype_build" EXCLUDE_FROM_ALL)
+    #set_property (TARGET freetype APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+    #  "${CMAKE_CURRENT_BINARY_DIR}/freetype_build/include" "${FREETYPE_SRC_DIR}/include")
+    set_property (TARGET freetype APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+      $<TARGET_PROPERTY:freetype,INCLUDE_DIRECTORIES>)
+  endif (hasParent)
+endif (TB_BUILD_FREETYPE)
 
 if (TB_BUILD_GLFW)
   # Download glfw
@@ -48,7 +84,7 @@ if (TB_BUILD_GLFW)
     add_subdirectory (${source_dir} ${binary_dir})
     set (EXTRA_LIBS ${EXTRA_LIBS} glfw ${GLFW_LIBRARIES} PARENT_SCOPE)
   endif (hasParent)
-elseif (EMSCRIPTEN AND TB_CLIPBOARD_GLFW)
+elseif (EMSCRIPTEN AND TB_CLIPBOARD STREQUAL GLFW)
   add_library (glfw INTERFACE IMPORTED GLOBAL)
   set_property (TARGET glfw APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_GLFW=3)
   set_property (TARGET glfw APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_GLFW=3)
@@ -78,19 +114,18 @@ if (TB_BUILD_SDL2)
     set (SDL_STATIC_PIC ON  CACHE BOOL "" FORCE)
     set (SDL_SHARED     OFF CACHE BOOL "" FORCE) 
     set (SDL_RENDER     OFF CACHE BOOL "" FORCE)
-   add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir")
+    add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir")
     add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
     target_link_libraries (SDL2-interface INTERFACE SDL2-static)
     if (SDL_VERSION VERSION_LESS "2.0.10")
       set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
         "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir/include;${source_dir}/include")
     endif (SDL_VERSION VERSION_LESS "2.0.10")
-
     if (WIN32)
       target_link_libraries (SDL2-interface INTERFACE SDL2main)
     endif (WIN32)
   endif (hasParent)
-elseif (EMSCRIPTEN AND TB_SYSTEM_SDL2)
+elseif (EMSCRIPTEN AND TB_BACKEND STREQUAL SDL2)
   add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
   set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_SDL=2)
   set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_SDL=2)

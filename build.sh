@@ -58,14 +58,14 @@ EOF
 
 unameOut="$(uname -s)"
 case "${unameOut}" in
-    Linux*)     CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_LINUX=ON" ;;
+    Linux*)     CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM=LINUX" ;;
     Darwin*)
-        CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_MACOS=ON"
+        CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM=MACOS"
         export CC=clang
         export CXX=clang++
         ;;
-    CYGWIN*)    CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_WINDOWS=ON" ;;
-    MINGW*)     CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_WINDOWS=ON" ;;
+    CYGWIN*)    CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM=WINDOWS" ;;
+    MINGW*)     CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM=WINDOWS" ;;
     *)          machine="UNKNOWN:${unameOut}"
 esac
 echo "CMAKE_FLAGS: ${CMAKE_FLAGS}"
@@ -86,17 +86,17 @@ while [ $# -gt 0 ]; do
             exit 0
             ;;
         -gl)
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER_GL=ON"
+            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER=GL"
             ;;
         -gl3)
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER_GL=ON -DTB_RENDERER_GL3=ON"
+            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER=GL3"
             ;;
         -gles2)
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER_GL=ON -DTB_RENDERER_GLES_2=ON"
+            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER=GLES_2"
             ;;
         -em*)
             BUILD_DIR="BuildEmsc"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER_GLES_2=ON"
+            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER=GLES_2"
             source ${HOME}/local/emsdk/emsdk_env.sh
             #${EMSCRIPTEN}/emcc --clear-cache --clear-ports
             CMAKE_FLAGS="${CMAKE_FLAGS} -DCMAKE_TOOLCHAIN_FILE=${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake"
@@ -104,18 +104,17 @@ while [ $# -gt 0 ]; do
             ;;
         -sdl*)
             BUILD_DIR="BuildSDL2"
+            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO=SDL2"
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_SDL2=ON"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO_SDL2=ON"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO_GLFW=OFF"
+            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_FREETYPE=ON"
             ;;
         -glfw)
             BUILD_DIR="BuildGLFW"
+            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO=GLFW"
+            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER=GL"
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_GLFW=ON"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO_SDL2=OFF"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO_GLFW=ON"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_CLIPBOARD_GLFW=ON"
-
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER_GL=ON"
+            #CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_FREETYPE=ON"
+            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_FONT_RENDERER=TBBF"
             ;;
         -v|--verbose)          VERBOSE=$(( ${VERBOSE} + 1 ))
                                MAKE_FLAGS="${MAKE_FLAGS} VERBOSE=1"

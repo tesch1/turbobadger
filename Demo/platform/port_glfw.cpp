@@ -1,6 +1,6 @@
 #include "port_glfw.hpp"
 
-#ifdef TB_CLIPBOARD_GLFW
+#ifdef TB_BACKEND_GLFW
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -493,4 +493,4 @@ void AppBackendGLFW::OnAppEvent(const EVENT &ev)
 	}
 }
 
-#endif // TB_CLIPBOARD_GLFW
+#endif // TB_BACKEND_GLFW

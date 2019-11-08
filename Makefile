@@ -26,6 +26,10 @@ ios:
 	[ -d Build-iOS ] || (cmake . -G Xcode -BBuild-iOS -DTB_RENDERER_GLES_2=ON || rm -rf Build-iOS)
 	cd Build-iOS   && xcrun xcodebuild -project "turbobadger.xcodeproj" -target ?
 
+lib:
+	[ -d BuildLib ] || ./build.sh -o BuildLib -gl3
+	cd BuildLib && $(MAKE)
+
 and:
 	cd DemoAndroid2 && ./gradlew build
 	#cd DemoAndroid && ninja

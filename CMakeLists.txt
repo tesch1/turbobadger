@@ -29,184 +29,141 @@ else ()
 endif ()
 #################################################################################
 
-option (TB_BUILD_DEMO_GLFW "Build the Demo application. Depends on glfw." OFF)
-option (TB_BUILD_DEMO_SDL2 "Build the Demo application. Depends on SDL2." OFF)
-option (TB_BUILD_DEMO_ANDROID "Build the Android Demo application. Depends on Android." OFF)
+# try to auto-detect TB_SYSTEM etc...
+if (UNIX)
+  set (TB_SYSTEM_DEFAULT LINUX)
+  set (TB_RENDERER_DEFAULT GL3)
+  set (TB_BACKEND_DEFAULT GLFW)
+elseif (ANDROID)
+  set (TB_SYSTEM_DEFAULT ANDROID)
+  set (TB_RENDERER_DEFAULT GL)
+  set (TB_BACKEND_DEFAULT ANDROID)
+elseif (WIN32)
+  set (TB_SYSTEM_DEFAULT WINDOWS)
+  set (TB_RENDERER_DEFAULT GL3)
+  set (TB_BACKEND_DEFAULT GLFW)
+elseif (APPLE)
+  if (IOS)
+    set (TB_SYSTEM_DEFAULT IOS)
+    set (TB_RENDERER_DEFAULT GLES_2)
+    set (TB_BACKEND_DEFAULT SDL2)
+  else (IOS)
+    set (TB_SYSTEM_DEFAULT MACOS)
+    set (TB_RENDERER_DEFAULT GL3)
+    set (TB_BACKEND_DEFAULT SDL2)
+  endif (IOS)
+endif (UNIX)
+
+# Special handling for building DEMO app
+set (TB_BUILD_DEMO NO CACHE STRING "Build Demo application: NO, GLFW, SDL2, or ANDROID")
+set_property (CACHE TB_BUILD_DEMO PROPERTY STRINGS NO GLFW SDL2 ANDROID)
+set (TB_LIB_EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
+if (TB_BUILD_DEMO STREQUAL GLFW)
+  set (TB_CLIPBOARD_DEFAULT GLFW)
+  set (TB_IMAGE_LOADER_STB ON)
+  set (TB_BACKEND_DEFAULT GLFW)
+  set (TB_CLIPBOARD_DEFAULT GLFW)
+elseif (TB_BUILD_DEMO STREQUAL SDL2)
+  set (TB_CLIPBOARD_DEFAULT SDL2)
+  set (TB_IMAGE_LOADER_STB ON)
+  set (TB_BACKEND_DEFAULT SDL2)
+  set (TB_CLIPBOARD_DEFAULT SDL2)
+elseif (TB_BUILD_DEMO STREQUAL ANDROID)
+  set (TB_CLIPBOARD_DEFAULT DUMMY)
+  set (TB_SYSTEM ANDROID)
+  set (TB_IMAGE_LOADER_STB ON)
+  set (TB_BACKEND_DEFAULT ANDROID)
+  set (TB_CLIPBOARD_DEFAULT ANDROID)
+endif (TB_BUILD_DEMO STREQUAL GLFW)
+
+# The target system
+set (TB_SYSTEM "${TB_SYSTEM_DEFAULT}" CACHE STRING "System type")
+set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS LINUX MACOS WINDOWS ANDROID IOS)
+
+# The backened to use
+set (TB_BACKEND "${TB_BACKEND_DEFAULT}" CACHE STRING "Backend")
+set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS GLFW SDL2 ANDROID)
+
+if (TB_BACKEND STREQUAL GLFW)
+elseif (TB_BACKEND STREQUAL SDL2)
+elseif (TB_BACKEND STREQUAL ANDROID)
+endif (TB_BACKEND STREQUAL GLFW)
+
+# Should any of the backend libraries be built?
 option (TB_BUILD_GLFW "Download and build the GLFW library." OFF)
 option (TB_BUILD_SDL2 "Download and build the SDL2 library." OFF)
-option (TB_DEBUG_POSTFIX "Add _d postfix for debug builds." OFF)
+option (TB_BUILD_FREETYPE "Download and build the freetype library." OFF)
 option (TB_GENERATE_CONFIG "Generate the tb_config.h file from provided parameters in cmake." ON)
-
-set (CMAKE_BUILD_TYPE "Release" CACHE STRING "Set build type")
-set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
-if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  set (CMAKE_BUILD_TYPE "Release")
-endif (NOT CMAKE_BUILD_TYPE)
 
 # Which types to generate for for Xcode and VS, default to Release
 if (XCODE OR MSVS)
   set (CMAKE_CONFIGURATION_TYPES "Release;Debug;RelWithDebInfo")
 endif (XCODE OR MSVS)
 
-# Configure file options
-option (TB_FONT_RENDERER_TBBF "Enable to support TBBF fonts (Turbo Badger Bitmap Fonts)" ON)
-option (TB_FONT_RENDERER_FREETYPE "Enable FreeType TB Font. Requires FreeType" OFF)
-option (TB_FONT_RENDERER_STB "Enable to support truetype fonts using stb_truetype.h WARNING VERY UNSAFE" OFF)
-option (TB_IMAGE_LOADER_STB "Enable to support image loading using stb_image.c" OFF)
+# Default CMAKE_BUILD_TYPE, if not Xcode or VS
+set (CMAKE_BUILD_TYPE "Debug" CACHE STRING "Set cmake build type")
+set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set (CMAKE_BUILD_TYPE "Debug")
+endif (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+
+# Configure graphics renderer
 option (TB_RENDERER_BATCHER "Enable to get TBRendererBatcher" ON)
-option (TB_RENDERER_GL "Enable renderer using OpenGL. This renderer depends on TB_RENDERER_BATCHER." OFF)
-option (TB_RENDERER_GLES_1 "Enable renderer using OpenGL ES1. This renderer depends on TB_RENDERER_GL." OFF)
-option (TB_RENDERER_GLES_2 "Enable renderer using OpenGL ES2. This renderer depends on TB_RENDERER_GL." OFF)
-option (TB_RENDERER_GL3 "Enable renderer using OpenGL 3.2. This renderer depends on TB_RENDERER_GL." OFF)
-option (TB_RENDERER_SDL2 "Enable pure SDL2 renderer." OFF)
-option (TB_IMAGE "Enable support for TBImage, TBImageManager, TBImageWidget." ON)
-
-# Needs further work option (TB_FILE_POSIX "" ON) option (TB_SYSTEM "" OFF) option (TB_TARGET "" OFF)
-include (CMakeDependentOption)
-
-# Runtime/subsystem configurations
-set (TB_LIB_EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
-if (TB_BUILD_DEMO_GLFW)
-  set (TB_CLIPBOARD_GLFW ON CACHE INTERNAL "must use glfw")
-  set (TB_IMAGE_LOADER_STB ON)
-  if (TB_BUILD_DEMO_SDL2 OR TB_BUILD_DEMO_ANDROID)
-    message (FATAL_ERROR "Can not specify both TB_BUILD_DEMO_GLFW and TB_BUILD_DEMO_SDL2")
-  endif (TB_BUILD_DEMO_SDL2 OR TB_BUILD_DEMO_ANDROID)
-elseif (TB_BUILD_DEMO_SDL2)
-  set (TB_CLIPBOARD_SDL2 ON CACHE INTERNAL "must use sdl2")
-  set (TB_SYSTEM_SDL2 ON CACHE INTERNAL "must use sdl2")
-  set (TB_IMAGE_LOADER_STB ON)
-  if (TB_BUILD_DEMO_ANDROID)
-    message (FATAL_ERROR "Can not specify both TB_BUILD_DEMO_SDL2 and TB_BUILD_DEMO_ANDROID")
-  endif (TB_BUILD_DEMO_ANDROID)
-elseif (TB_BUILD_DEMO_ANDROID)
-  set (TB_CLIPBOARD_DUMMY ON)
-  set (TB_SYSTEM_ANDROID ON)
-  set (TB_IMAGE_LOADER_STB ON)
-else ()
-  set (TB_LIB_EXCLUDE_FROM_ALL "")
-endif (TB_BUILD_DEMO_GLFW)
-
-# could try to auto-detect TB_SYSTEM
-if (UNIX)
-  cmake_dependent_option (TB_SYSTEM_LINUX "Set System to Linux" ON
-    "NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_MACOSX;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_IOS" OFF)
-endif (UNIX)
-if (ANDROID)
-  cmake_dependent_option (TB_SYSTEM_ANDROID "Set System to Android" ON
-    "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_MACOSX;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_IOS" OFF)
-endif (ANDROID)
-if (WIN32)
-  cmake_dependent_option (TB_SYSTEM_WINDOWS "Set System to Windows" ON
-    "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_MACOSX;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_IOS" OFF)
-endif (WIN32)
-if (APPLE)
-  if (IOS)
-    cmake_dependent_option (TB_SYSTEM_IOS "Set System to iOS" ON
-      "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_MACOS" OFF)
-  else (IOS)
-    cmake_dependent_option (TB_SYSTEM_MACOSX "Set System to MacOSX" ON
-      "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_SDL2;NOT_SYSTEM_IOS" OFF)
-  endif (IOS)
-endif (APPLE)
-cmake_dependent_option (TB_SYSTEM_SDL2 "Set System to SDL2" ${TB_BUILD_DEMO_SDL2}
-  "NOT TB_SYSTEM_LINUX;NOT TB_SYSTEM_ANDROID;NOT TB_SYSTEM_WINDOWS;NOT TB_SYSTEM_MACOSX;NOT_SYSTEM_IOS" OFF)
-
-# System defaults
-if (TB_SYSTEM_ANDROID)
-  set (TB_SYSTEM_CONFIG "#define TB_SYSTEM_ANDROID")
-  set (TB_CLIPBOARD_CONFIG "#define TB_CLIPBOARD_DUMMY")
-endif ()
-if (TB_SYSTEM_LINUX)
-  set (TB_FILE_CONFIG "#define TB_FILE_POSIX")
-  set (TB_SYSTEM_CONFIG "#define TB_SYSTEM_LINUX")
-  set (TB_TARGET_CONFIG "#define TB_TARGET_LINUX")
-  set (TB_CLIPBOARD_CONFIG "#define TB_CLIPBOARD_GLFW")
-endif ()
-if (TB_SYSTEM_MACOSX)
-  set (TB_FILE_CONFIG "#define TB_FILE_POSIX")
-  set (TB_SYSTEM_CONFIG "#define TB_SYSTEM_MACOSX")
-  set (TB_TARGET_CONFIG "#define TB_TARGET_MACOSX")
-  set (TB_CLIPBOARD_CONFIG "#define TB_CLIPBOARD_GLFW")
-endif ()
-if (TB_SYSTEM_WINDOWS)
-  set (TB_FILE_CONFIG "#define TB_FILE_POSIX")
-  set (TB_SYSTEM_CONFIG "#define TB_SYSTEM_WINDOWS")
-  set (TB_TARGET_CONFIG "#define TB_TARGET_WINDOWS")
-endif ()
-if (TB_SYSTEM_SDL2)
-  set (TB_FILE_CONFIG "#define TB_FILE_POSIX")
-  set (TB_SYSTEM_CONFIG "#define TB_SYSTEM_SDL2")
-  set (TB_TARGET_CONFIG "#define TB_TARGET_CUSTOM")
-  set (TB_CLIPBOARD_CONFIG "#define TB_CLIPBOARD_SDL2")
-endif ()
-
-# Clipboard
-cmake_dependent_option (TB_CLIPBOARD_DUMMY "Clipboard Dummy" ON
-  "NOT TB_CLIPBOARD_GLFW; NOT TB_CLIPBOARD_WINDOWS; NOT TB_CLIPBOARD_SDL2" OFF)
-cmake_dependent_option (TB_CLIPBOARD_GLFW "Clipboard GLFW" ON
-  "NOT TB_CLIPBOARD_DUMMY; NOT TB_CLIPBOARD_WINDOWS; NOT TB_CLIPBOARD_SDL2" OFF)
-cmake_dependent_option (TB_CLIPBOARD_WINDOWS "Clipboard WINDOWS" ON
-  "NOT TB_CLIPBOARD_GLFW; NOT TB_CLIPBOARD_DUMMY; NOT TB_CLIPBOARD_SDL2" OFF)
-cmake_dependent_option (TB_CLIPBOARD_SDL2 "Clipboard SDL2" ON
-  "NOT TB_CLIPBOARD_GLFW; NOT TB_CLIPBOARD_WINDOWS; NOT TB_CLIPBOARD_DUMMY" OFF)
-
-if (TB_CLIPBOARD_DUMMY)
-  set (TB_CLIPBOARD_CONFIG "#define TB_CLIPBOARD_DUMMY")
-endif ()
-if (TB_CLIPBOARD_GLFW)
-  set (TB_CLIPBOARD_CONFIG "#define TB_CLIPBOARD_GLFW")
-endif ()
-if (TB_CLIPBOARD_WINDOWS)
-  set (TB_CLIPBOARD_CONFIG "#define TB_CLIPBOARD_WINDOWS")
-endif ()
-if (TB_CLIPBOARD_SDL2)
-  set (TB_CLIPBOARD_CONFIG "#define TB_CLIPBOARD_SDL2")
-endif ()
-
-if (TB_FILE_POSIX)
-  set (TB_FILE_CONFIG "#define TB_FILE_POSIX")
-endif ()
-if (TB_DEBUG_POSTFIX)
-  set (CMAKE_DEBUG_POSTFIX _d)
-endif ()
-if (TB_FONT_RENDERER_TBBF)
-  set (TB_FONT_RENDERER_TBBF_CONFIG "#define TB_FONT_RENDERER_TBBF")
-endif ()
-if (TB_FONT_RENDERER_FREETYPE)
-  set (TB_FONT_RENDERER_FREETYPE_CONFIG "#define TB_FONT_RENDERER_FREETYPE")
-endif ()
-if (TB_FONT_RENDERER_STB)
-  set (TB_FONT_RENDERER_STB_CONFIG "#define TB_FONT_RENDERER_STB")
-endif ()
-if (TB_IMAGE_LOADER_STB)
-  set (TB_IMAGE_LOADER_STB_CONFIG "#define TB_IMAGE_LOADER_STB")
-endif ()
 if (TB_RENDERER_BATCHER)
   set (TB_RENDERER_BATCHER_CONFIG "#define TB_RENDERER_BATCHER")
 endif ()
-if (TB_RENDERER_STUB)
-  set (TB_RENDERER_STUB_CONFIG "#define TB_RENDERER_STUB")
-endif ()
-if (TB_RENDERER_GLES_1)
-  set (TB_RENDERER_GL ON)
-  set (TB_RENDERER_GLES_1_CONFIG "#define TB_RENDERER_GLES_1")
-endif ()
-if (TB_RENDERER_GLES_2)
-  set (TB_RENDERER_GL ON)
-  set (TB_RENDERER_GLES_2_CONFIG "#define TB_RENDERER_GLES_2")
-endif ()
-if (TB_RENDERER_GL3)
-  set (TB_RENDERER_GL ON)
-  set (TB_RENDERER_GL3_CONFIG "#define TB_RENDERER_GL3")
-endif ()
-if (TB_RENDERER_GL)
-  set (TB_RENDERER_GL_CONFIG "#define TB_RENDERER_GL")
-endif ()
+
+# Configure renderer
+set (TB_RENDERER "${TB_RENDERER_DEFAULT}" CACHE STRING "Which Renderer")
+set_property (CACHE TB_RENDERER PROPERTY STRINGS STUB GL GLES_1 GLES_2 GL3 SDL2)
+
+# Enable images
+option (TB_IMAGE "Enable support for TBImage, TBImageManager, TBImageWidget." ON)
 if (TB_IMAGE)
   set (TB_IMAGE_CONFIG "#define TB_IMAGE")
+  set (TB_IMAGE_LOADER_DEFAULT STB)
+endif ()
+set (TB_IMAGE_LOADER "${TB_IMAGE_LOADER_DEFAULT}" CACHE STRING "Which image loader (def: STB)")
+
+include (CMakeDependentOption)
+
+# Runtime/subsystem configurations - check if a Demo is selected
+
+# System defaults
+if (TB_SYSTEM STREQUAL ANDROID)
+  set (TB_CLIPBOARD_DEFAULT DUMMY)
+  set (TB_FILE_DEFAULT POSIX)
+endif ()
+if (TB_SYSTEM STREQUAL LINUX)
+  set (TB_FILE_DEFAULT POSIX)
+endif ()
+if (TB_SYSTEM STREQUAL MACOSX)
+  set (TB_FILE_DEFAULT POSIX)
+endif ()
+if (TB_SYSTEM STREQUAL WINDOWS)
+  set (TB_CLIPBOARD_DEFAULT WINDOWS)
+  set (TB_FILE_DEFAULT POSIX)
 endif ()
 
+# Clipboard
+set (TB_CLIPBOARD "${TB_CLIPBOARD_DEFAULT}" CACHE STRING "Clipboard type: DUMMY GLFW SDL2 WINDOWS")
+set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS DUMMY GLFW SDL2 WINDOWS)
+
+# Filesystem
+set (TB_FILE "${TB_FILE_DEFAULT}" CACHE STRING "Filesystem type: WINDOWS POSIX SDL2")
+set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "" "POSIX" "SDL2")
+
+# Library postfix
+option (TB_DEBUG_POSTFIX "Add _d postfix for debug builds." OFF)
+if (TB_DEBUG_POSTFIX)
+  set (CMAKE_DEBUG_POSTFIX _d)
+endif ()
+
+# Configure Font Renderer
+set (TB_FONT_RENDERER "FREETYPE" CACHE STRING "Select font renderer: TBBF, FREETYPE, STB")
+set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "TBBF" "FREETYPE" "STB")
+
+# Generate the config header file
 if (TB_GENERATE_CONFIG)
   configure_file (tb_config.h.in src/tb/tb_config.h)
 endif (TB_GENERATE_CONFIG)
@@ -231,7 +188,7 @@ endif (MSVC)
 
 #
 # Look for libraries
-if (TB_CLIPBOARD_GLFW)
+if (TB_BACKEND STREQUAL GLFW)
   if (NOT TB_BUILD_GLFW)
     # Add glfw and gl libs on MacOSX
     if (APPLE)
@@ -242,9 +199,9 @@ if (TB_CLIPBOARD_GLFW)
       find_library (GLFW_LIBRARIES glfw)
     endif (APPLE)
   endif (NOT TB_BUILD_GLFW)
-endif (TB_CLIPBOARD_GLFW)
+endif (TB_BACKEND STREQUAL GLFW)
 
-if (TB_SYSTEM_SDL2)
+if (TB_SYSTEM STREQUAL SDL2)
   if (NOT TB_BUILD_SDL2 AND NOT EMSCRIPTEN)
     include (FindPkgConfig)
     pkg_search_module (SDL2 REQUIRED sdl2)
@@ -256,7 +213,7 @@ if (TB_SYSTEM_SDL2)
       find_library (SDL2_LIBRARIES SDL2)
     endif (APPLE)
   endif (NOT TB_BUILD_SDL2 AND NOT EMSCRIPTEN)
-endif (TB_SYSTEM_SDL2)
+endif (TB_SYSTEM STREQUAL SDL2)
 
 if (EMSCRIPTEN)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 ")
@@ -265,6 +222,7 @@ if (EMSCRIPTEN)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s EVAL_CTORS=1")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s BINARYEN_TRAP_MODE=clamp")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s NO_EXIT_RUNTIME=1")
+  set (TB_BUILD_FREETYPE OFF CACHE INTERNAL "auto")
   set (TB_BUILD_SDL2 OFF CACHE INTERNAL "auto")
   set (TB_BUILD_GLFW OFF CACHE INTERNAL "auto")
 endif (EMSCRIPTEN)
@@ -285,7 +243,7 @@ endif ()
 # Configure the thirdparty build directory
 execute_process (
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/thirdparty"
-  COMMAND ${CMAKE_COMMAND} -G${GENERATOR_STRING} -DANDROID=${ANDROID} -DCMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DTB_BUILD_GLFW=${TB_BUILD_GLFW} -DTB_BUILD_SDL2=${TB_BUILD_SDL2} ${CMAKE_SOURCE_DIR}/thirdparty
+  COMMAND ${CMAKE_COMMAND} -G${GENERATOR_STRING} -DANDROID=${ANDROID} -DCMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DTB_BUILD_GLFW=${TB_BUILD_GLFW} -DTB_BUILD_SDL2=${TB_BUILD_SDL2} -DTB_BUILD_FREETYPE=${TB_BUILD_FREETYPE} ${CMAKE_SOURCE_DIR}/thirdparty
   RESULT_VARIABLE THIRDPARTY_CONFIG_RESULT
 )
 if (THIRDPARTY_CONFIG_RESULT)
@@ -309,20 +267,19 @@ add_subdirectory (thirdparty EXCLUDE_FROM_ALL)
 #
 # Add TurboBadgerLib project
 #
-#add_subdirectory (src/tb ${TB_LIB_EXCLUDE_FROM_ALL})
-if (TB_BUILD_DEMO_GLFW OR TB_BUILD_DEMO_SDL2 OR TB_BUILD_DEMO_ANDROID)
+if (TB_BUILD_DEMO)
   add_subdirectory (src/tb EXCLUDE_FROM_ALL)
 else ()
   add_subdirectory (src/tb)
-endif (TB_BUILD_DEMO_GLFW OR TB_BUILD_DEMO_SDL2 OR TB_BUILD_DEMO_ANDROID)
+endif (TB_BUILD_DEMO)
 
 # Add Demo project
-if (TB_BUILD_DEMO_GLFW OR TB_BUILD_DEMO_SDL2)
+if (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL2)
   add_subdirectory (Demo)
-endif (TB_BUILD_DEMO_GLFW OR TB_BUILD_DEMO_SDL2)
+endif (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL2)
 
 # Android demo
-if (TB_BUILD_DEMO_ANDROID)
+if (TB_BUILD_DEMO STREQUAL ANDROID)
   target_compile_definitions (TurboBadgerLib PUBLIC -DTB_RUNTIME_DEBUG_INFO=1)
   message ("CMAKE_ANDROID_ASSETS_DIRECTORIES: ${CMAKE_ANDROID_ASSETS_DIRECTORIES}")
   list (APPEND CMAKE_ANDROID_ASSETS_DIRECTORIES "${CMAKE_SOURCE_DIR}/resources/language")
@@ -332,7 +289,7 @@ if (TB_BUILD_DEMO_ANDROID)
     )
   #set_target_properties (TurboBadger ANDROID_ASSETS_DIRECTORIES "${CMAKE_SOURCE_DIR}/resources/default_skin")
   target_link_libraries (TurboBadger TurboBadgerLib)
-endif (TB_BUILD_DEMO_ANDROID)
+endif (TB_BUILD_DEMO STREQUAL ANDROID)
 
 # Generate Doxygen documentation
 configure_file (${CMAKE_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_BINARY_DIR}/doc/Doxyfile)
@@ -356,7 +313,7 @@ endif (ETAGS)
 
 #################################################################################
 # CPack for TurboBadgerLib
-if (NOT TB_BUILD_DEMO_GLFW AND NOT TB_BUILD_DEMO_SDL2 AND NOT TB_BUILD_DEMO_ANDROID)
+if (NOT TB_BUILD_DEMO)
   set (CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
   set (CPACK_COMPONENTS_ALL library)
 
@@ -398,6 +355,18 @@ if (NOT TB_BUILD_DEMO_GLFW AND NOT TB_BUILD_DEMO_SDL2 AND NOT TB_BUILD_DEMO_ANDR
 
   include (CPack)
 
-endif (NOT TB_BUILD_DEMO_GLFW AND NOT TB_BUILD_DEMO_SDL2 AND NOT TB_BUILD_DEMO_ANDROID)
+endif (NOT TB_BUILD_DEMO)
 
-message ("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+message ("CMAKE_BUILD_TYPE:    ${CMAKE_BUILD_TYPE}")
+message ("TB_BUILD_DEMO:       ${TB_BUILD_DEMO}")
+message ("TB_BUILD_SDL2:       ${TB_BUILD_SDL2}")
+message ("TB_BUILD_GLFW:       ${TB_BUILD_GLFW}")
+message ("TB_BUILD_FREETYPE:   ${TB_BUILD_FREETYPE}")
+message ("TB_SYSTEM:           ${TB_SYSTEM}")
+message ("TB_BACKEND:          ${TB_BACKEND}")
+message ("TB_RENDERER:         ${TB_RENDERER}")
+message ("TB_RENDERER_BATCHER: ${TB_RENDERER_BATCHER}")
+message ("TB_FONT_RENDERER:    ${TB_FONT_RENDERER}")
+message ("TB_FILE:             ${TB_FILE}")
+message ("TB_CLIPBOARD:        ${TB_CLIPBOARD}")
+message ("TB_IMAGE_LOADER:     ${TB_IMAGE_LOADER}")

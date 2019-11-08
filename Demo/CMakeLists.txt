@@ -4,7 +4,7 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR})
 
-set (SANITIZER "${SANITIZER} -O1 -fsanitize=address -fno-omit-frame-pointer")
+#set (SANITIZER "${SANITIZER} -O1 -fsanitize=address -fno-omit-frame-pointer")
 #set (SANITIZER "${SANITIZER} -fsanitize=leak")
 #set (SANITIZER "${SANITIZER} -fsanitize=memory")
 #set (SANITIZER "${SANITIZER} -fsanitize=undefined")
@@ -13,11 +13,11 @@ set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 include (ExternalProject)
 
-if (CMAKE_SYSTEM MATCHES "Windows" AND TB_BUILD_DEMO_GLFW)
+if (CMAKE_SYSTEM MATCHES "Windows" AND TB_BUILD_DEMO STREQUAL GLFW)
   add_definitions (-DGLFW_EXPOSE_NATIVE_WIN32)
   add_definitions (-DGLFW_EXPOSE_NATIVE_WGL)
   set (EXTRA_LIBS ${EXTRA_LIBS} winmm)
-endif (CMAKE_SYSTEM MATCHES "Windows" AND TB_BUILD_DEMO_GLFW)
+endif (CMAKE_SYSTEM MATCHES "Windows" AND TB_BUILD_DEMO STREQUAL GLFW)
 
 # Add sources
 set (LOCAL_SRCS "")
@@ -26,16 +26,16 @@ set (LOCAL_SRCS ${LOCAL_SRCS}
   ./platform/main.cpp
   ./platform/Application.cpp)
 
-if (TB_BUILD_DEMO_GLFW)
+if (TB_BUILD_DEMO STREQUAL GLFW)
   set (LOCAL_SRCS ${LOCAL_SRCS}
     ./platform/port_glfw.cpp
     ./platform/glfw_extra_linux.cpp)
-endif (TB_BUILD_DEMO_GLFW)
+endif (TB_BUILD_DEMO STREQUAL GLFW)
 
-if (TB_BUILD_DEMO_SDL2)
+if (TB_BUILD_DEMO STREQUAL SDL2)
   set (LOCAL_SRCS ${LOCAL_SRCS}
     ./platform/port_sdl2.cpp)
-endif (TB_BUILD_DEMO_SDL2)
+endif (TB_BUILD_DEMO STREQUAL SDL2)
 
 include_directories(".")
 

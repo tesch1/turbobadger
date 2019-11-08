@@ -199,7 +199,7 @@ bool AppBackendSDL2::Init(App *app)
 		TBTempBuffer path;
 		path.AppendPath((char *)getauxval(AT_EXECFN));
 		path.AppendString("/TurboBadgerDemo_/");
-		SDL_Error("chdir %s\n", path.GetData());
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "chdir %s\n", path.GetData());
 		chdir(path.GetData());
 	}
 #endif
