@@ -12,6 +12,7 @@ set (LOCAL_SRCS
   tb_dimension.cpp
   tb_editfield.cpp
   tb_file_posix.cpp
+  tb_file_android.cpp
   tb_font_renderer.cpp
   tb_font_renderer_freetype.cpp
   tb_font_renderer_stb.cpp
@@ -81,13 +82,13 @@ endif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
 if (ANDROID)
   add_library (TurboBadgerLib SHARED ${LOCAL_SRCS})
-  target_link_libraries (TurboBadgerLib log atomic android)
-  if (TB_RENDERER_GLES_1)
-    target_link_libraries (TurboBadgerLib EGL GLESv1_CM)
-  endif (TB_RENDERER_GLES_1)
-  if (TB_RENDERER_GLES_2)
-    target_link_libraries (TurboBadgerLib EGL GLESv2)
-  endif (TB_RENDERER_GLES_2)
+  target_link_libraries (TurboBadgerLib PUBLIC log atomic android)
+  if (TB_RENDERER MATCHES GLES_1)
+    target_link_libraries (TurboBadgerLib PUBLIC EGL GLESv1_CM)
+  endif (TB_RENDERER MATCHES GLES_1)
+  if (TB_RENDERER MATCHES GLES_2)
+    target_link_libraries (TurboBadgerLib PUBLIC EGL GLESv2)
+  endif (TB_RENDERER MATCHES GLES_2)
 else (ANDROID)
   # not android, just link a static
   add_library (TurboBadgerLib STATIC ${LOCAL_SRCS})
