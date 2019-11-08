@@ -13,7 +13,7 @@ if command -v cmake3 >/dev/null 2>&1 ; then
 else
     : ${CMAKE=cmake}
 fi
-: ${CMAKE_FLAGS=-DTB_SYSTEM_LINUX=ON}
+: ${CMAKE_FLAGS=}
 
 CMDLINE="$0 $@"
 SCRIPT=$(basename "$0")
@@ -56,6 +56,20 @@ EOF
     exit 1
 }
 
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_LINUX=ON" ;;
+    Darwin*)
+        CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_MACOS=ON"
+        export CC=clang
+        export CXX=clang++
+        ;;
+    CYGWIN*)    CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_WINDOWS=ON" ;;
+    MINGW*)     CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_WINDOWS=ON" ;;
+    *)          machine="UNKNOWN:${unameOut}"
+esac
+echo "CMAKE_FLAGS: ${CMAKE_FLAGS}"
+
 # process command line args
 while [ $# -gt 0 ]; do
     key="$1"
@@ -82,7 +96,6 @@ while [ $# -gt 0 ]; do
             ;;
         -em*)
             BUILD_DIR="BuildEmsc"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_LINUX=ON"
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER_GLES_2=ON"
             source ${HOME}/local/emsdk/emsdk_env.sh
             #${EMSCRIPTEN}/emcc --clear-cache --clear-ports
@@ -94,8 +107,6 @@ while [ $# -gt 0 ]; do
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_SDL2=ON"
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO_SDL2=ON"
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO_GLFW=OFF"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_SDL2=ON"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_LINUX=ON"
             ;;
         -glfw)
             BUILD_DIR="BuildGLFW"
@@ -103,7 +114,6 @@ while [ $# -gt 0 ]; do
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO_SDL2=OFF"
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_BUILD_DEMO_GLFW=ON"
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_CLIPBOARD_GLFW=ON"
-            CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM_LINUX=ON"
 
             CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_RENDERER_GL=ON"
             ;;
