@@ -45,9 +45,14 @@ private:
 TBFile *TBFile::Open(const TBStr & filename, TBFileMode mode)
 {
 	FILE *f = nullptr;
-	TBStr pathfile(TBSystem::GetRoot());
+	TBStr pathfile;
 	if (filename[0] != '/')
+	{
+#ifdef TB_FILE_POSIX_PREFIX
+		pathfile.Set(TB_FILE_POSIX_PREFIX);
+#endif
 		pathfile.Append(filename);
+	}
 	else
 		pathfile.Set(filename);
 	switch (mode)
@@ -61,7 +66,7 @@ TBFile *TBFile::Open(const TBStr & filename, TBFileMode mode)
 	default:
 		break;
 	}
-#if defined(TB_RUNTIME_DEBUG_INFO) && 0
+#if defined(TB_RUNTIME_DEBUG_INFO) && 1
 	if (!f)
 		TBDebugPrint("TBFile::Open, unable to open file '%s'\n", pathfile.CStr());
 #endif

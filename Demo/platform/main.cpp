@@ -23,7 +23,10 @@ bool port_main(int argc, char* argv[])
 	uint32_t exec_path_size = sizeof(exec_path);
 	if (_NSGetExecutablePath(exec_path, &exec_path_size) == 0)
 	{
+		for (int n = strlen(exec_path); n > 0 && exec_path[n-1] != '/'; n--)
+			exec_path[n-1] = '\0';
 		chdir(exec_path);
+		printf("pwd: %s\n", exec_path);
 	}
 #endif
 #ifdef TB_TARGET_LINUX
@@ -34,12 +37,12 @@ bool port_main(int argc, char* argv[])
 		strncpy(exec_path, (char *)getauxval(AT_EXECFN), sizeof(exec_path));
 		for (int n = strlen(exec_path); n > 0 && exec_path[n-1] != '/'; n--)
 			exec_path[n-1] = '\0';
-		if (chdir(exec_path) ||
-			chdir("TurboBadgerDemo_/"))
+		if (chdir(exec_path))
 		{
 			printf("Unable to find resource directory '%s'\n", exec_path);
 			//exit(0);
 		}
+		printf("pwd: %s\n", exec_path);
 	}
 #endif
 	printf("GetRoot: %s\n", TBSystem::GetRoot());

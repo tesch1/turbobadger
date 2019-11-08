@@ -112,6 +112,7 @@ ${TB_IMAGE_CONFIG}
 /** Define for posix implementation of TBFile. */
 //#define TB_FILE_POSIX
 #define TB_FILE_${TB_FILE}
+${TB_FILE_POSIX_PREFIX_CONFIG}
 
 /** Defines for implementations of TBClipboard. */
 #define TB_CLIPBOARD_${TB_CLIPBOARD}
