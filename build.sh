@@ -60,7 +60,7 @@ unameOut="$(uname -s)"
 case "${unameOut}" in
     Linux*)     CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM=LINUX" ;;
     Darwin*)
-        CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM=MACOS"
+        CMAKE_FLAGS="${CMAKE_FLAGS} -DTB_SYSTEM=MACOSX"
         export CC=clang
         export CXX=clang++
         ;;

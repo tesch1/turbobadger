@@ -1,4 +1,13 @@
-// -*-  Mode: C++; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: t -*-
+#include "Application.h"
+
+#ifdef TB_SYSTEM_MACOSX
+#include <unistd.h>
+#include <mach-o/dyld.h>
+#endif
+#ifdef TB_TARGET_LINUX
+#include <unistd.h>
+#include <sys/auxv.h>
+#endif
 
 #include "Application.h"
 #include "port_glfw.hpp"
@@ -25,12 +34,16 @@ bool port_main(int argc, char* argv[])
 	uint32_t exec_path_size = sizeof(exec_path);
 	if (_NSGetExecutablePath(exec_path, &exec_path_size) == 0)
 	{
-		TBTempBuffer path;
-		path.AppendPath(exec_path);
-		chdir(path.GetData());
+		chdir(exec_path);
 	}
 #endif
-
+#ifdef TB_TARGET_LINUX
+	if (getauxval(AT_EXECFN))
+	{
+		chdir((char *)getauxval(AT_EXECFN));
+		chdir("TurboBadgerDemo_/");
+	}
+#endif
 #ifdef TB_TARGET_WINDOWS
 	// Set the current path to the directory of the app so we find
 	// assets also when visual studio starts it.
