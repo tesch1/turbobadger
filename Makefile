@@ -3,11 +3,11 @@ all: glfw sdl2 em em-glfw
 
 glfw:
 	[ -d BuildGLFW ] || ./build.sh -glfw -gl
-	cd BuildGLFW && $(MAKE)
+	cd BuildGLFW && $(MAKE) install
 
 sdl2:
 	[ -d BuildSDL2 ] || ./build.sh -sdl2 -gl3
-	cd BuildSDL2 && $(MAKE)
+	cd BuildSDL2 && $(MAKE) install
 
 em:
 	[ -d BuildEmsc ] || ./build.sh -gles2 -sdl2 -em

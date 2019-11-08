@@ -12,21 +12,10 @@
 #include "Application.h"
 #include "port_glfw.hpp"
 #include "port_sdl2.hpp"
+#include "tb_tempbuffer.h"
 
 bool port_main(int argc, char* argv[])
 {
-	App *app = app_create();
-
-#ifdef TB_BACKEND_GLFW
-	AppBackendGLFW *backend = new AppBackendGLFW();
-#endif
-#ifdef TB_BACKEND_SDL2
-	AppBackendSDL2 *backend = new AppBackendSDL2();
-#endif
-
-	if (!backend || !backend->Init(app))
-		return false;
-
 #ifdef TB_TARGET_MACOSX
 	// Change working directory to the executable path. We expect it
 	// to be where the demo resources are.
@@ -40,10 +29,20 @@ bool port_main(int argc, char* argv[])
 #ifdef TB_TARGET_LINUX
 	if (getauxval(AT_EXECFN))
 	{
-		chdir((char *)getauxval(AT_EXECFN));
-		chdir("TurboBadgerDemo_/");
+		char exec_path[2048];
+		exec_path[0] = '\0';
+		strncpy(exec_path, (char *)getauxval(AT_EXECFN), sizeof(exec_path));
+		for (int n = strlen(exec_path); n > 0 && exec_path[n-1] != '/'; n--)
+			exec_path[n-1] = '\0';
+		if (chdir(exec_path) ||
+			chdir("TurboBadgerDemo_/"))
+		{
+			printf("Unable to find resource directory '%s'\n", exec_path);
+			//exit(0);
+		}
 	}
 #endif
+	printf("GetRoot: %s\n", TBSystem::GetRoot());
 #ifdef TB_TARGET_WINDOWS
 	// Set the current path to the directory of the app so we find
 	// assets also when visual studio starts it.
@@ -53,6 +52,18 @@ bool port_main(int argc, char* argv[])
 	buf.AppendPath(modname);
 	SetCurrentDirectory(buf.GetData());
 #endif
+
+	App *app = app_create();
+
+#ifdef TB_BACKEND_GLFW
+	AppBackendGLFW *backend = new AppBackendGLFW();
+#endif
+#ifdef TB_BACKEND_SDL2
+	AppBackendSDL2 *backend = new AppBackendSDL2();
+#endif
+
+	if (!backend || !backend->Init(app))
+		return false;
 
 	bool success = app->Init();
 	if (success)

@@ -124,7 +124,7 @@ ${TB_IMAGE_CONFIG}
 //#define TB_SYSTEM_LINUX
 //#define TB_SYSTEM_WINDOWS
 //#define TB_SYSTEM_ANDROID
-//#define TB_SYSTEM_SDL2
+//#define TB_SYSTEM_MACOSX
 
 /** Defines for additional platform specific issues. */
 #define TB_TARGET_${TB_SYSTEM}
