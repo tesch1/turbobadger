@@ -6,7 +6,6 @@ cmake_minimum_required (VERSION 3.4.3)
 project (turbobadger_thirdparty NONE)
 
 include (ExternalProject)
-option (CMAKE_BUILD_TYPE "build type." "")
 get_directory_property (hasParent PARENT_DIRECTORY)
 
 if (NOT WIN32)
@@ -135,3 +134,24 @@ elseif (EMSCRIPTEN AND TB_BACKEND STREQUAL SDL2)
   set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_SDL=2)
 endif (TB_BUILD_SDL2)
 
+if (WIN32)
+  ExternalProject_Add (GLEWX
+    PREFIX GLEWX
+    URL "https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0-win32.zip"
+    URL_HASH MD5=32a72e6b43367db8dbea6010cd095355
+    DOWNLOAD_DIR ${DOWNLOAD_DIR}
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+    LOG_DOWNLOAD ON
+    )
+  ExternalProject_Get_Property (GLEWX source_dir)
+  if (hasParent)
+    add_library (GLEW INTERFACE IMPORTED GLOBAL)
+    set_property (TARGET GLEW APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${source_dir}/include")
+    set_property (TARGET GLEW APPEND PROPERTY INTERFACE_LINK_LIBRARIES "${source_dir}/lib/Release/Win32/glew32s.lib")
+    set_property (TARGET GLEW APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS -DGLEW_STATIC)
+  endif (hasParent)
+endif (WIN32)
