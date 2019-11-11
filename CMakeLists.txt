@@ -216,7 +216,7 @@ if (TB_SYSTEM STREQUAL SDL2)
   endif (NOT TB_BUILD_SDL2 AND NOT EMSCRIPTEN)
 endif (TB_SYSTEM STREQUAL SDL2)
 
-add_compile_definitions (TB_RUNTIME_DEBUG_INFO=1)
+add_definitions (-DTB_RUNTIME_DEBUG_INFO=1)
 
 if (EMSCRIPTEN)
   add_compile_options (-O2)
