@@ -37,36 +37,24 @@ if (TB_BUILD_DEMO STREQUAL SDL2)
     ./platform/port_sdl2.cpp)
 endif (TB_BUILD_DEMO STREQUAL SDL2)
 
-include_directories(".")
+add_resources (RES_FILES "${CMAKE_SOURCE_DIR}/resources" "*.txt" "*.png" "*.svg")
+add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}" "demo01/*.txt" "demo01/*.png" "demo01/*.svg")
+add_resources (RES_FILES "${CMAKE_SOURCE_DIR}/src/tb/tests"
+  test_tb_parser.tb.txt
+  test_tb_parser_included.tb.txt
+  test_tb_parser_definitions.tb.txt)
 
-add_executable (TurboBadgerDemo WIN32 ${LOCAL_SRCS})
+add_executable (TurboBadgerDemo MACOSX_BUNDLE WIN32 ${LOCAL_SRCS} ${RES_FILES})
+target_include_directories (TurboBadgerDemo PRIVATE ".")
 target_link_libraries (TurboBadgerDemo TurboBadgerLib ${EXTRA_LIBS})
+
+# Individually set the file's path properties
+fixup_resources (RES_FILES)
+
 install (TARGETS TurboBadgerDemo
-  DESTINATION "./"
-  COMPONENT demoapp)
-install (
-  DIRECTORY ${CMAKE_SOURCE_DIR}/resources
-  DESTINATION TurboBadgerDemo_
   COMPONENT demoapp
-  PATTERN "*.psd" EXCLUDE
-  PATTERN "*.txt"
-  PATTERN "*.svg"
-  PATTERN "*.png")
-install (
-  DIRECTORY ${CMAKE_SOURCE_DIR}/Demo/demo01
-  DESTINATION TurboBadgerDemo_/Demo
-  COMPONENT demoapp
-  PATTERN "*.psd" EXCLUDE
-  PATTERN "*.txt"
-  PATTERN "*.svg"
-  PATTERN "*.png")
-install (
-  FILES
-  ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser.tb.txt
-  ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser_included.tb.txt
-  ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser_definitions.tb.txt
-  DESTINATION TurboBadgerDemo_
-  COMPONENT demoapp)
+  BUNDLE DESTINATION "./" 
+  RUNTIME DESTINATION "./")
 
 # Platform specific
 if (CMAKE_COMPILER_IS_MINGW)
@@ -78,7 +66,7 @@ if (EMSCRIPTEN)
   set (CMAKE_EXECUTABLE_SUFFIX ".html")
   # default skin resources
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file /tmp/resources@/resources")
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file /tmp/demo01@Demo/demo01")
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file /tmp/demo01@demo01")
   # test files
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser.tb.txt@/")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser_included.tb.txt@/")
@@ -119,7 +107,7 @@ endif (WIN32)
 
 # macOS
 if (APPLE AND NOT XCODE)
-  set (CPACK_GENERATOR "DragNDrop")
+  set (CPACK_GENERATOR "DragNDrop;TGZ")
   set (CPACK_BUNDLE_NAME "${CPACK_PACKAGE_NAME}")
 endif (APPLE AND NOT XCODE)
 

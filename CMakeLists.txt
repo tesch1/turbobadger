@@ -48,6 +48,7 @@ if (APPLE)
     set (TB_SYSTEM_DEFAULT IOS)
     set (TB_RENDERER_DEFAULT GLES_2)
     set (TB_BACKEND_DEFAULT SDL2)
+    #set (TB_BUILD_SDL2 ON CACHE STRING "Build SDL2")
   else (IOS)
     set (TB_SYSTEM_DEFAULT MACOSX)
     set (TB_RENDERER_DEFAULT GL3)
@@ -68,12 +69,10 @@ if (${TB_BUILD_DEMO} STREQUAL GLFW)
   set (TB_CLIPBOARD_DEFAULT GLFW)
   set (TB_IMAGE_LOADER_STB ON)
   set (TB_BACKEND_DEFAULT GLFW)
-  set (TB_FILE_POSIX_PREFIX "\"TurboBadgerDemo_/\"")
 elseif (${TB_BUILD_DEMO} STREQUAL SDL2)
   set (TB_CLIPBOARD_DEFAULT SDL2)
   set (TB_IMAGE_LOADER_STB ON)
   set (TB_BACKEND_DEFAULT SDL2)
-  set (TB_FILE_POSIX_PREFIX "\"TurboBadgerDemo_/\"")
 elseif (${TB_BUILD_DEMO} STREQUAL ANDROID)
   set (TB_CLIPBOARD_DEFAULT DUMMY)
   set (TB_SYSTEM ANDROID)
@@ -98,7 +97,7 @@ endif (TB_BACKEND STREQUAL GLFW)
 # Should any of the backend libraries be built?
 option (TB_BUILD_GLFW "Download and build the GLFW library." OFF)
 option (TB_BUILD_SDL2 "Download and build the SDL2 library." OFF)
-option (TB_BUILD_FREETYPE "Download and build the freetype library." OFF)
+option (TB_BUILD_FREETYPE2 "Download and build the freetype2 library." OFF)
 
 # Which types to generate for for Xcode and VS, default to Release
 if (XCODE OR MSVS AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -168,19 +167,15 @@ if (TB_DEBUG_POSTFIX)
 endif ()
 
 # Configure Font Renderer
-set (TB_FONT_RENDERER ${TB_FONT_RENDERER_DEFAULT} CACHE STRING "Select font renderer: TBBF, FREETYPE, STB")
-set_property (CACHE TB_FONT_RENDERER PROPERTY STRINGS "TBBF" "FREETYPE" "STB")
+set (TB_FONT_RENDERER ${TB_FONT_RENDERER_DEFAULT} CACHE STRING "Select font renderer: TBBF, FREETYPE2, STB")
+set_property (CACHE TB_FONT_RENDERER PROPERTY STRINGS "TBBF" "FREETYPE2" "STB")
 
 # Generate the config header file
 configure_file (tb_config.h.in src/tb/tb_config.h)
 
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fno-exceptions -fno-rtti -Wall -Wextra -Wno-unused-parameter")
+  add_compile_options (-g -fno-exceptions -fno-rtti -Wall -Wextra -Wno-unused-parameter)
 endif ()
-
-if (APPLE)
-  add_definitions (-DMACOSX)
-endif (APPLE)
 
 if (MSVC)
   add_definitions (-D_CRT_SECURE_NO_WARNINGS)
@@ -221,14 +216,21 @@ if (TB_SYSTEM STREQUAL SDL2)
   endif (NOT TB_BUILD_SDL2 AND NOT EMSCRIPTEN)
 endif (TB_SYSTEM STREQUAL SDL2)
 
+add_compile_definitions (TB_RUNTIME_DEBUG_INFO=1)
+
 if (EMSCRIPTEN)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 ")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s FULL_ES2=1")
+  add_compile_options (-O2)
+  add_compile_options (-s FULL_ES2=1)
+  add_compile_options (-s EVAL_CTORS=1)
+  add_compile_options (-s BINARYEN_TRAP_MODE=clamp)
+  add_compile_options (-s NO_EXIT_RUNTIME=1)
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 ")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s FULL_ES2=1")
   # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -Oz") # optional
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s EVAL_CTORS=1")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s BINARYEN_TRAP_MODE=clamp")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s NO_EXIT_RUNTIME=1")
-  set (TB_BUILD_FREETYPE OFF CACHE INTERNAL "auto")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s EVAL_CTORS=1")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s BINARYEN_TRAP_MODE=clamp")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s NO_EXIT_RUNTIME=1")
+  set (TB_BUILD_FREETYPE2 OFF CACHE INTERNAL "auto")
   set (TB_BUILD_SDL2 OFF CACHE INTERNAL "auto")
   set (TB_BUILD_GLFW OFF CACHE INTERNAL "auto")
 endif (EMSCRIPTEN)
@@ -249,13 +251,13 @@ endif ()
 # Configure the thirdparty build directory
 execute_process (
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/thirdparty"
-  COMMAND ${CMAKE_COMMAND} -G${GENERATOR_STRING} -DANDROID=${ANDROID} -DCMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DTB_BUILD_GLFW=${TB_BUILD_GLFW} -DTB_BUILD_SDL2=${TB_BUILD_SDL2} -DTB_BUILD_FREETYPE=${TB_BUILD_FREETYPE} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+  COMMAND ${CMAKE_COMMAND} -G${GENERATOR_STRING} -DANDROID=${ANDROID} -DCMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DTB_BUILD_GLFW=${TB_BUILD_GLFW} -DTB_BUILD_SDL2=${TB_BUILD_SDL2} -DTB_BUILD_FREETYPE2=${TB_BUILD_FREETYPE2} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
   RESULT_VARIABLE THIRDPARTY_CONFIG_RESULT
   OUTPUT_VARIABLE THIRDPARTY_OUTPUT
   ERROR_VARIABLE THIRDPARTY_OUTPUT
 )
 if (THIRDPARTY_CONFIG_RESULT)
-  message (FATAL_ERROR "Configuring dependencies failed: ${THIRDPARTY_CONFIG_RESULT}")
+  message (FATAL_ERROR "Configuring dependencies failed: ${THIRDPARTY_CONFIG_RESULT}, ${THIRDPARTY_OUTPUT}")
 endif ()
 
 # Build the thirdparty directory
@@ -270,6 +272,45 @@ endif ()
 
 # Include the now-built thirdparty dependencies
 add_subdirectory (thirdparty EXCLUDE_FROM_ALL)
+
+#################################################################################
+#
+# Macros to add resource files
+#
+define_property (SOURCE PROPERTY RES_ROOT
+  BRIEF_DOCS "Chroot base directory, gets chopped"
+  FULL_DOCS "The base directory which should be truncated")
+
+macro (add_resources RES_LIST_NAME RES_ROOT_PATH)
+  # add file resources to the variable RES_LIST_NAME
+  # also tags the sources with the RES_ROOT
+  # example: add_resources(RES_FILES "${CMAKE_SOURCE_DIR}" "*.txt" "*.png" "*.svg")
+  foreach (globby ${ARGN})
+    file (GLOB_RECURSE RES_FILES_ "${RES_ROOT_PATH}/${globby}")
+    if (RES_FILES_)
+      set_source_files_properties (${RES_FILES_} PROPERTIES RES_ROOT "${RES_ROOT_PATH}")
+      list (APPEND ${RES_LIST_NAME} ${RES_FILES_})
+      #message ("f-${RES_LIST_NAME}: '${RES_ROOT_PATH}/${globby}' -> ${RES_FILES_} : ${RES_ROOT}")
+    endif ()
+  endforeach ()
+endmacro ()
+
+macro (fixup_resources RES_LIST_NAME)
+  foreach (RES_FILE IN LISTS ${RES_LIST_NAME})
+
+    # Get the original root-absolute pah
+    get_property (RES_ROOT_PATH SOURCE ${RES_FILE} PROPERTY RES_ROOT)
+
+    # Get the relative path from the data-folder to the particular file
+    file (RELATIVE_PATH RES_PATH ${RES_ROOT_PATH} ${RES_FILE})
+    get_filename_component (RES_DIR ${RES_PATH} DIRECTORY)
+    
+    # Set it's location inside the app package (under Resources)
+    set_property (SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${RES_DIR}")
+
+    message ("${RES_FILE} -> Resources/${RES_PATH}")
+  endforeach ()
+endmacro ()
 
 #################################################################################
 #
@@ -288,14 +329,14 @@ endif (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL2)
 
 # Android demo
 if (${TB_BUILD_DEMO} STREQUAL ANDROID)
-  target_compile_definitions (TurboBadgerLib PUBLIC -DTB_RUNTIME_DEBUG_INFO=1)
-  message ("CMAKE_ANDROID_ASSETS_DIRECTORIES: ${CMAKE_ANDROID_ASSETS_DIRECTORIES}")
-  list (APPEND CMAKE_ANDROID_ASSETS_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/resources/language")
+  target_compile_definitions (TurboBadgerLib PUBLIC)
+  set_property (TARGET TurboBadger APPEND PROPERTY ANDROID_ASSETS_DIRECTORIES
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/language"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin")
   add_library (TurboBadger SHARED
     ./DemoAndroid2/app/src/main/jni/jni_glue.cpp
     ./DemoAndroid2/app/src/main/jni/App.cpp
     )
-  #set_target_properties (TurboBadger ANDROID_ASSETS_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin")
   target_link_libraries (TurboBadger TurboBadgerLib)
 endif (${TB_BUILD_DEMO} STREQUAL ANDROID)
 
@@ -377,7 +418,7 @@ message (" TB_SUBDIRECTORY:     ${TB_SUBDIRECTORY}")
 message (" TB_BUILD_DEMO:       ${TB_BUILD_DEMO}")
 message (" TB_BUILD_SDL2:       ${TB_BUILD_SDL2}")
 message (" TB_BUILD_GLFW:       ${TB_BUILD_GLFW}")
-message (" TB_BUILD_FREETYPE:   ${TB_BUILD_FREETYPE}")
+message (" TB_BUILD_FREETYPE2:  ${TB_BUILD_FREETYPE2}")
 message (" TB_SYSTEM:           ${TB_SYSTEM}")
 message (" TB_BACKEND:          ${TB_BACKEND}")
 message (" TB_RENDERER:         ${TB_RENDERER}")

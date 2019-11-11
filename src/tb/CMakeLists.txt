@@ -72,8 +72,22 @@ set (LOCAL_SRCS
   )
 
 if (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL2)
- file (GLOB SRCS tests/*.cpp)
- set (LOCAL_SRCS ${LOCAL_SRCS} ${SRCS})
+  set (LOCAL_SRCS ${LOCAL_SRCS}
+    tests/tb_test.cpp
+    tests/test_tb_color.cpp
+    tests/test_tb_dimension.cpp
+    tests/test_tb_geometry.cpp
+    tests/test_tb_linklist.cpp
+    tests/test_tb_node_ref_tree.cpp
+    tests/test_tb_object.cpp
+    tests/test_tb_parser.cpp
+    tests/test_tb_space_allocator.cpp
+    tests/test_tb_style_edit.cpp
+    tests/test_tb_tempbuffer.cpp
+    tests/test_tb_test.cpp
+    tests/test_tb_value.cpp
+    tests/test_tb_widget_value.cpp
+    )
 endif ()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -94,6 +108,8 @@ else (ANDROID)
   add_library (TurboBadgerLib STATIC ${LOCAL_SRCS})
 endif (ANDROID)
 
+target_compile_features (TurboBadgerLib PRIVATE cxx_constexpr)
+
 if (TB_BACKEND STREQUAL SDL2)
   target_link_libraries (TurboBadgerLib PUBLIC SDL2-interface)
 endif (TB_BACKEND STREQUAL SDL2)
@@ -103,14 +119,14 @@ endif (TB_BACKEND STREQUAL GLFW)
 if (TB_SYSTEM STREQUAL WINDOWS)
   target_link_libraries (TurboBadgerLib PUBLIC GLEW)
 endif (TB_SYSTEM STREQUAL WINDOWS)
-if (TB_FONT_RENDERER STREQUAL FREETYPE)
-  target_link_libraries (TurboBadgerLib PUBLIC freetype)
-endif (TB_FONT_RENDERER STREQUAL FREETYPE)
-if (TB_RENDERER MATCHES GL AND NOT EMSCRIPTEN AND NOT EMSCRIPTEN AND NOT ANDROID)
+if (TB_FONT_RENDERER STREQUAL FREETYPE2)
+  target_link_libraries (TurboBadgerLib PUBLIC freetype2)
+endif (TB_FONT_RENDERER STREQUAL FREETYPE2)
+if (TB_RENDERER MATCHES GL AND NOT EMSCRIPTEN AND NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS)
   set (OpenGL_GL_PREFERENCE GLVND)
   find_package (OpenGL REQUIRED)
   target_link_libraries (TurboBadgerLib PUBLIC OpenGL::GL)
-endif (TB_RENDERER MATCHES GL AND NOT EMSCRIPTEN AND NOT EMSCRIPTEN AND NOT ANDROID)
+endif (TB_RENDERER MATCHES GL AND NOT EMSCRIPTEN AND NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS)
 
 target_include_directories (TurboBadgerLib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories (TurboBadgerLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

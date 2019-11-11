@@ -17,12 +17,23 @@ endif (NOT WIN32)
 # quiet warning messages
 message ("${CMAKE_CONFIGURATION_TYPES} ${ANDROID}")
 
-if (TB_BUILD_FREETYPE)
+if (hasParent)
   #
-  # freetype
+  # setup search paths
   #
-  ExternalProject_Add (freetypeX
-    PREFIX freetypeX
+  if (IOS)
+    set (CMAKE_FRAMEWORK_PATH "${CMAKE_SOURCE_DIR}/Frameworks.iOS")
+  else ()
+    set (CMAKE_FRAMEWORK_PATH "${CMAKE_SOURCE_DIR}/Frameworks.macOS")
+  endif ()
+endif (hasParent)
+
+if (TB_BUILD_FREETYPE2)
+  #
+  # freetype2
+  #
+  ExternalProject_Add (freetype2X
+    PREFIX freetype2X
     URL http://download.savannah.gnu.org/releases/freetype/freetype-2.9.1.tar.gz
     URL_HASH MD5=3adb0e35d3c100c456357345ccfa8056
     #URL http://download.savannah.gnu.org/releases/freetype/freetype-2.8.1.tar.gz
@@ -32,11 +43,11 @@ if (TB_BUILD_FREETYPE)
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
     LOG_DOWNLOAD ON )
-  ExternalProject_Get_Property (freetypeX source_dir)
+  ExternalProject_Get_Property (freetype2X source_dir)
   if (hasParent)
-    set (FREETYPE_SRC_DIR "${source_dir}")
-    message (" FREETYPE_SRC_DIR: ${FREETYPE_SRC_DIR}")
-    # freetype config variables
+    set (FREETYPE2_SRC_DIR "${source_dir}")
+    message (" FREETYPE2_SRC_DIR: ${FREETYPE2_SRC_DIR}")
+    # freetype2 config variables
     set (FT_WITH_ZLIB OFF CACHE STRING "" FORCE)
     set (FT_WITH_BZIP2 OFF CACHE STRING "" FORCE)
     set (FT_WITH_PNG OFF CACHE STRING "" FORCE)
@@ -46,17 +57,17 @@ if (TB_BUILD_FREETYPE)
     set (CMAKE_DISABLE_FIND_PACKAGE_PNG ON CACHE STRING "" FORCE)
     set (CMAKE_DISABLE_FIND_PACKAGE_HarfBuzz ON CACHE STRING "" FORCE)
     set (FREETYPE_NO_DIST ON CACHE STRING "" FORCE)
-    add_subdirectory ("${FREETYPE_SRC_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/freetype_build" EXCLUDE_FROM_ALL)
-    #set_property (TARGET freetype APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-    #  "${CMAKE_CURRENT_BINARY_DIR}/freetype_build/include" "${FREETYPE_SRC_DIR}/include")
-    set_property (TARGET freetype APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-      $<TARGET_PROPERTY:freetype,INCLUDE_DIRECTORIES>)
+    add_subdirectory ("${FREETYPE2_SRC_DIR}"
+      "${CMAKE_CURRENT_BINARY_DIR}/freetype2_build"
+      EXCLUDE_FROM_ALL)
+    set_property (TARGET freetype2 APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+      $<TARGET_PROPERTY:freetype2,INCLUDE_DIRECTORIES>)
   endif (hasParent)
-elseif (EMSCRIPTEN AND TB_FONT_RENDERER STREQUAL FREETYPE)
-  add_library (freetype INTERFACE IMPORTED GLOBAL)
-  set_property (TARGET freetype APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_FREETYPE=1)
-  set_property (TARGET freetype APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_FREETYPE=1)
-endif (TB_BUILD_FREETYPE)
+elseif (EMSCRIPTEN AND TB_FONT_RENDERER STREQUAL FREETYPE2)
+  add_library (freetype2 INTERFACE IMPORTED GLOBAL)
+  set_property (TARGET freetype2 APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_FREETYPE=1)
+  set_property (TARGET freetype2 APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_FREETYPE=1)
+endif (TB_BUILD_FREETYPE2)
 
 if (TB_BUILD_GLFW)
   # Download glfw
@@ -118,6 +129,8 @@ if (TB_BUILD_SDL2)
     set (SDL_SHARED     OFF CACHE BOOL "" FORCE) 
     set (SDL_TEST       OFF CACHE BOOL "" FORCE) 
     set (SDL_RENDER     OFF CACHE BOOL "" FORCE)
+    #set (SDL_HAPTIC     OFF CACHE BOOL "" FORCE)
+    #set (SDL_JOYSTICK   OFF CACHE BOOL "" FORCE)
     add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir")
     add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
     target_link_libraries (SDL2-interface INTERFACE SDL2-static)
@@ -129,10 +142,40 @@ if (TB_BUILD_SDL2)
       target_link_libraries (SDL2-interface INTERFACE SDL2main)
     endif (WIN32)
   endif (hasParent)
-elseif (EMSCRIPTEN AND TB_BACKEND STREQUAL SDL2)
+elseif (TB_BACKEND STREQUAL SDL2)
   add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
-  set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_SDL=2)
-  set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_SDL=2)
+  if (EMSCRIPTEN)
+    set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_SDL=2)
+    set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_SDL=2)
+  else ()
+    message ("Looking for SDL2 with find_package()...")
+    find_package (SDL2 2.0.10)
+    if (NOT SDL2)
+      message ("Looking for SDL2 with find_library()...")
+      find_library (SDL2_LIBRARY SDL2)
+      find_path (SDL2_INCLUDE_DIR "SDL.h" PATH_SUFFIXES "SDL2")
+      message ("SDL2_LIBRARY: ${SDL2_LIBRARY}, SDL2_INCLUDE_DIR: ${SDL2_INCLUDE_DIR}")
+      if (SDL2_LIBRARY AND SDL2_INCLUDE_DIR)
+        add_library (SDL2 INTERFACE IMPORTED GLOBAL)
+        set_property (TARGET SDL2 APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${SDL2_LIBRARY})
+        set_property (TARGET SDL2 APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SDL2_INCLUDE_DIR})
+        set (SDL2 TRUE)
+      endif ()
+      message ("Found: '${SDL2}', '${SDL2_INCLUDE_DIR}' ...")
+    endif (NOT SDL2)
+    if (NOT SDL2)
+      message ("Looking for SDL2 with pkg_search_module()...")
+      include (FindPkgConfig)
+      pkg_search_module (SDL2 REQUIRED sdl2)
+      #set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${SDL2_LIBRARY})
+      #set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SDL2_INCLUDE_DIR})
+    endif (NOT SDL2)
+    if (NOT SDL2)
+      message (FATAL_ERROR "Unable to find SDL2: ${SDL2}, ${SDL2_FOUND}")
+    endif ()
+    set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS SDL_FRAMEWORK=1)
+    target_link_libraries (SDL2-interface INTERFACE SDL2)
+  endif (EMSCRIPTEN)
 endif (TB_BUILD_SDL2)
 
 if (WIN32)

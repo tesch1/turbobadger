@@ -8,6 +8,7 @@
 #ifdef TB_FILE_POSIX
 
 #include <stdio.h>
+#include <unistd.h>
 
 namespace tb {
 
@@ -67,8 +68,10 @@ TBFile *TBFile::Open(const TBStr & filename, TBFileMode mode)
 		break;
 	}
 #if defined(TB_RUNTIME_DEBUG_INFO) && 1
-	if (!f)
+	if (!f) {
+		TBDebugPrint("Cwd: '%s'\n", getwd(NULL));
 		TBDebugPrint("TBFile::Open, unable to open file '%s'\n", pathfile.CStr());
+	}
 #endif
 	if (!f)
 		return nullptr;

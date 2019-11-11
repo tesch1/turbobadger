@@ -3,6 +3,11 @@
 #ifdef TB_SYSTEM_MACOSX
 #include <unistd.h>
 #include <mach-o/dyld.h>
+
+// newness
+#include "CoreFoundation/CoreFoundation.h"
+#include <unistd.h>
+#include <libgen.h>
 #endif
 #ifdef TB_TARGET_LINUX
 #include <unistd.h>
@@ -16,7 +21,23 @@
 
 bool port_main(int argc, char* argv[])
 {
-#ifdef TB_TARGET_MACOSX
+#if defined(TB_BACKEND_SDL2) && !defined(__EMSCRIPTEN__)
+	if (char *base_path = SDL_GetBasePath())
+	{
+		chdir(base_path);
+		SDL_free(base_path);
+		printf("SDL pwd: %s\n", base_path);
+	}
+#elif defined(TB_TARGET_MACOSX)
+	{
+		CFBundleRef bundle = CFBundleGetMainBundle();
+        CFURLRef bundleURL = CFBundleCopyBundleURL(bundle);
+        char path[PATH_MAX];
+        Boolean success = CFURLGetFileSystemRepresentation(bundleURL, TRUE, (UInt8 *)path, PATH_MAX);
+        assert(success);
+        CFRelease(bundleURL);
+        chdir(dirname(path));
+	}
 	// Change working directory to the executable path. We expect it
 	// to be where the demo resources are.
 	char exec_path[2048];
@@ -26,10 +47,10 @@ bool port_main(int argc, char* argv[])
 		for (int n = strlen(exec_path); n > 0 && exec_path[n-1] != '/'; n--)
 			exec_path[n-1] = '\0';
 		chdir(exec_path);
-		printf("pwd: %s\n", exec_path);
+		chdir("../Resources");
+		printf("nsexe pwd: %s\n", exec_path);
 	}
-#endif
-#ifdef TB_TARGET_LINUX
+#elif TB_TARGET_LINUX
 	if (getauxval(AT_EXECFN))
 	{
 		char exec_path[2048];
