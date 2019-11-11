@@ -314,7 +314,7 @@ macro (fixup_resources RES_LIST_NAME)
     # Set it's location inside the app package (under Resources)
     set_property (SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${RES_DIR}")
 
-    message ("${RES_FILE} -> Resources/${RES_PATH}")
+    #message ("${RES_FILE} -> Resources/${RES_PATH}")
   endforeach ()
 endmacro ()
 

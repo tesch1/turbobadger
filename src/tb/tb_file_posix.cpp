@@ -8,7 +8,21 @@
 #ifdef TB_FILE_POSIX
 
 #include <stdio.h>
+#ifndef _WIN32
 #include <unistd.h>
+#else
+/* This is intended as a drop-in replacement for unistd.h on Windows.
+ * Please add functionality as neeeded.
+ * https://stackoverflow.com/a/826027/1202830
+ */
+#include <stdlib.h>
+#include <io.h>
+#include <getopt.h> /* getopt at: https://gist.github.com/ashelly/7776712 */
+#include <process.h> /* for getpid() and the exec..() family */
+#include <direct.h> /* for _getcwd() and _chdir() */
+#define getcwd _getcwd
+/* -- cut -- */
+#endif
 
 namespace tb {
 
