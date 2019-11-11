@@ -282,9 +282,12 @@ define_property (SOURCE PROPERTY RES_ROOT
   FULL_DOCS "The base directory which should be truncated")
 
 macro (add_resources RES_LIST_NAME RES_ROOT_PATH)
+  #
   # add file resources to the variable RES_LIST_NAME
-  # also tags the sources with the RES_ROOT
-  # example: add_resources(RES_FILES "${CMAKE_SOURCE_DIR}" "*.txt" "*.png" "*.svg")
+  # also tags the source files with the RES_ROOT_PATH using the custom property RES_ROOT
+  #
+  # example: add_resources(RES_FILES "${CMAKE_SOURCE_DIR}/resources" "*.txt" "*.png" "*.svg")
+  #
   foreach (globby ${ARGN})
     file (GLOB_RECURSE RES_FILES_ "${RES_ROOT_PATH}/${globby}")
     if (RES_FILES_)
@@ -296,6 +299,9 @@ macro (add_resources RES_LIST_NAME RES_ROOT_PATH)
 endmacro ()
 
 macro (fixup_resources RES_LIST_NAME)
+  #
+  # example: fixup_resources(RES_FILES)
+  #
   foreach (RES_FILE IN LISTS ${RES_LIST_NAME})
 
     # Get the original root-absolute pah
