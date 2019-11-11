@@ -30,6 +30,7 @@ addons:
     packages:
     - cmake
     - clang
+    - rpm
     - libgl1-mesa-dev
     - libx11-dev
     - libxrandr-dev

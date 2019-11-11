@@ -1,5 +1,5 @@
 
-all: glfw sdl2 em em-glfw
+all: glfw sdl2 lib osx ios and em em-glfw
 
 glfw:
 	[ -d BuildGLFW ] || ./build.sh -glfw -gl
