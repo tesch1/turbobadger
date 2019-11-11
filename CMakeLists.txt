@@ -29,6 +29,9 @@ else ()
 endif ()
 #################################################################################
 
+# Check if we're being built as an add_subdirectory() from another project
+get_directory_property (TB_SUBDIRECTORY PARENT_DIRECTORY)
+
 # try to auto-detect TB_SYSTEM etc...
 if (UNIX)
   set (TB_SYSTEM_DEFAULT LINUX)
@@ -96,12 +99,11 @@ endif (TB_BACKEND STREQUAL GLFW)
 option (TB_BUILD_GLFW "Download and build the GLFW library." OFF)
 option (TB_BUILD_SDL2 "Download and build the SDL2 library." OFF)
 option (TB_BUILD_FREETYPE "Download and build the freetype library." OFF)
-option (TB_GENERATE_CONFIG "Generate the tb_config.h file from provided parameters in cmake." ON)
 
 # Which types to generate for for Xcode and VS, default to Release
-if (XCODE OR MSVS)
+if (XCODE OR MSVS AND NOT CMAKE_CONFIGURATION_TYPES)
   set (CMAKE_CONFIGURATION_TYPES "Release;Debug;RelWithDebInfo")
-endif (XCODE OR MSVS)
+endif (XCODE OR MSVS AND NOT CMAKE_CONFIGURATION_TYPES)
 
 # Default CMAKE_BUILD_TYPE, if not Xcode or VS
 set (CMAKE_BUILD_TYPE "Debug" CACHE STRING "Set cmake build type")
@@ -127,8 +129,6 @@ if (TB_IMAGE)
   set (TB_IMAGE_LOADER_DEFAULT STB)
 endif ()
 set (TB_IMAGE_LOADER "${TB_IMAGE_LOADER_DEFAULT}" CACHE STRING "Which image loader (def: STB)")
-
-include (CMakeDependentOption)
 
 # Runtime/subsystem configurations - check if a Demo is selected
 
@@ -172,9 +172,7 @@ set (TB_FONT_RENDERER ${TB_FONT_RENDERER_DEFAULT} CACHE STRING "Select font rend
 set_property (CACHE TB_FONT_RENDERER PROPERTY STRINGS "TBBF" "FREETYPE" "STB")
 
 # Generate the config header file
-if (TB_GENERATE_CONFIG)
-  configure_file (tb_config.h.in src/tb/tb_config.h)
-endif (TB_GENERATE_CONFIG)
+configure_file (tb_config.h.in src/tb/tb_config.h)
 
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fno-exceptions -fno-rtti -Wall -Wextra -Wno-unused-parameter")
@@ -239,7 +237,7 @@ endif (EMSCRIPTEN)
 #
 # Add thirdparty dependencies
 #
-file (MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/thirdparty")
+file (MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/thirdparty")
 
 # Generator name
 if (NOT "${CMAKE_EXTRA_GENERATOR}" STREQUAL "")
@@ -250,9 +248,11 @@ endif ()
 
 # Configure the thirdparty build directory
 execute_process (
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/thirdparty"
-  COMMAND ${CMAKE_COMMAND} -G${GENERATOR_STRING} -DANDROID=${ANDROID} -DCMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DTB_BUILD_GLFW=${TB_BUILD_GLFW} -DTB_BUILD_SDL2=${TB_BUILD_SDL2} -DTB_BUILD_FREETYPE=${TB_BUILD_FREETYPE} ${CMAKE_SOURCE_DIR}/thirdparty
+  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/thirdparty"
+  COMMAND ${CMAKE_COMMAND} -G${GENERATOR_STRING} -DANDROID=${ANDROID} -DCMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM} -DTB_BUILD_GLFW=${TB_BUILD_GLFW} -DTB_BUILD_SDL2=${TB_BUILD_SDL2} -DTB_BUILD_FREETYPE=${TB_BUILD_FREETYPE} ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
   RESULT_VARIABLE THIRDPARTY_CONFIG_RESULT
+  OUTPUT_VARIABLE THIRDPARTY_OUTPUT
+  ERROR_VARIABLE THIRDPARTY_OUTPUT
 )
 if (THIRDPARTY_CONFIG_RESULT)
   message (FATAL_ERROR "Configuring dependencies failed: ${THIRDPARTY_CONFIG_RESULT}")
@@ -260,7 +260,7 @@ endif ()
 
 # Build the thirdparty directory
 execute_process (
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/thirdparty"
+  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/thirdparty"
   COMMAND "${CMAKE_COMMAND}" --build .
   RESULT_VARIABLE THIRDPARTY_BUILD_RESULT
   )
@@ -290,39 +290,46 @@ endif (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL2)
 if (${TB_BUILD_DEMO} STREQUAL ANDROID)
   target_compile_definitions (TurboBadgerLib PUBLIC -DTB_RUNTIME_DEBUG_INFO=1)
   message ("CMAKE_ANDROID_ASSETS_DIRECTORIES: ${CMAKE_ANDROID_ASSETS_DIRECTORIES}")
-  list (APPEND CMAKE_ANDROID_ASSETS_DIRECTORIES "${CMAKE_SOURCE_DIR}/resources/language")
+  list (APPEND CMAKE_ANDROID_ASSETS_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/resources/language")
   add_library (TurboBadger SHARED
     ./DemoAndroid2/app/src/main/jni/jni_glue.cpp
     ./DemoAndroid2/app/src/main/jni/App.cpp
     )
-  #set_target_properties (TurboBadger ANDROID_ASSETS_DIRECTORIES "${CMAKE_SOURCE_DIR}/resources/default_skin")
+  #set_target_properties (TurboBadger ANDROID_ASSETS_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin")
   target_link_libraries (TurboBadger TurboBadgerLib)
 endif (${TB_BUILD_DEMO} STREQUAL ANDROID)
 
+#################################################################################
 # Generate Doxygen documentation
-configure_file (${CMAKE_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_BINARY_DIR}/doc/Doxyfile)
-add_custom_target (docs
-  COMMAND doxygen ${CMAKE_BINARY_DIR}/doc/Doxyfile
-  # COMMAND open doc/html/index.html
-  )
+#
+if (NOT TB_SUBDIRECTORY)
+  configure_file (${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile)
+  add_custom_target (docs
+    COMMAND doxygen ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile
+    # COMMAND open doc/html/index.html
+    )
+endif (NOT TB_SUBDIRECTORY)
 
 #################################################################################
 # etags
 #
-find_program (ETAGS etags)
-if (ETAGS)
-  add_custom_target (tags
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMAND etags --language=c++ ${CMAKE_SOURCE_DIR}/Demo/*.[ch]*
-    COMMAND etags --language=c++ --append `find ${CMAKE_SOURCE_DIR} -name '*.[ch]*'`
-    )
-  add_custom_target (etags DEPENDS tags)
-endif (ETAGS)
+if (NOT TB_SUBDIRECTORY)
+  find_program (ETAGS etags)
+  if (ETAGS)
+    add_custom_target (tags
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMAND etags --language=c++ ${CMAKE_CURRENT_SOURCE_DIR}/Demo/*.[ch]*
+      COMMAND etags --language=c++ --append `find ${CMAKE_CURRENT_SOURCE_DIR} -name '*.[ch]*'`
+      )
+    add_custom_target (etags DEPENDS tags)
+  endif (ETAGS)
+endif (NOT TB_SUBDIRECTORY)
 
 #################################################################################
 # CPack for TurboBadgerLib
-if (NOT TB_BUILD_DEMO)
-  set (CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
+#
+if (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
+  set (CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
   set (CPACK_COMPONENTS_ALL library)
 
   set (CPACK_PACKAGE_NAME "TurboBadgerLib")
@@ -363,18 +370,19 @@ if (NOT TB_BUILD_DEMO)
 
   include (CPack)
 
-endif (NOT TB_BUILD_DEMO)
+endif (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
 
-message ("CMAKE_BUILD_TYPE:    ${CMAKE_BUILD_TYPE}")
-message ("TB_BUILD_DEMO:       ${TB_BUILD_DEMO}")
-message ("TB_BUILD_SDL2:       ${TB_BUILD_SDL2}")
-message ("TB_BUILD_GLFW:       ${TB_BUILD_GLFW}")
-message ("TB_BUILD_FREETYPE:   ${TB_BUILD_FREETYPE}")
-message ("TB_SYSTEM:           ${TB_SYSTEM}")
-message ("TB_BACKEND:          ${TB_BACKEND}")
-message ("TB_RENDERER:         ${TB_RENDERER}")
-message ("TB_RENDERER_BATCHER: ${TB_RENDERER_BATCHER}")
-message ("TB_FONT_RENDERER:    ${TB_FONT_RENDERER}")
-message ("TB_FILE:             ${TB_FILE}")
-message ("TB_CLIPBOARD:        ${TB_CLIPBOARD}")
-message ("TB_IMAGE_LOADER:     ${TB_IMAGE_LOADER}")
+message (" CMAKE_BUILD_TYPE:    ${CMAKE_BUILD_TYPE}")
+message (" TB_SUBDIRECTORY:     ${TB_SUBDIRECTORY}")
+message (" TB_BUILD_DEMO:       ${TB_BUILD_DEMO}")
+message (" TB_BUILD_SDL2:       ${TB_BUILD_SDL2}")
+message (" TB_BUILD_GLFW:       ${TB_BUILD_GLFW}")
+message (" TB_BUILD_FREETYPE:   ${TB_BUILD_FREETYPE}")
+message (" TB_SYSTEM:           ${TB_SYSTEM}")
+message (" TB_BACKEND:          ${TB_BACKEND}")
+message (" TB_RENDERER:         ${TB_RENDERER}")
+message (" TB_RENDERER_BATCHER: ${TB_RENDERER_BATCHER}")
+message (" TB_FONT_RENDERER:    ${TB_FONT_RENDERER}")
+message (" TB_FILE:             ${TB_FILE}")
+message (" TB_CLIPBOARD:        ${TB_CLIPBOARD}")
+message (" TB_IMAGE_LOADER:     ${TB_IMAGE_LOADER}")

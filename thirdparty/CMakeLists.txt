@@ -94,10 +94,10 @@ elseif (EMSCRIPTEN AND TB_CLIPBOARD STREQUAL GLFW)
 endif (TB_BUILD_GLFW)
 
 if (TB_BUILD_SDL2)
-  set (SDL_VERSION 2.0.10)
-  set (SDL_VERSION_HASH 5a2114f2a6f348bdab5bf52b994811db)
   set (SDL_VERSION 2.0.5)
   set (SDL_VERSION_HASH d4055424d556b4a908aa76fad63abd3c)
+  set (SDL_VERSION 2.0.10)
+  set (SDL_VERSION_HASH 5a2114f2a6f348bdab5bf52b994811db)
 
   ExternalProject_Add (sdl2X
     PREFIX sdl2X
@@ -116,6 +116,7 @@ if (TB_BUILD_SDL2)
     set (SDL_STATIC     ON  CACHE BOOL "" FORCE)
     set (SDL_STATIC_PIC ON  CACHE BOOL "" FORCE)
     set (SDL_SHARED     OFF CACHE BOOL "" FORCE) 
+    set (SDL_TEST       OFF CACHE BOOL "" FORCE) 
     set (SDL_RENDER     OFF CACHE BOOL "" FORCE)
     add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir")
     add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
