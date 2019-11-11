@@ -50,7 +50,7 @@ bool port_main(int argc, char* argv[])
 		chdir("../Resources");
 		printf("nsexe pwd: %s\n", exec_path);
 	}
-#elif TB_TARGET_LINUX
+#elif defined(TB_TARGET_LINUX)
 	if (getauxval(AT_EXECFN))
 	{
 		char exec_path[2048];
