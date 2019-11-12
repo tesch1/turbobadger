@@ -15,10 +15,10 @@ matrix:
     install:
     - choco install nsis 7zip
     script:
-    - cmake . -Bbuild
+    - cmake . -BBuild
     - ls
-    - ls build
-    - cmake --build build --config Release --target PACKAGE
+    - ls Build
+    - cmake --build Build --config Release --target PACKAGE
   - os: osx
     osx_image: xcode9.1
     script:
