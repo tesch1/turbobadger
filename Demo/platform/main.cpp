@@ -13,8 +13,20 @@
 #include <unistd.h>
 #include <sys/auxv.h>
 #endif
+#ifdef TB_TARGET_WINDOWS
+/* This is intended as a drop-in replacement for unistd.h on Windows.
+ * Please add functionality as neeeded.
+ * https://stackoverflow.com/a/826027/1202830
+ */
+#include <stdlib.h>
+#include <io.h>
+//#include <getopt.h> /* getopt at: https://gist.github.com/ashelly/7776712 */
+#include <process.h> /* for getpid() and the exec..() family */
+#include <direct.h> /* for _getcwd() and _chdir() */
+#define chdir _chdir
+/* -- cut -- */
+#endif
 
-#include "Application.h"
 #include "port_glfw.hpp"
 #include "port_sdl2.hpp"
 #include "tb_tempbuffer.h"
