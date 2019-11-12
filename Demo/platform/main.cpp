@@ -14,6 +14,8 @@
 #include <sys/auxv.h>
 #endif
 #ifdef TB_TARGET_WINDOWS
+#include <tchar.h>
+#include <Windows.h>
 /* This is intended as a drop-in replacement for unistd.h on Windows.
  * Please add functionality as neeeded.
  * https://stackoverflow.com/a/826027/1202830
