@@ -28,12 +28,12 @@ if (hasParent)
   endif ()
 endif (hasParent)
 
-if (TB_BUILD_FREETYPE2)
+if (TB_BUILD_FREETYPE)
   #
-  # freetype2
+  # freetype
   #
-  ExternalProject_Add (freetype2X
-    PREFIX freetype2X
+  ExternalProject_Add (freetypeX
+    PREFIX freetypeX
     URL http://download.savannah.gnu.org/releases/freetype/freetype-2.9.1.tar.gz
     URL_HASH MD5=3adb0e35d3c100c456357345ccfa8056
     #URL http://download.savannah.gnu.org/releases/freetype/freetype-2.8.1.tar.gz
@@ -43,11 +43,11 @@ if (TB_BUILD_FREETYPE2)
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
     LOG_DOWNLOAD ON )
-  ExternalProject_Get_Property (freetype2X source_dir)
+  ExternalProject_Get_Property (freetypeX source_dir)
   if (hasParent)
-    set (FREETYPE2_SRC_DIR "${source_dir}")
-    message (" FREETYPE2_SRC_DIR: ${FREETYPE2_SRC_DIR}")
-    # freetype2 config variables
+    set (FREETYPE_SRC_DIR "${source_dir}")
+    message (" FREETYPE_SRC_DIR: ${FREETYPE_SRC_DIR}")
+    # freetype config variables
     set (FT_WITH_ZLIB OFF CACHE STRING "" FORCE)
     set (FT_WITH_BZIP2 OFF CACHE STRING "" FORCE)
     set (FT_WITH_PNG OFF CACHE STRING "" FORCE)
@@ -57,17 +57,17 @@ if (TB_BUILD_FREETYPE2)
     set (CMAKE_DISABLE_FIND_PACKAGE_PNG ON CACHE STRING "" FORCE)
     set (CMAKE_DISABLE_FIND_PACKAGE_HarfBuzz ON CACHE STRING "" FORCE)
     set (FREETYPE_NO_DIST ON CACHE STRING "" FORCE)
-    add_subdirectory ("${FREETYPE2_SRC_DIR}"
-      "${CMAKE_CURRENT_BINARY_DIR}/freetype2_build"
+    add_subdirectory ("${FREETYPE_SRC_DIR}"
+      "${CMAKE_CURRENT_BINARY_DIR}/freetype_build"
       EXCLUDE_FROM_ALL)
-    set_property (TARGET freetype2 APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-      $<TARGET_PROPERTY:freetype2,INCLUDE_DIRECTORIES>)
+    set_property (TARGET freetype APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+      $<TARGET_PROPERTY:freetype,INCLUDE_DIRECTORIES>)
   endif (hasParent)
-elseif (EMSCRIPTEN AND TB_FONT_RENDERER STREQUAL FREETYPE2)
-  add_library (freetype2 INTERFACE IMPORTED GLOBAL)
-  set_property (TARGET freetype2 APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_FREETYPE=1)
-  set_property (TARGET freetype2 APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_FREETYPE=1)
-endif (TB_BUILD_FREETYPE2)
+elseif (EMSCRIPTEN AND TB_FONT_RENDERER STREQUAL FREETYPE)
+  add_library (freetype INTERFACE IMPORTED GLOBAL)
+  set_property (TARGET freetype APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_FREETYPE=1)
+  set_property (TARGET freetype APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_FREETYPE=1)
+endif (TB_BUILD_FREETYPE)
 
 if (TB_BUILD_GLFW)
   # Download glfw
