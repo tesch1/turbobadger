@@ -10,7 +10,7 @@ set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (VERSION_MAJOR "0")
 set (VERSION_MINOR "1")
 set (VERSION_PATCH "0")
-set (VERSION_BUILD "-beta1") # ie "-beta1", or empty string if release: ""
+set (VERSION_BUILD "-beta2") # ie "-beta1", or empty string if release: ""
 set (VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 #
