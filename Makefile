@@ -26,7 +26,7 @@ osx: Build-osx
 Build-ios:
 	cmake . -G Xcode -BBuild-ios -DCMAKE_TOOLCHAIN_FILE=cmake/iOS.cmake || rm -rf Build-ios
 
-ios: xc-ios
+ios: Build-ios
 	cd Build-iOS   && xcrun xcodebuild -project "TurboBadger.xcodeproj" -target TurboBadgerLib
 
 lib:

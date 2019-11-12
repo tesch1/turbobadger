@@ -143,6 +143,9 @@ if (TB_BUILD_SDL2)
     endif (WIN32)
   endif (hasParent)
 elseif (TB_BACKEND STREQUAL SDL2)
+  #
+  # Not building SDL2, so try to find it
+  #
   add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
   if (EMSCRIPTEN)
     set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_SDL=2)
