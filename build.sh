@@ -118,6 +118,7 @@ while [ $# -gt 0 ]; do
             ;;
         -v|--verbose)          VERBOSE=$(( ${VERBOSE} + 1 ))
                                MAKE_FLAGS="${MAKE_FLAGS} VERBOSE=1"
+                               CMAKE_FLAGS="${CMAKE_FLAGS} -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"
                                ;;
         -q|--quiet)            VERBOSE=$(( ${VERBOSE} - 1 ))
                                ;;

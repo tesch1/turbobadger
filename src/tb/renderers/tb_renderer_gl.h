@@ -62,6 +62,9 @@ extern PFNGLGENVERTEXARRAYSOESPROC glGenVertexArraysOESEXT;
 #if defined(__APPLE__)
 #include <OpenGL/gl3.h>
 #elif defined (_WIN32)
+#ifndef GLEW_STATIC
+#error "GLEW_STATIC NOT DEFINED!!!"
+#endif
 #define GL3_PROTOTYPES 1
 #include <GL/glew.h>
 //#include <GL3/gl3.h>
