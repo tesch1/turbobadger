@@ -336,14 +336,14 @@ endif (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL2)
 # Android demo
 if (${TB_BUILD_DEMO} STREQUAL ANDROID)
   target_compile_definitions (TurboBadgerLib PUBLIC)
-  set_property (TARGET TurboBadger APPEND PROPERTY ANDROID_ASSETS_DIRECTORIES
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/language"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin")
   add_library (TurboBadger SHARED
     ./DemoAndroid2/app/src/main/jni/jni_glue.cpp
     ./DemoAndroid2/app/src/main/jni/App.cpp
     )
   target_link_libraries (TurboBadger TurboBadgerLib)
+  set_property (TARGET TurboBadger APPEND PROPERTY ANDROID_ASSETS_DIRECTORIES
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/language"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin")
 endif (${TB_BUILD_DEMO} STREQUAL ANDROID)
 
 #################################################################################
