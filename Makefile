@@ -10,13 +10,15 @@ sdl2:
 	[ -d BuildSDL2 ] || ./build.sh -sdl2 -gl3
 	cd BuildSDL2 && $(MAKE) package
 
-em:
+em-sdl2:
 	[ -d BuildEmsc ] || ./build.sh -gles2 -sdl2 -em
 	cd BuildEmsc && $(MAKE)
 
 em-glfw:
 	[ -d BuildEmscGl ] || ./build.sh -gles2 -glfw -em -o BuildEmscGl
 	cd BuildEmscGl && $(MAKE)
+
+em: em-sdl2 em-glfw
 
 Build-osx:
 	cmake . -G Xcode -BBuild-osx -DTB_RENDERER=GL3 -DTB_BUILD_DEMO=SDL2 || rm -rf Build-osx
