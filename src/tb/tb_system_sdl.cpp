@@ -212,4 +212,4 @@ void TBSystem::SetDPI(int dpi)
 
 } // namespace tb
 
-#endif // TB_BACKEND_SDL2
+#endif // TB_SYSTEM_SDL2

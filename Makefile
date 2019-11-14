@@ -32,8 +32,8 @@ ios: Build-ios
 	cd Build-ios && cmake --build . --target package
 
 lib:
-	[ -d BuildLib ] || ./build.sh -o BuildLib -gl3
-	cd BuildLib && $(MAKE) package
+	[ -d Build-lib ] || ./build.sh -o Build-lib -gl3
+	cd Build-lib && $(MAKE) package
 
 and:
 	cd DemoAndroid2 && ./gradlew build
