@@ -280,7 +280,7 @@ function (add_resources RES_LIST_NAME RES_ROOT_PATH)
   foreach (globby ${AR_UNPARSED_ARGUMENTS})
     file (GLOB_RECURSE RES_FILES_ "${RES_ROOT_PATH}/${globby}")
     if (RES_FILES_)
-      message ("finding '${globby}'")
+      #message ("finding '${globby}'")
       list (APPEND ${RES_LIST_NAME} ${RES_FILES_})
     endif ()
 
@@ -294,7 +294,7 @@ function (add_resources RES_LIST_NAME RES_ROOT_PATH)
       set_property (SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${AR_DESTINATION}${RES_DIR}")
       set_property (SOURCE ${RES_FILE} PROPERTY RES_LOCATION "${AR_DESTINATION}${RES_DIR}")
 
-      message ("${RES_FILE} ->  ${RES_PATH} : ${RES_DIR}")
+      message ("${RES_FILE} ->  ${AR_DESTINATION} : ${RES_DIR}")
     endforeach ()
   endforeach ()
 
@@ -346,20 +346,22 @@ if (${TB_BUILD_DEMO} STREQUAL ANDROID)
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/language"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin")
 
-  set (DEMO_ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/DemoAndroid2/app/src/main/assets/")
-  file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/language")
-  file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/font")
-  file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/skin")
-  file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/demo_skin")
+  set (DEMO_ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/DemoAndroid2/app/src/main/assets")
+  #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/language")
+  #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/font")
+  #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/skin")
+  #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/demo_skin")
 
   add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/language" DESTINATION language "*.txt")
   add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_font" DESTINATION font "*")
   add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin" DESTINATION skin "*.png" "*.txt")
   add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Demo/demo01/skin" DESTINATION demo_skin "*.png" "*.txt")
 
-  foreach (RES_FILE IN LISTS ${RES_LIST_NAME})
+  foreach (RES_FILE IN LISTS RES_FILES)
     get_property (RES_LOCATION SOURCE ${RES_FILE} PROPERTY RES_LOCATION)
-    file (COPY ${RES_FILE} DESTINATION ${RES_LOCATION})
+    file (COPY ${RES_FILE} DESTINATION ${DEMO_ASSET_DIR}/${RES_LOCATION})
+    file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/${RES_LOCATION}")
+    message ("cp ${RES_FILE} ${DEMO_ASSET_DIR}/${RES_LOCATION}")
   endforeach ()
 
   #copy /Y "..\resources\language\*.txt" "assets\language\*"
