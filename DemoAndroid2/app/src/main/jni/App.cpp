@@ -130,6 +130,8 @@ void Init(unsigned int width, unsigned int height)
 	// Start listening to keyboard focus
 	TBWidgetListener::AddGlobalListener(&edit_listener);
 
+	TBDebugOut("Hello World\n");
+
 	// Load language file
 	g_tb_lng->Load("language/lng_en.tb.txt");
 

@@ -14,12 +14,12 @@ sdl2:
 	cd Build-sdl2 && $(MAKE) package
 
 em-sdl2:
-	[ -d BuildEmsc ] || ./build.sh -gles2 -sdl2 -em
-	cd BuildEmsc && $(MAKE)
+	[ -d Build-emsc ] || ./build.sh -gles2 -sdl2 -em -o Build-emsc
+	cd Build-emsc && $(MAKE)
 
 em-glfw:
-	[ -d BuildEmscGl ] || ./build.sh -gles2 -glfw -em -o BuildEmscGl
-	cd BuildEmscGl && $(MAKE)
+	[ -d Build-emscgl ] || ./build.sh -gles2 -glfw -em -o Build-emscgl
+	cd Build-emscgl && $(MAKE)
 
 em: em-sdl2 em-glfw
 
@@ -43,7 +43,7 @@ and:
 	cd DemoAndroid2 && ./gradlew build
 
 distclean:
-	rm -rf Build*
+	rm -rf Build-*
 
 #%:
 #	cd Build && $(MAKE) $@

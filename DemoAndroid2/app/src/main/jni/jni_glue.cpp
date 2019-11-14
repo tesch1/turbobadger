@@ -37,7 +37,7 @@ void ValidateClassAndMethods()
 	if (mid_valid)
 		return;
 	JNIEnv *env = get_jnienv();
-	TBLib_class = env->FindClass("com.fiffigt.tb.demo/TBLib");
+	TBLib_class = env->FindClass("org.hastybadger.demo/TBLib");
 	TBLib_mid_show_keyboard = env->GetStaticMethodID(TBLib_class, "ShowKeyboard", "(I)V");
 
 	mid_valid = true;
@@ -58,8 +58,8 @@ void ShowKeyboard(bool show)
 
 // == CALLS FROM JAVA TO C ==============================================================
 
-#define JNI_VOID_TB_LIB(func) JNIEXPORT void JNICALL Java_com_fiffigt_tb_demo_TBLib_##func
-#define JNI_INT_TB_LIB(func) JNIEXPORT jint JNICALL Java_com_fiffigt_tb_demo_TBLib_##func
+#define JNI_VOID_TB_LIB(func) JNIEXPORT void JNICALL Java_org_hastybadger_demo_TBLib_##func
+#define JNI_INT_TB_LIB(func) JNIEXPORT jint JNICALL Java_org_hastybadger_demo_TBLib_##func
 
 extern "C"
 {

@@ -5,17 +5,18 @@ android {
     buildToolsVersion "28.0.3"
 
     defaultConfig {
-        applicationId "com.fiffigt.tb.demo"
-        minSdkVersion 11
-        targetSdkVersion 14
+        applicationId "org.hastybadger.demo"
+        minSdkVersion 14
+        targetSdkVersion 26
         versionCode 19 // internal code, integer, must monotonically increase
         versionName "1.0.0" // string shown to users
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_TOOLCHAIN=clang", "-DANDROID_STL=c++_static",
                         "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON", "-DSKIP_INSTALL_ALL=ON",
-                        "-DTB_RENDERER=GLES_1", "-DTB_ALWAYS_SHOW_EDIT_FOCUS=ON",
-                        "-DTB_BUILD_DEMO=ANDROID", "-DANDROID_ARM_MODE=arm"
+                        "-DTB_RENDERER=GLES_1", "-DTB_ALWAYS_SHOW_EDIT_FOCUS:BOOL=ON",
+                        "-DTB_BUILD_DEMO=ANDROID", "-DANDROID_ARM_MODE=arm",
+                        '-DTB_RUNTIME_DEBUG_INFO:BOOL=ON'
                 targets "TurboBadger"
             }
         }
