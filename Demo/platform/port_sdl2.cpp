@@ -19,7 +19,7 @@
 #include "tb_font_renderer.h"
 #include "Application.h"
 
-#ifdef TB_TARGET_MACOSX
+#ifdef TB_SYSTEM_MACOSX
 #include <unistd.h>
 #include <mach-o/dyld.h>
 #endif
@@ -64,7 +64,7 @@ static int toupr_ascii(int ascii)
 
 static bool InvokeShortcut(int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifierkeys, bool down)
 {
-#ifdef TB_TARGET_MACOSX
+#ifdef TB_SYSTEM_MACOSX
 	bool shortcut_key = (modifierkeys & TB_SUPER) ? true : false;
 #else
 	bool shortcut_key = (modifierkeys & TB_CTRL) ? true : false;
@@ -159,14 +159,26 @@ bool AppBackendSDL2::Init(App *app)
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-	//SDL_SetHint("SDL_HINT_ORIENTATIONS", "Portrait LandscapeLeft LandscapeRight");
+	SDL_SetHint("SDL_HINT_ORIENTATIONS", "Portrait LandscapeLeft LandscapeRight");
+#if defined(TB_SYSTEM_ANDROID) || defined(TB_SYSTEM_IOS)
+	int width = 0;
+	int height = 0;
+#else
 	int width = app->GetWidth() > 0 ? app->GetWidth() : 1920;
 	int height = app->GetHeight() > 0 ? app->GetHeight() : 1080;
+#endif
 	mainWindow = SDL_CreateWindow(app->GetTitle(),
 								  SDL_WINDOWPOS_UNDEFINED,
 								  SDL_WINDOWPOS_UNDEFINED,
 								  width, height,
-								  SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+								  //SDL_WINDOW_HIDDEN |
+								  SDL_WINDOW_SHOWN |
+								  SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
+#if defined(TB_SYSTEM_ANDROID)
+								  SDL_WINDOW_FULLSCREEN |
+#endif
+								  SDL_WINDOW_ALLOW_HIGHDPI
+								  );
 	if (!mainWindow)
 	{
 		SDL_Log("Unable to create window: %s\n", SDL_GetError());
@@ -174,6 +186,7 @@ bool AppBackendSDL2::Init(App *app)
 	}
 	glContext = SDL_GL_CreateContext(mainWindow);
 	SDL_GL_MakeCurrent(mainWindow, glContext);
+	SDL_ShowWindow(mainWindow);
 
 	glClearColor(0.3f, 0.3f, 0.3f, 1);
 
@@ -183,7 +196,12 @@ bool AppBackendSDL2::Init(App *app)
 	// Create the App object for our demo
 	m_app = app;
 	SDL_GetWindowSize(mainWindow, &width, &height);
-	m_app->OnBackendAttached(this, width, height);
+	int pix_width, pix_height;
+	SDL_GL_GetDrawableSize(mainWindow, &pix_width, &pix_height);
+	m_xscale = (float)pix_width / width;
+	m_yscale = (float)pix_height / height;
+	TBSystem::SetDPI(96 * m_xscale);
+	m_app->OnBackendAttached(this, pix_width, pix_height);
 
 	return true;
 }
@@ -350,7 +368,9 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 
 	case SDL_MOUSEMOTION: {
 		if (m_app->GetRoot() && !(ShouldEmulateTouchEvent() && !TBWidget::captured_widget))
-			m_app->GetRoot()->InvokePointerMove(event.motion.x, event.motion.y, 
+			event.motion.x *= m_xscale;
+			event.motion.y *= m_yscale;
+			m_app->GetRoot()->InvokePointerMove(event.motion.x, event.motion.y,
 												GetModifierKeys(),
 												ShouldEmulateTouchEvent());
 
@@ -360,6 +380,8 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 	case SDL_MOUSEBUTTONDOWN: {
 		// Handle mouse clicks here.
 		MODIFIER_KEYS modifier = GetModifierKeys();
+		event.button.x *= m_xscale;
+		event.button.y *= m_yscale;
 		int x = event.button.x;
 		int y = event.button.y;
 		if (event.button.button == SDL_BUTTON_LEFT)
@@ -387,6 +409,8 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 	case SDL_MOUSEWHEEL: {
 		int mouse_x, mouse_y;
 		SDL_GetMouseState(&mouse_x, &mouse_y);
+		mouse_x *= m_xscale;
+		mouse_y *= m_yscale;
 		if (m_app->GetRoot())
 			m_app->GetRoot()->InvokeWheel(mouse_x, mouse_y,
 										  (int)event.wheel.x, -(int)event.wheel.y,

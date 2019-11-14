@@ -64,6 +64,38 @@ if (APPLE)
       MACOSX_BUNDLE_GUI_IDENTIFIER "org.hastybadger.demo"
       MACOSX_BUNDLE_ICON_NAME "AppIcon"
       )
+    set (PLIST_EXTRA_XML "
+
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>UIRequiresFullScreen</key>
+    <true/>
+    <key>UIStatusBarHidden</key>
+    <true/>
+    <key>UIStatusBarStyle</key>
+    <string>UIStatusBarStyleLightContent</string>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
+    <key>UIBackgroundModes</key>
+    <array>
+      <string>fetch</string>
+      <string>remote-notification</string>
+    </array>
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+      <string>armv7</string>
+    </array>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+      <string>UIInterfaceOrientationPortrait</string>
+      <string>UIInterfaceOrientationUpsideDown</string>
+      <string>UIInterfaceOrientationLandscapeLeft</string>
+      <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+
+")
   else ()
     set_target_properties (TurboBadgerDemo PROPERTIES
       XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
@@ -71,7 +103,17 @@ if (APPLE)
       XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
       MACOSX_BUNDLE_GUI_IDENTIFIER "org.hastybadger.demo"
       MACOSX_BUNDLE_ICON_FILE "hastybadgerdemo.icns"
+      MACOSX_BUNDLE_LONG_VERSION_STRING ""
+      MACOSX_BUNDLE_BUNDLE_NAME ""
+      MACOSX_BUNDLE_SHORT_VERSION_STRING ""
+      MACOSX_BUNDLE_BUNDLE_VERSION ""
       )
+    set (PLIST_EXTRA_XML "
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSHighResolutionCapable</key>
+	<string>True</string>
+")
     if (NOT ${APPLE_DEVTEAM_ID} STREQUAL "")
       set_target_properties (TurboBadgerDemo PROPERTIES
         XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Mac Developer"

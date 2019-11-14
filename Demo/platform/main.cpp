@@ -10,11 +10,11 @@
 #include <unistd.h>
 #include <libgen.h>
 #endif
-#ifdef TB_TARGET_LINUX
+#ifdef TB_SYSTEM_LINUX
 #include <unistd.h>
 #include <sys/auxv.h>
 #endif
-#ifdef TB_TARGET_WINDOWS
+#ifdef TB_SYSTEM_WINDOWS
 #include <tchar.h>
 #include <Windows.h>
 /* This is intended as a drop-in replacement for unistd.h on Windows.
@@ -45,9 +45,8 @@ bool port_main(int argc, char* argv[])
 		chdir(base_path);
 #endif
 		SDL_free(base_path);
-		printf("SDL pwd: %s\n", base_path);
 	}
-#elif defined(TB_TARGET_MACOSX)
+#elif defined(TB_SYSTEM_MACOSX)
 	{
 		CFBundleRef bundle = CFBundleGetMainBundle();
         CFURLRef bundleURL = CFBundleCopyBundleURL(bundle);
@@ -67,9 +66,8 @@ bool port_main(int argc, char* argv[])
 			exec_path[n-1] = '\0';
 		chdir(exec_path);
 		chdir("../Resources");
-		printf("nsexe pwd: %s\n", exec_path);
 	}
-#elif defined(TB_TARGET_LINUX)
+#elif defined(TB_SYSTEM_LINUX)
 	if (getauxval(AT_EXECFN))
 	{
 		char exec_path[2048];
@@ -82,10 +80,9 @@ bool port_main(int argc, char* argv[])
 			printf("Unable to find resource directory '%s'\n", exec_path);
 			//exit(0);
 		}
-		printf("pwd: %s\n", exec_path);
 	}
 #endif
-#ifdef TB_TARGET_WINDOWS
+#ifdef TB_SYSTEM_WINDOWS
 	// Set the current path to the directory of the app so we find
 	// assets also when visual studio starts it.
 	char modname[MAX_PATH];
@@ -121,7 +118,7 @@ bool port_main(int argc, char* argv[])
 	return success;
 }
 
-#ifdef TB_TARGET_WINDOWS
+#ifdef TB_SYSTEM_WINDOWS
 
 #include <mmsystem.h>
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -133,11 +130,11 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	return success ? 0 : 1;
 }
 
-#else // TB_TARGET_WINDOWS
+#else // TB_SYSTEM_WINDOWS
 
 int main(int argc, char* argv[])
 {
 	return port_main(argc, argv) ? 0 : 1;
 }
 
-#endif // !TB_TARGET_WINDOWS
+#endif // !TB_SYSTEM_WINDOWS

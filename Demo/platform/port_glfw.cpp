@@ -8,7 +8,7 @@
 #include "tb_editfield.h"
 #include "tb_font_renderer.h"
 
-#ifdef TB_TARGET_MACOSX
+#ifdef TB_SYSTEM_MACOSX
 #include <unistd.h>
 #include <mach-o/dyld.h>
 #endif
@@ -74,7 +74,7 @@ static int toupr_ascii(int ascii)
 
 static bool InvokeShortcut(int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifierkeys, bool down)
 {
-#ifdef TB_TARGET_MACOSX
+#ifdef TB_SYSTEM_MACOSX
 	bool shortcut_key = (modifierkeys & TB_SUPER) ? true : false;
 #else
 	bool shortcut_key = (modifierkeys & TB_CTRL) ? true : false;
