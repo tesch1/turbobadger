@@ -1,5 +1,9 @@
 
-All: glfw sdl2 lib osx ios and em em-glfw
+all:
+	$(MAKE) glfw sdl2 lib
+	[ `uname` != 'Darwin' ] || $(MAKE) osx ios
+	[ ! -d ~/.android ] || $(MAKE) and
+	[ ! -f ~/.emscripten ] || $(MAKE) em em-glfw
 
 glfw:
 	[ -d Build-glfw ] || ./build.sh -glfw -gl -o Build-glfw
@@ -32,8 +36,8 @@ ios: Build-ios
 	cd Build-ios && cmake --build . --target package
 
 lib:
-	[ -d BuildLib ] || ./build.sh -o BuildLib -gl3
-	cd BuildLib && $(MAKE) package
+	[ -d Build-lib ] || ./build.sh -o Build-lib -gl3
+	cd Build-lib && $(MAKE) package
 
 and:
 	cd DemoAndroid2 && ./gradlew build

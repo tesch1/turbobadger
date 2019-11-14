@@ -6,6 +6,7 @@
 #include "tb_system.h"
 
 #ifdef TB_SYSTEM_WINDOWS
+#ifdef TB_BACKEND_GLFW
 
 #include <Windows.h>
 #include <mmsystem.h>
@@ -63,4 +64,5 @@ int TBSystem::GetDPI()
 
 } // namespace tb
 
+#endif // TB_BACKEND_GLFW
 #endif // TB_SYSTEM_WINDOWS

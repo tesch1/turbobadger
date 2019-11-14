@@ -6,7 +6,7 @@
 #include "tb_system.h"
 #include "tb_str.h"
 
-#if (defined(TB_SYSTEM_MACOSX) || defined(TB_SYSTEM_LINUX)) && !defined(TB_BACKEND_SDL2)
+#if (defined(TB_SYSTEM_IOS) || defined(TB_SYSTEM_MACOSX) || defined(TB_SYSTEM_LINUX)) && !defined(TB_BACKEND_SDL2)
 
 #include <sys/time.h>
 #include <stdio.h>
@@ -57,13 +57,6 @@ int TBSystem::GetDPI()
 	// FIX: Implement!
 	return 96;
 }
-
-#ifndef TB_BACKEND_SDL2
-const char * TBSystem::GetRoot()
-{
-	return "./";
-}
-#endif
 
 } // namespace tb
 

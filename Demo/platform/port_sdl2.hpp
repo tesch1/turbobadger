@@ -28,7 +28,9 @@ public:
 						, m_app(nullptr)
 						, m_renderer(nullptr)
 						, mainWindow(0)
-						, m_has_pending_update(false) {}
+						, m_has_pending_update(false)
+						, m_xscale(1)
+						, m_yscale(1) {}
 	~AppBackendSDL2();
 
 	virtual void EventLoop();
@@ -50,6 +52,7 @@ private:
 	SDL_Window *mainWindow;
 	SDL_GLContext glContext;
 	bool m_has_pending_update;
+	float m_xscale, m_yscale;
 };
 
 #endif

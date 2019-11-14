@@ -1,6 +1,6 @@
 #include "tb_system.h"
 
-#ifdef TB_TARGET_WINDOWS
+#ifdef TB_SYSTEM_WINDOWS
 #include "glfw_extra.h"
 #include "tb_msg.h"
 #include "GLFW/glfw3native.h"
@@ -98,4 +98,4 @@ void glfwSetTimerCallback(GLFWtimerfun cbfun)
 	timerCallback = cbfun;
 }
 
-#endif // TB_TARGET_WINDOWS
+#endif // TB_SYSTEM_WINDOWS

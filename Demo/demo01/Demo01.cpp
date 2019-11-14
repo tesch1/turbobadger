@@ -830,7 +830,12 @@ void DemoApplication::RenderFrame()
 		str.SetFormatted("FPS: %d Frame %d", fps, frame_counter_total);
 	else
 		str.SetFormatted("Frame %d", frame_counter_total);
-	m_root.GetFont()->DrawString(5, 5, TBColor(255, 255, 255), str.CStr());
+	m_root.GetFont()->DrawString(5,
+#ifdef TB_SYSTEM_IOS
+								 15+
+#endif
+								 5,
+								 TBColor(255, 255, 255), str.CStr());
 
 	g_renderer->EndPaint();
 

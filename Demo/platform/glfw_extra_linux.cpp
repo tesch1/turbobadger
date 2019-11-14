@@ -1,6 +1,6 @@
 #include "tb_system.h"
 
-#if defined(TB_TARGET_LINUX) || defined(TB_TARGET_MACOSX)
+#if defined(TB_SYSTEM_LINUX) || defined(TB_SYSTEM_MACOSX)
 
 #include "glfw_extra.h"
 #include "tb_msg.h"
@@ -55,4 +55,4 @@ void glfwSetTimerCallback(GLFWtimerfun cbfun)
 	timerCallback = cbfun;
 }
 
-#endif // defined(TB_TARGET_LINUX) || defined(TB_TARGET_MACOSX)
+#endif // defined(TB_SYSTEM_LINUX) || defined(TB_SYSTEM_MACOSX)

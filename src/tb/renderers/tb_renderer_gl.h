@@ -80,7 +80,7 @@ extern PFNGLGENVERTEXARRAYSOESPROC glGenVertexArraysOESEXT;
 #include <windows.h> // make gl.h compile
 #include <GL/glew.h>
 #include <GL/gl.h>
-#elif defined(TB_TARGET_MACOSX)
+#elif defined(TB_SYSTEM_MACOSX) || defined(TB_SYSTEM_IOS)
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
