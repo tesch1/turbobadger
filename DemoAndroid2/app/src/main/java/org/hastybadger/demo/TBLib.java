@@ -1,4 +1,4 @@
-package com.fiffigt.tb.demo;
+package org.hastybadger.demo;
 
 import android.content.res.AssetManager;
 

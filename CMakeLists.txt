@@ -11,7 +11,7 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set (VERSION_MAJOR "0")
 set (VERSION_MINOR "1")
 set (VERSION_PATCH "0")
-set (VERSION_BUILD "-beta3") # ie "-beta1", or empty string if release: ""
+set (VERSION_BUILD "-beta4") # ie "-beta1", or empty string if release: ""
 set (VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 #
@@ -39,23 +39,26 @@ if (UNIX)
   set (TB_RENDERER_DEFAULT GL3)
   set (TB_BACKEND_DEFAULT GLFW)
 endif (UNIX)
+
 if (WIN32)
   set (TB_SYSTEM_DEFAULT WINDOWS)
   set (TB_RENDERER_DEFAULT GL3)
   set (TB_BACKEND_DEFAULT GLFW)
 endif (WIN32)
+
 if (APPLE)
   if (IOS)
     set (TB_SYSTEM_DEFAULT IOS)
     set (TB_RENDERER_DEFAULT GLES_2)
     set (TB_BACKEND_DEFAULT SDL2)
     #set (TB_BUILD_SDL2 ON CACHE STRING "Build SDL2")
-  else (IOS)
+  else ()
     set (TB_SYSTEM_DEFAULT MACOSX)
     set (TB_RENDERER_DEFAULT GL3)
     set (TB_BACKEND_DEFAULT SDL2)
-  endif (IOS)
+  endif ()
 endif (APPLE)
+
 if (ANDROID)
   set (TB_SYSTEM_DEFAULT ANDROID)
   set (TB_RENDERER_DEFAULT GL)
@@ -176,9 +179,6 @@ endif ()
 set (TB_FONT_RENDERER ${TB_FONT_RENDERER_DEFAULT} CACHE STRING "Select font renderer: TBBF, FREETYPE, STB")
 set_property (CACHE TB_FONT_RENDERER PROPERTY STRINGS "TBBF" "FREETYPE" "STB")
 
-# Generate the config header file
-configure_file (tb_config.h.in src/tb/tb_config.h)
-
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   add_compile_options (-g -Wall -Wextra -Wno-unused-parameter
     $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
@@ -261,46 +261,63 @@ add_subdirectory (thirdparty EXCLUDE_FROM_ALL)
 #
 # Macros to add resource files
 #
-define_property (SOURCE PROPERTY RES_ROOT
-  BRIEF_DOCS "Chroot base directory, gets chopped"
-  FULL_DOCS "The base directory which should be truncated")
+define_property (SOURCE PROPERTY RES_LOCATION
+  BRIEF_DOCS "Resource location."
+  FULL_DOCS "The location within the resource tree where the file should be put.")
 
-macro (add_resources RES_LIST_NAME RES_ROOT_PATH)
+function (add_resources RES_LIST_NAME RES_ROOT_PATH)
   #
   # add file resources to the variable RES_LIST_NAME
   # also tags the source files with the RES_ROOT_PATH using the custom property RES_ROOT
   #
   # example: add_resources(RES_FILES "${CMAKE_SOURCE_DIR}/resources" "*.txt" "*.png" "*.svg")
   #
-  foreach (globby ${ARGN})
+  set (options )
+  set (oneValueArgs DESTINATION)
+  set (multiValueArgs )
+  cmake_parse_arguments (AR "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+
+  foreach (globby ${AR_UNPARSED_ARGUMENTS})
     file (GLOB_RECURSE RES_FILES_ "${RES_ROOT_PATH}/${globby}")
     if (RES_FILES_)
-      set_source_files_properties (${RES_FILES_} PROPERTIES RES_ROOT "${RES_ROOT_PATH}")
+      #message ("finding '${globby}'")
       list (APPEND ${RES_LIST_NAME} ${RES_FILES_})
-      #message ("f-${RES_LIST_NAME}: '${RES_ROOT_PATH}/${globby}' -> ${RES_FILES_} : ${RES_ROOT}")
     endif ()
-  endforeach ()
-endmacro ()
 
-macro (fixup_resources RES_LIST_NAME)
+    foreach (RES_FILE IN LISTS RES_FILES_)
+
+      # Get the relative path from the data-folder to the particular file
+      file (RELATIVE_PATH RES_PATH ${RES_ROOT_PATH} ${RES_FILE})
+      get_filename_component (RES_DIR ${RES_PATH} DIRECTORY)
+
+      # Set it's location inside the app package (under Resources)
+      set_property (SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${AR_DESTINATION}${RES_DIR}")
+      set_property (SOURCE ${RES_FILE} PROPERTY RES_LOCATION "${AR_DESTINATION}${RES_DIR}")
+
+      message ("${RES_FILE} ->  ${AR_DESTINATION} : ${RES_DIR}")
+    endforeach ()
+  endforeach ()
+
+  set (${RES_LIST_NAME} ${${RES_LIST_NAME}} PARENT_SCOPE)
+endfunction ()
+
+function (fixup_resources RES_LIST_NAME)
   #
   # example: fixup_resources(RES_FILES)
   #
   foreach (RES_FILE IN LISTS ${RES_LIST_NAME})
-
     # Get the original root-absolute pah
-    get_property (RES_ROOT_PATH SOURCE ${RES_FILE} PROPERTY RES_ROOT)
-
-    # Get the relative path from the data-folder to the particular file
-    file (RELATIVE_PATH RES_PATH ${RES_ROOT_PATH} ${RES_FILE})
-    get_filename_component (RES_DIR ${RES_PATH} DIRECTORY)
-    
-    # Set it's location inside the app package (under Resources)
-    set_property (SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${RES_DIR}")
-
-    #message ("${RES_FILE} -> Resources/${RES_PATH}")
+    get_property (RES_LOCATION SOURCE ${RES_FILE} PROPERTY RES_LOCATION)
+    get_property (MPL SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION)
+    #message ("${RES_FILE} -> ${RES_LOCATION} / ${MPL}")
   endforeach ()
-endmacro ()
+endfunction ()
+
+#################################################################################
+#
+# Generate the config header file
+#
+configure_file (tb_config.h.in src/tb/tb_config.h)
 
 #################################################################################
 #
@@ -328,6 +345,32 @@ if (${TB_BUILD_DEMO} STREQUAL ANDROID)
   set_property (TARGET TurboBadger APPEND PROPERTY ANDROID_ASSETS_DIRECTORIES
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/language"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin")
+
+  set (DEMO_ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/DemoAndroid2/app/src/main/assets")
+  #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/language")
+  #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/font")
+  #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/skin")
+  #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/demo_skin")
+
+  add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/language" DESTINATION language "*.txt")
+  add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_font" DESTINATION font "*")
+  add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin" DESTINATION skin "*.png" "*.txt")
+  add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Demo/demo01/skin" DESTINATION demo_skin "*.png" "*.txt")
+
+  foreach (RES_FILE IN LISTS RES_FILES)
+    get_property (RES_LOCATION SOURCE ${RES_FILE} PROPERTY RES_LOCATION)
+    file (COPY ${RES_FILE} DESTINATION ${DEMO_ASSET_DIR}/${RES_LOCATION})
+    file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/${RES_LOCATION}")
+    message ("cp ${RES_FILE} ${DEMO_ASSET_DIR}/${RES_LOCATION}")
+  endforeach ()
+
+  #copy /Y "..\resources\language\*.txt" "assets\language\*"
+  #copy /Y "..\resources\default_font\*" "assets\font\*"
+  #copy /Y "..\resources\default_skin\*.png" "assets\skin\*"
+  #copy /Y "..\resources\default_skin\*.txt" "assets\skin\*"
+  #copy /Y "..\Demo\demo01\skin\*.png" "assets\demo_skin\*"
+  #copy /Y "..\Demo\demo01\skin\*.txt" "assets\demo_skin\*"
+
 endif (${TB_BUILD_DEMO} STREQUAL ANDROID)
 
 #################################################################################
