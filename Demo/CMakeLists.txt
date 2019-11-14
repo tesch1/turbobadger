@@ -29,7 +29,8 @@ set (LOCAL_SRCS ${LOCAL_SRCS}
 if (TB_BUILD_DEMO STREQUAL GLFW)
   set (LOCAL_SRCS ${LOCAL_SRCS}
     ./platform/port_glfw.cpp
-    ./platform/glfw_extra_linux.cpp)
+    ./platform/glfw_extra_linux.cpp
+    ./platform/glfw_extra_win.cpp)
 endif (TB_BUILD_DEMO STREQUAL GLFW)
 
 if (TB_BUILD_DEMO STREQUAL SDL2)
