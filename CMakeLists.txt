@@ -296,7 +296,7 @@ function (add_resources RES_LIST_NAME RES_ROOT_PATH)
       set_property (SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${AR_DESTINATION}${RES_DIR}")
       set_property (SOURCE ${RES_FILE} PROPERTY RES_LOCATION "${AR_DESTINATION}${RES_DIR}")
 
-      message ("${RES_FILE} ->  ${AR_DESTINATION} : ${RES_DIR}")
+      #message ("${RES_FILE} ->  ${AR_DESTINATION} : ${RES_DIR}")
     endforeach ()
   endforeach ()
 
@@ -363,7 +363,7 @@ if (${TB_BUILD_DEMO} STREQUAL ANDROID)
     get_property (RES_LOCATION SOURCE ${RES_FILE} PROPERTY RES_LOCATION)
     file (COPY ${RES_FILE} DESTINATION ${DEMO_ASSET_DIR}/${RES_LOCATION})
     file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/${RES_LOCATION}")
-    message ("cp ${RES_FILE} ${DEMO_ASSET_DIR}/${RES_LOCATION}")
+    #message ("cp ${RES_FILE} ${DEMO_ASSET_DIR}/${RES_LOCATION}")
   endforeach ()
 
   #copy /Y "..\resources\language\*.txt" "assets\language\*"
