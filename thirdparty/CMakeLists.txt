@@ -84,6 +84,7 @@ if (TB_BUILD_SDL2)
 
   ExternalProject_Add (sdl2X
     PREFIX sdl2X
+    #HG_REPOSITORY https://hg.libsdl.org/SDL
     URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
     URL_HASH "MD5=${SDL_VERSION_HASH}"
     DOWNLOAD_DIR "${DOWNLOAD_DIR}"
