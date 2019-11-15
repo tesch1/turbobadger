@@ -38,8 +38,8 @@ if (TB_BUILD_DEMO STREQUAL SDL2)
     ./platform/port_sdl2.cpp)
 endif (TB_BUILD_DEMO STREQUAL SDL2)
 
-add_resources (RES_FILES "${CMAKE_SOURCE_DIR}/resources" "*.txt" "*.png" "*.svg")
-add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}" "demo01/*.txt" "demo01/*.png" "demo01/*.svg")
+add_resources (RES_FILES "${CMAKE_SOURCE_DIR}/resources" "*.txt" "*.png")
+add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}" "demo01/*.txt" "demo01/*.png")
 add_resources (RES_FILES "${CMAKE_SOURCE_DIR}/src/tb/tests"
   test_tb_parser.tb.txt
   test_tb_parser_included.tb.txt

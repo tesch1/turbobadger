@@ -45,7 +45,7 @@ function (add_resources RES_LIST_NAME RES_ROOT_PATH)
 
     # make sure we found something
     if ("" STREQUAL "${RES_FILES_}")
-      message (FATAL_ERROR "No resources found '${RES_ROOT_PATH}' / '${globby}'")
+      message (FATAL_ERROR "No matching resources found: '${RES_ROOT_PATH}' / '${globby}'")
     else ()
       list (APPEND ${RES_LIST_NAME} ${RES_FILES_})
     endif ()
