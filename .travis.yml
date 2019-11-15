@@ -84,7 +84,7 @@ deploy:
     - Build*/TurboBadgerDemo*install-win32.exe
     - Build*/TurboBadgerDemo*install-win32.zip
     - Build*/TurboBadgerDemo*.dmg
-    - Build*/TurboBadgerDemo*.deb
+    - Build*/turbobadgerdemo*.deb
     - Build*/TurboBadgerDemo*.rpm
     - Build*/TurboBadgerDemo*.tar.gz
   skip_cleanup: true

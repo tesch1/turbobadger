@@ -11,7 +11,7 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set (VERSION_MAJOR "0")
 set (VERSION_MINOR "1")
 set (VERSION_PATCH "0")
-set (VERSION_BUILD "-beta4") # ie "-beta1", or empty string if release: ""
+set (VERSION_BUILD "-beta5") # ie "-beta1", or empty string if release: ""
 set (VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 #
@@ -92,8 +92,10 @@ set_property (CACHE TB_SYSTEM PROPERTY STRINGS LINUX MACOSX WINDOWS ANDROID IOS)
 set (TB_BACKEND "${TB_BACKEND_DEFAULT}" CACHE STRING "Backend")
 set_property (CACHE TB_BACKEND PROPERTY STRINGS GLFW SDL2 ANDROID)
 
+set (TB_CLIPBOARD_DEFAULT DUMMY)
 if (TB_BACKEND STREQUAL GLFW)
 elseif (TB_BACKEND STREQUAL SDL2)
+  set (TB_CLIPBOARD_DEFAULT SDL2)
 elseif (${TB_BACKEND} STREQUAL ANDROID)
   set (TB_CLIPBOARD_DEFAULT DUMMY)
 endif (TB_BACKEND STREQUAL GLFW)
@@ -134,13 +136,13 @@ if (TB_IMAGE)
   set (TB_IMAGE_LOADER_DEFAULT STB)
 endif ()
 set (TB_IMAGE_LOADER "${TB_IMAGE_LOADER_DEFAULT}" CACHE STRING "Which image loader (def: STB)")
+set_property (CACHE TB_IMAGE_LOADER PROPERTY STRINGS STB NONE)
 
 # Runtime/subsystem configurations - check if a Demo is selected
 
 # System defaults
 set (TB_FONT_RENDERER_DEFAULT TBBF)
 if (${TB_SYSTEM} STREQUAL ANDROID)
-  set (TB_CLIPBOARD_DEFAULT DUMMY)
   set (TB_FILE_DEFAULT ANDROID)
 endif ()
 if (${TB_SYSTEM} STREQUAL LINUX)
@@ -435,7 +437,7 @@ if (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
 
   # unix
   if (UNIX AND NOT APPLE)
-    set (CPACK_GENERATOR "RPM;TGZ;DEB;STGZ")
+    set (CPACK_GENERATOR "RPM;TGZ;DEB")
     set (CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
     set (CPACK_VERBATIM_VARIABLES TRUE) # fixes @ in rpm file names
     set (CPACK_RPM_PACKAGE_RELEASE 1)
@@ -446,20 +448,33 @@ if (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
 
 endif (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
 
+#################################################################################
+# Validate and print configuration
+#
 message (STATUS "TurboBadger configuration:")
-message (" CMAKE_BUILD_TYPE:    ${CMAKE_BUILD_TYPE}")
-message (" TB_SUBDIRECTORY:     ${TB_SUBDIRECTORY}")
-message (" TB_BUILD_DEMO:       ${TB_BUILD_DEMO}")
-message (" TB_BUILD_SDL2:       ${TB_BUILD_SDL2}")
-message (" TB_BUILD_GLFW:       ${TB_BUILD_GLFW}")
-message (" TB_BUILD_FREETYPE:   ${TB_BUILD_FREETYPE}")
-message (" TB_SYSTEM:           ${TB_SYSTEM}")
-message (" TB_BACKEND:          ${TB_BACKEND}")
-message (" TB_RENDERER:         ${TB_RENDERER}")
-message (" TB_RENDERER_BATCHER: ${TB_RENDERER_BATCHER}")
-message (" TB_FONT_RENDERER:    ${TB_FONT_RENDERER}")
-message (" TB_FILE:             ${TB_FILE}")
-message (" TB_CLIPBOARD:        ${TB_CLIPBOARD}")
-message (" TB_IMAGE_LOADER:     ${TB_IMAGE_LOADER}")
-message (" TB_RUNTIME_DEBUG_INFO: ${TB_RUNTIME_DEBUG_INFO}")
+foreach (TB_VAR
+    CMAKE_BUILD_TYPE
+    TB_BUILD_DEMO
+    TB_SYSTEM
+    TB_BACKEND
+    TB_RENDERER
+    TB_FONT_RENDERER
+    TB_FILE
+    TB_CLIPBOARD
+    TB_IMAGE_LOADER
+    )
+  get_property (VALS CACHE ${TB_VAR} PROPERTY STRINGS)
+  if ("${${TB_VAR}}" IN_LIST VALS)
+    message (" ${TB_VAR}:		${${TB_VAR}}")
+  else ()
+    message (FATAL_ERROR "Invalid setting for '${TB_VAR}'=${${TB_VAR}}, valid are: '${VALS}'")
+  endif ()
+endforeach ()
+
+message (" TB_SUBDIRECTORY:       ${TB_SUBDIRECTORY}")
+message (" TB_BUILD_SDL2:         ${TB_BUILD_SDL2}")
+message (" TB_BUILD_GLFW:         ${TB_BUILD_GLFW}")
+message (" TB_BUILD_FREETYPE:     ${TB_BUILD_FREETYPE}")
+message (" TB_RENDERER_BATCHER:   ${TB_RENDERER_BATCHER}")
+message (" TB_RUNTIME_DEBUG_INFO:     ${TB_RUNTIME_DEBUG_INFO}")
 message (" TB_ALWAYS_SHOW_EDIT_FOCUS: ${TB_ALWAYS_SHOW_EDIT_FOCUS}")
