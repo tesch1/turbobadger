@@ -82,18 +82,33 @@ if (TB_BUILD_SDL2)
   set (SDL_VERSION 2.0.10)
   set (SDL_VERSION_HASH 5a2114f2a6f348bdab5bf52b994811db)
 
-  ExternalProject_Add (sdl2X
-    PREFIX sdl2X
-    HG_REPOSITORY https://hg.libsdl.org/SDL
-    #URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
-    #URL_HASH "MD5=${SDL_VERSION_HASH}"
-    DOWNLOAD_DIR "${DOWNLOAD_DIR}"
-    UPDATE_COMMAND ""
-    PATCH_COMMAND ""
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ""
-    LOG_DOWNLOAD ON)
+  if (ANDROID)
+    ExternalProject_Add (sdl2X
+      PREFIX sdl2X
+      HG_REPOSITORY https://hg.libsdl.org/SDL
+      #URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+      #URL_HASH "MD5=${SDL_VERSION_HASH}"
+      DOWNLOAD_DIR "${DOWNLOAD_DIR}"
+      UPDATE_COMMAND ""
+      PATCH_COMMAND ""
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ""
+      INSTALL_COMMAND ""
+      LOG_DOWNLOAD ON)
+  else ()
+    ExternalProject_Add (sdl2X
+      PREFIX sdl2X
+      #HG_REPOSITORY https://hg.libsdl.org/SDL
+      URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+      URL_HASH "MD5=${SDL_VERSION_HASH}"
+      DOWNLOAD_DIR "${DOWNLOAD_DIR}"
+      UPDATE_COMMAND ""
+      PATCH_COMMAND ""
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ""
+      INSTALL_COMMAND ""
+      LOG_DOWNLOAD ON)
+  endif ()
   ExternalProject_Get_Property (sdl2X source_dir)
 
   if (hasParent)
