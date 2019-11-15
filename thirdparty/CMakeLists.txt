@@ -84,8 +84,9 @@ if (TB_BUILD_SDL2)
 
   ExternalProject_Add (sdl2X
     PREFIX sdl2X
-    URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
-    URL_HASH "MD5=${SDL_VERSION_HASH}"
+    HG_REPOSITORY https://hg.libsdl.org/SDL
+    #URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+    #URL_HASH "MD5=${SDL_VERSION_HASH}"
     DOWNLOAD_DIR "${DOWNLOAD_DIR}"
     UPDATE_COMMAND ""
     PATCH_COMMAND ""
@@ -106,6 +107,10 @@ if (TB_BUILD_SDL2)
     #set (SDL_JOYSTICK   OFF CACHE BOOL "" FORCE)
     add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir")
     set_target_properties (SDL2-static PROPERTIES DEBUG_POSTFIX "")
+    if (ANDROID)
+      set_property (TARGET SDL2-static APPEND PROPERTY 
+        INCLUDE_DIRECTORIES "${ANDROID_NDK}/sources/android/cpufeatures")
+    endif (ANDROID)
     add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
     target_link_libraries (SDL2-interface INTERFACE SDL2-static)
     if (SDL_VERSION VERSION_LESS "2.0.10")
