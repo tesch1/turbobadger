@@ -18,10 +18,10 @@ namespace tb {
 class TBID
 {
 public:
-	TBID(uint32_t id = 0)			{ Set(id); }
+	TBID(uint32_t id_ = 0)			{ Set(id_); }
 	TBID(const char *string)		{ Set(string); }
-	TBID(const TBID &id)			{ Set(id); }
-	TBID(const TBStr &id)			{ Set((const char *)id); }
+	TBID(const TBID &id_)			{ Set(id_); }
+	TBID(const TBStr &id_)			{ Set((const char *)id_); }
 
 #ifdef TB_RUNTIME_DEBUG_INFO
 	void Set(uint32_t newid);

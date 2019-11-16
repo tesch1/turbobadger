@@ -22,7 +22,7 @@ class TBColor
 {
 public:
 	TBColor() : b(0), g(0), r(0), a(255) {}
-	TBColor(int r, int g, int b, int a = 255) : b(b), g(g), r(r), a(a) {}
+	TBColor(uint8_t r_, uint8_t g_, uint8_t b_, uint8_t a_ = 255) : b(b_), g(g_), r(r_), a(a_) {}
 	TBColor(uint32_t bgra_) : bgra(bgra_) {}
 
 	union {

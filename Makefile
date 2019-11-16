@@ -23,17 +23,23 @@ em-glfw:
 
 em: em-sdl2 em-glfw
 
-Build-osx:
-	cmake . -G Xcode -BBuild-osx -DTB_RENDERER=GL3 -DTB_BUILD_DEMO=SDL2 || rm -rf Build-osx
+Build-osx/TurboBadger.xcodeproj:
+	cmake . -G Xcode -BBuild-osx -DTB_RENDERER=GL3 -DTB_BUILD_DEMO=SDL2
 
-osx: Build-osx
-	cd Build-osx && cmake --build . --target package
+osx: Build-osx/TurboBadger.xcodeproj
+	cd Build-osx && cmake --build . --target package --config Debug
 
-Build-ios:
-	cmake . -G Xcode -BBuild-ios -DCMAKE_TOOLCHAIN_FILE=cmake/iOS.cmake -DTB_BUILD_DEMO=SDL2 || rm -rf Build-ios
+osxr: Build-osx/TurboBadger.xcodeproj
+	cd Build-osx && cmake --build . --target package --config Release
 
-ios: Build-ios
-	cd Build-ios && cmake --build . --target package
+Build-ios/TurboBadger.xcodeproj:
+	cmake . -G Xcode -BBuild-ios -DCMAKE_TOOLCHAIN_FILE=cmake/iOS.cmake -DTB_BUILD_DEMO=SDL2
+
+ios: Build-ios/TurboBadger.xcodeproj
+	cd Build-ios && cmake --build . --target package --config Debug
+
+iosr: Build-ios/TurboBadger.xcodeproj
+	cd Build-ios && cmake --build . --target package --config Release
 
 lib:
 	[ -d Build-lib ] || ./build.sh -o Build-lib -gl3
