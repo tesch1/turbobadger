@@ -400,7 +400,6 @@ endif (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
 #
 message (STATUS "TurboBadger configuration:")
 foreach (TB_VAR
-    CMAKE_BUILD_TYPE
     TB_BUILD_DEMO
     TB_SYSTEM
     TB_BACKEND
