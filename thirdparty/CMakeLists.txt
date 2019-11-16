@@ -35,6 +35,7 @@ if (TB_BUILD_GLFW)
     PREFIX GLFWEXT
     URL https://github.com/glfw/glfw/archive/3.3.tar.gz
     URL_HASH MD5=5be03812f5d109817e6558c3fab7bbe1
+    DOWNLOAD_DIR "${DOWNLOAD_DIR}"
     #GIT_REPOSITORY "https://github.com/glfw/glfw.git"
     #GIT_TAG "3.3"
     #GIT_SHALLOW 1
