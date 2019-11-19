@@ -136,6 +136,12 @@ if (TB_BUILD_SDL2)
     if (WIN32)
       target_link_libraries (SDL2-interface INTERFACE SDL2main)
     endif (WIN32)
+    if (ANDROID)
+      # sdl2-2.0.10 needs this
+      include (AndroidNdkModules)
+      android_ndk_import_module_cpufeatures ()
+      target_link_libraries (SDL2-interface INTERFACE cpufeatures)
+    endif ()
   endif (hasParent)
 elseif (TB_BACKEND STREQUAL SDL2 AND hasParent)
   #
