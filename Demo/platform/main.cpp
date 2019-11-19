@@ -81,8 +81,7 @@ bool port_main(int argc, char* argv[])
 			//exit(0);
 		}
 	}
-#endif
-#ifdef TB_SYSTEM_WINDOWS
+#elif defined(TB_SYSTEM_WINDOWS)
 	// Set the current path to the directory of the app so we find
 	// assets also when visual studio starts it.
 	char modname[MAX_PATH];
