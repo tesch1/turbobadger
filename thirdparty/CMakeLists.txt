@@ -119,11 +119,9 @@ if (TB_BUILD_SDL2)
   if (hasParent)
     #set (SDL_CMAKE_DEBUG_POSTFIX "\"\"" CACHE STRING "Name suffix for debug builds" FORCE)
     if (ANDROID)
-      set (BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
       set (SDL_SHARED   ON  CACHE BOOL "" FORCE)
       set (SDL_STATIC   OFF CACHE BOOL "" FORCE)
-      set (SDL_SHARED_ENABLED_BY_DEFAULT ON CACHE BOOL "" FORCE)
-      # sdl2-2.0.10 needs this
+      # sdl2-2.0.10 needs cpufeatures
       include (AndroidNdkModules)
       android_ndk_import_module_cpufeatures ()
       get_target_property (CPUFEATURES_INCLUDES cpufeatures INCLUDE_DIRECTORIES)
@@ -155,9 +153,6 @@ if (TB_BUILD_SDL2)
       target_link_libraries (SDL2-interface INTERFACE SDL2)
       #target_link_libraries (SDL2-interface INTERFACE cpufeatures)
       #set_target_properties (SDL2-static PROPERTIES DEBUG_POSTFIX "")
-      # for some reason SDL2 target doesnt have these?! gah.
-#      set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-#        "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir/include;${source_dir}/include")
     else ()
       if (NOT TARGET SDL2-static)
         message (FATAL_ERROR "Didn't create 'SDL2-static' target")
