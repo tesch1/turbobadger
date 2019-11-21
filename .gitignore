@@ -38,9 +38,14 @@ doc/html
 DemoAndroid2/.gradle
 DemoAndroid2/app/build/
 DemoAndroid2/app/.externalNativeBuild/
+DemoAndroid2/app/.cxx/
 DemoAndroid2/build
 DemoAndroid2/local.properties
 DemoAndroid2/.idea
+DemoAndroid2/app/src/main/assets/demo_skin/
+DemoAndroid2/app/src/main/assets/font/
+DemoAndroid2/app/src/main/assets/language/
+DemoAndroid2/app/src/main/assets/skin/
 
 DemoAndroid/libs
 DemoAndroid/assets/demo_skin
