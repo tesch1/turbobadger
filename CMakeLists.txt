@@ -30,24 +30,43 @@ else ()
 endif ()
 #################################################################################
 
+# Which types to generate for for Xcode and VS, default to Release
+if (XCODE OR MSVS AND NOT CMAKE_CONFIGURATION_TYPES)
+  set (CMAKE_CONFIGURATION_TYPES "Release;Debug;RelWithDebInfo")
+endif (XCODE OR MSVS AND NOT CMAKE_CONFIGURATION_TYPES)
+
+# Default CMAKE_BUILD_TYPE, if not Xcode or VS
+set (CMAKE_BUILD_TYPE "Debug" CACHE STRING "Set cmake build type")
+set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set (CMAKE_BUILD_TYPE "Debug")
+endif (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+
 # Import functions for resource files, ie add_resources()
 include ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddResources.cmake")
 
 # Check if we're being built as an add_subdirectory() from another project
 get_directory_property (TB_SUBDIRECTORY PARENT_DIRECTORY)
 
+# Generate debug info for debug builds
+if (${CMAKE_BUILD_TYPE} MATCHES Deb)
+  set (TB_RUNTIME_DEBUG_INFO_DEFAULT ON)
+else ()
+  set (TB_RUNTIME_DEBUG_INFO_DEFAULT OFF)
+endif ()
+
 # try to auto-detect TB_SYSTEM etc...
 if (UNIX)
   set (TB_SYSTEM_DEFAULT LINUX)
   set (TB_RENDERER_DEFAULT GL3)
   set (TB_BACKEND_DEFAULT GLFW)
-endif (UNIX)
+endif ()
 
 if (WIN32)
   set (TB_SYSTEM_DEFAULT WINDOWS)
   set (TB_RENDERER_DEFAULT GL3)
   set (TB_BACKEND_DEFAULT GLFW)
-endif (WIN32)
+endif ()
 
 if (APPLE)
   if (IOS)
@@ -60,13 +79,18 @@ if (APPLE)
     set (TB_RENDERER_DEFAULT GL3)
     set (TB_BACKEND_DEFAULT SDL2)
   endif ()
-endif (APPLE)
+endif ()
 
 if (ANDROID)
   set (TB_SYSTEM_DEFAULT ANDROID)
   set (TB_RENDERER_DEFAULT GL)
   set (TB_BACKEND_DEFAULT ANDROID)
-endif (ANDROID)
+endif ()
+
+if (EMSCRIPTEN)
+  set (TB_RENDERER_DEFAULT GLES_2)
+endif ()
+
 
 # Special handling for building DEMO app
 set (TB_BUILD_DEMO NO CACHE STRING "Build Demo application: NO, GLFW, SDL2, or ANDROID")
@@ -108,19 +132,7 @@ option (TB_BUILD_GLFW "Download and build the GLFW library." OFF)
 option (TB_BUILD_SDL2 "Download and build the SDL2 library." OFF)
 option (TB_BUILD_FREETYPE "Download and build the freetype library." OFF)
 option (TB_ALWAYS_SHOW_EDIT_FOCUS "Show the edit focus in TBEditField." ON)
-option (TB_RUNTIME_DEBUG_INFO "Always generate runtime debug info." OFF)
-
-# Which types to generate for for Xcode and VS, default to Release
-if (XCODE OR MSVS AND NOT CMAKE_CONFIGURATION_TYPES)
-  set (CMAKE_CONFIGURATION_TYPES "Release;Debug;RelWithDebInfo")
-endif (XCODE OR MSVS AND NOT CMAKE_CONFIGURATION_TYPES)
-
-# Default CMAKE_BUILD_TYPE, if not Xcode or VS
-set (CMAKE_BUILD_TYPE "Debug" CACHE STRING "Set cmake build type")
-set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
-if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  set (CMAKE_BUILD_TYPE "Debug")
-endif (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+option (TB_RUNTIME_DEBUG_INFO "Always generate runtime debug info." ${TB_RUNTIME_DEBUG_INFO_DEFAULT})
 
 # Configure graphics renderer
 option (TB_RENDERER_BATCHER "Enable to get TBRendererBatcher" ON)
@@ -281,7 +293,7 @@ endif (TB_BUILD_DEMO)
 # Add Demo project
 if (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL2)
   add_subdirectory (Demo)
-endif (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL2)
+endif ()
 
 # Android demo
 if (${TB_BUILD_DEMO} STREQUAL ANDROID)
@@ -313,14 +325,7 @@ if (${TB_BUILD_DEMO} STREQUAL ANDROID)
     #message ("cp ${RES_FILE} ${DEMO_ASSET_DIR}/${RES_LOCATION}")
   endforeach ()
 
-  #copy /Y "..\resources\language\*.txt" "assets\language\*"
-  #copy /Y "..\resources\default_font\*" "assets\font\*"
-  #copy /Y "..\resources\default_skin\*.png" "assets\skin\*"
-  #copy /Y "..\resources\default_skin\*.txt" "assets\skin\*"
-  #copy /Y "..\Demo\demo01\skin\*.png" "assets\demo_skin\*"
-  #copy /Y "..\Demo\demo01\skin\*.txt" "assets\demo_skin\*"
-
-endif (${TB_BUILD_DEMO} STREQUAL ANDROID)
+endif ()
 
 #################################################################################
 # Generate Doxygen documentation
@@ -331,7 +336,7 @@ if (NOT TB_SUBDIRECTORY)
     COMMAND doxygen ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile
     # COMMAND open doc/html/index.html
     )
-endif (NOT TB_SUBDIRECTORY)
+endif ()
 
 #################################################################################
 # etags
@@ -346,7 +351,7 @@ if (NOT TB_SUBDIRECTORY)
       )
     add_custom_target (etags DEPENDS tags)
   endif (ETAGS)
-endif (NOT TB_SUBDIRECTORY)
+endif ()
 
 #################################################################################
 # CPack for TurboBadgerLib

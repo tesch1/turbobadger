@@ -153,6 +153,6 @@ if [ ! -z "${BUILD_DIR}" ] && [ -d "${BUILD_DIR}" ]; then
 fi
 mkdir -p "${BUILD_DIR}"
 
-cmake --H"${SRC_DIR}" -B"${BUILD_DIR}" ${CMAKE_FLAGS} -G 'Unix Makefiles'
+cmake "${SRC_DIR}" -B"${BUILD_DIR}" ${CMAKE_FLAGS} -G 'Unix Makefiles'
 cd "${BUILD_DIR}"
 make -j${NPROC} ${MAKE_FLAGS}

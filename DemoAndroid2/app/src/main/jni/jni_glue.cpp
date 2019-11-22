@@ -31,24 +31,24 @@ JNIEnv *get_jnienv() { return jnienv; }
 jclass TBLib_class;
 jmethodID TBLib_mid_show_keyboard;
 
-void ValidateClassAndMethods()
-{
+bool ValidateClassAndMethods() {
 	static bool mid_valid = false;
 	if (mid_valid)
-		return;
+		return true;
 	JNIEnv *env = get_jnienv();
 	TBLib_class = env->FindClass("org.hastybadger.demo/TBLib");
 	TBLib_mid_show_keyboard = env->GetStaticMethodID(TBLib_class, "ShowKeyboard", "(I)V");
 
 	mid_valid = true;
+	return mid_valid;
 }
 
 void CallStaticVoidMethod(jmethodID mid, int param)
 {
 	// FIX: there should be some exception handling here
 	JNIEnv *env = get_jnienv();
-	ValidateClassAndMethods();
-	env->CallStaticVoidMethod(TBLib_class, TBLib_mid_show_keyboard, param);
+	if (ValidateClassAndMethods())
+		env->CallStaticVoidMethod(TBLib_class, TBLib_mid_show_keyboard, param);
 }
 
 void ShowKeyboard(bool show)

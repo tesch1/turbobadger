@@ -13,8 +13,11 @@ sdl2:
 	[ -d Build-sdl2 ] || ./build.sh -sdl2 -gl3 -o Build-sdl2
 	cd Build-sdl2 && $(MAKE) package
 
-em-sdl2:
-	[ -d Build-emsc ] || ./build.sh -gles2 -sdl2 -em -o Build-emsc
+Build-emsc/Makefile:
+	source ${HOME}/local/emsdk/emsdk_env.sh ; \
+	emconfigure cmake . -BBuild-emsc -DTB_BUILD_DEMO=SDL2 -DCMAKE_BUILD_TYPE=Debug
+
+em-sdl2: Build-emsc/Makefile
 	cd Build-emsc && $(MAKE)
 
 em-glfw:
@@ -47,6 +50,9 @@ lib:
 
 and:
 	cd DemoAndroid2 && ./gradlew build
+
+website: em-sdl2
+	./doc/ghpages.sh
 
 distclean:
 	rm -rf Build-*
