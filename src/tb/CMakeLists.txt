@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.4.3)
 
-set (LOCAL_SRCS 
+set (LOCAL_SRCS
+  ${CMAKE_CURRENT_BINARY_DIR}/tb_config.h
   tb_bitmap_fragment.cpp
   tb_clipboard_dummy.cpp
   tb_clipboard_glfw.cpp
@@ -108,26 +109,29 @@ else (ANDROID)
   add_library (TurboBadgerLib STATIC ${LOCAL_SRCS})
 endif (ANDROID)
 
-#target_compile_features (TurboBadgerLib PRIVATE cxx_constexpr)
 set_property (TARGET TurboBadgerLib PROPERTY CXX_STANDARD 14)
 
 if (TB_BACKEND STREQUAL SDL2)
   target_link_libraries (TurboBadgerLib PUBLIC SDL2-interface)
-endif (TB_BACKEND STREQUAL SDL2)
+endif ()
+
 if (TB_BACKEND STREQUAL GLFW)
   target_link_libraries (TurboBadgerLib PUBLIC glfw)
-endif (TB_BACKEND STREQUAL GLFW)
+endif ()
+
 if (TB_SYSTEM STREQUAL WINDOWS)
   target_link_libraries (TurboBadgerLib PUBLIC GLEW)
-endif (TB_SYSTEM STREQUAL WINDOWS)
+endif ()
+
 if (TB_FONT_RENDERER STREQUAL FREETYPE)
   target_link_libraries (TurboBadgerLib PUBLIC freetype)
-endif (TB_FONT_RENDERER STREQUAL FREETYPE)
+endif ()
+
 if (TB_RENDERER MATCHES GL AND NOT EMSCRIPTEN AND NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS)
   set (OpenGL_GL_PREFERENCE GLVND)
   find_package (OpenGL REQUIRED)
   target_link_libraries (TurboBadgerLib PUBLIC OpenGL::GL)
-endif (TB_RENDERER MATCHES GL AND NOT EMSCRIPTEN AND NOT EMSCRIPTEN AND NOT ANDROID AND NOT IOS)
+endif ()
 
 target_include_directories (TurboBadgerLib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories (TurboBadgerLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
