@@ -56,12 +56,14 @@ namespace tb {
 // == TBSystem ========================================
 
 #ifndef __EMSCRIPTEN__
+
 double TBSystem::GetTimeMS()
 {
 #if 1
 	Uint64 freq = SDL_GetPerformanceFrequency();
 	Uint64 now = SDL_GetPerformanceCounter();
-	return 1000. * ((double)now / (double)freq);
+	double ms = 1000. * ((double)now / (double)freq);
+	return ms;
 #elif 0
 	return SDL_GetTicks();
 #else
@@ -212,4 +214,4 @@ void TBSystem::SetDPI(int dpi)
 
 } // namespace tb
 
-#endif // TB_SYSTEM_SDL2
+#endif // TB_BACKEND_SDL2
