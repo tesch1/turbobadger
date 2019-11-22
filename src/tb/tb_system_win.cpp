@@ -12,11 +12,13 @@
 #include <mmsystem.h>
 #include <stdio.h>
 
+#include "tb_debug.h"
+
 #ifdef TB_RUNTIME_DEBUG_INFO
 
-void TBDebugOut(const char *str)
+void TBDebugOut(const tb::TBStr & str)
 {
-	OutputDebugString(str);
+	OutputDebugString(str.CStr());
 }
 
 #endif // TB_RUNTIME_DEBUG_INFO

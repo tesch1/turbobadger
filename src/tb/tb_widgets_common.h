@@ -12,12 +12,22 @@
 
 namespace tb {
 
-/** TB_TEXT_ALIGN specifies horizontal text alignment */
+/** TB_TEXT_ALIGN specifies horizontal text alignment
+ *
+ * @see TBWidgetString::SetTextAlign
+ * @see TBWidgetString::GetTextAlign
+ * @see TBTextField::SetTextAlign
+ * @see TBTextField::SetTextAlign
+ */
 enum TB_TEXT_ALIGN {
 	TB_TEXT_ALIGN_LEFT,		///< Aligned left
 	TB_TEXT_ALIGN_RIGHT,	///< Aligned right
 	TB_TEXT_ALIGN_CENTER	///< Aligned center
 };
+
+/** @addtogroup group_widgets
+ * @{
+ */
 
 /** TBWidgetString holds a string that can be painted as one line with the set alignment. */
 class TBWidgetString
@@ -460,6 +470,8 @@ public:
 
 	virtual void OnAdded();
 };
+
+/** @} */
 
 } // namespace tb
 

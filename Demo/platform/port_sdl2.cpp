@@ -112,16 +112,14 @@ static bool InvokeShortcut(int key, SPECIAL_KEY special_key, MODIFIER_KEYS modif
 	return TBWidget::focused_widget->InvokeEvent(ev);
 }
 
-bool
-AppBackendSDL2::InvokeKey(unsigned int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifierkeys, bool down)
+bool AppBackendSDL2::InvokeKey(unsigned int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifierkeys, bool down)
 {
 	if (InvokeShortcut(key, special_key, modifierkeys, down))
 		return true;
 	return m_app->GetRoot()->InvokeKey(key, special_key, modifierkeys, down);
 }
 
-void
-AppBackendSDL2::QueueUserEvent(Sint32 code, void * data1, void * data2)
+void AppBackendSDL2::QueueUserEvent(Sint32 code, void * data1, void * data2)
 {
 	// queue a user event to cause the SDL event loop to run
 	SDL_Event event;

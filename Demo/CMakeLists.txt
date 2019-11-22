@@ -136,8 +136,9 @@ endif (CMAKE_COMPILER_IS_MINGW)
 if (EMSCRIPTEN)
   set (CMAKE_EXECUTABLE_SUFFIX ".html")
   # default skin resources
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file /tmp/resources@/resources")
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file /tmp/resources@/")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file /tmp/demo01@demo01")
+  #set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --emrun")
   # test files
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser.tb.txt@/")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser_included.tb.txt@/")
@@ -148,6 +149,12 @@ if (EMSCRIPTEN)
     COMMAND rm -rf /tmp/resources /tmp/demo01
     COMMAND rsync -a --exclude='*.psd' ${CMAKE_SOURCE_DIR}/resources /tmp/
     COMMAND rsync -a --include='*/' --include='*.txt' --include='*.png' --exclude='*' ${CMAKE_CURRENT_SOURCE_DIR}/demo01 /tmp )
+
+  add_custom_target (run
+    DEPENDS TurboBadgerDemo
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMAND "${EMSCRIPTEN_ROOT_PATH}/emrun" TurboBadgerDemo.html
+    )
 endif (EMSCRIPTEN)
 
 #################################################################################
