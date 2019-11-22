@@ -10,48 +10,56 @@ SRC_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 cd "${SRC_DIR}"
 [ -d DemoAndroid2/app ] || exit 1
 [ -f doc/Doxyfile.in ] || exit 1
+[ "${SRC_DIR}/Build-emsc/doc/Doxyfile" ] || exit 1
+EMSCRIPTEN_FILES="
+    TurboBadgerDemo.html 
+    TurboBadgerDemo.data 
+    TurboBadgerDemo.wasm
+    TurboBadgerDemo.js"
+for F in ${EMSCRIPTEN_FILES} ; do
+    if ! [ -f "Build-emsc/${F}" ]; then
+        echo "Unable to find 'Build-emsc/${F}', did you build the Emscripten Demo?"
+        exit 1
+    fi
+done
 
-# make the docs
-if [ ! -f "${SRC_DIR}/BuildDocs/doc/Doxyfile" ] ; then
-    rm -rf "${SRC_DIR}/BuildDocs"
-    mkdir "${SRC_DIR}/BuildDocs"
-fi
-cd "${SRC_DIR}/BuildDocs"
-cmake ../
+# should already be configured
+cd "${SRC_DIR}/Build-emsc"
+make TurboBadgerDemo
 
 # get a new tb
-if [ ! -f "${SRC_DIR}/BuildDocs/doc/html/index.html" ]; then
+if [ ! -f "doc/html/index.html" ]; then
     # cleanup old doc location
-    rm -rf   "${SRC_DIR}/BuildDocs/doc/html"
-    mkdir -p "${SRC_DIR}/BuildDocs/doc/html"
-    cd       "${SRC_DIR}/BuildDocs/doc/html"
+    rm -rf   "doc/html"
+    mkdir -p "doc/html"
+    cd       "doc/html"
     git clone --depth 1 --branch gh-pages git@github.com:tesch1/turbobadger.git .
 fi
 
-cd       "${SRC_DIR}/BuildDocs/doc/html"
-git rm -r *
+cd       "${SRC_DIR}/doc/html"
+
+if [ x != x"$(ls)" ] ; then
+    git rm -rf *
+fi
 
 # make the docs
-cd       "${SRC_DIR}/BuildDocs"
+cd       "${SRC_DIR}/Build-emsc"
 make docs
 [ -f doc/html/index.html ] || exit 1
 
-# make the demo
-if [ -f "${SRC_DIR}/TurboBadgerDemoSDL.html" ] ; then
-    cp "${SRC_DIR}/TurboBadgerDemoSDL.html" "${SRC_DIR}/BuildDocs/doc/html/"
-    cp "${SRC_DIR}/TurboBadgerDemoSDL.wasm" "${SRC_DIR}/BuildDocs/doc/html/"
-    cp "${SRC_DIR}/TurboBadgerDemoSDL.data" "${SRC_DIR}/BuildDocs/doc/html/"
-    cp "${SRC_DIR}/TurboBadgerDemoSDL.js"   "${SRC_DIR}/BuildDocs/doc/html/"
-fi
+# copy the demo files
+for F in ${EMSCRIPTEN_FILES} ; do
+    cp "${SRC_DIR}/Build-emsc/${F}" "${SRC_DIR}/Build-emsc/doc/html/"
+done
 
 # check the docs in
-cd       "${SRC_DIR}/BuildDocs/doc/html"
+cd "${SRC_DIR}/Build-emsc/doc/html"
 git add .
 git commit . -m 'updated doxygen docs' --amend
 
 set +x
 echo "to commit to github:"
-echo "cd ${SRC_DIR}/BuildDocs/doc/html && git push -f --set-upstream origin gh-pages"
+echo "cd ${SRC_DIR}/Build-emsc/doc/html && git push -f --set-upstream origin gh-pages"
 echo "or to view:"
-echo "xdg-open ${SRC_DIR}/BuildDocs/doc/html/index.html"
+echo "xdg-open ${SRC_DIR}/Build-emsc/doc/html/index.html"
 # git push -f --set-upstream origin gh-pages

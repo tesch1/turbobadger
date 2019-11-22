@@ -1,21 +1,27 @@
 namespace tb {
 /** @mainpage Introduction
 
-Turbo Badger is a small GUI library that provides a large number of skinnable widgets,
-a flexible event system, and well-abstracted rendering, all in a very nicely designed and 
-packaged programming interface.
+	HastyBadger is a small GUI library that provides a large number of
+	skinnable widgets, a flexible event system, and well-abstracted
+	rendering, all in a very nicely designed and packaged programming
+	interface.
 
-<a href="https://github.com/fruxo/turbobadger">The original GitHub repository is here.</a>
+	It is a branch of Turbobadger.
 
-<a href="https://github.com/tesch1/turbobadger">The branch GitHub repository is here.</a>
+	<a href="https://github.com/fruxo/turbobadger">The original
+	TurboBadger GitHub repository is here.</a>
 
-Here's an example of TurboBadgerDemo running in the browser via Emscripten:
-  <A HREF="TurboBadgerDemoSDL.html">TurboBadgerDemoSDL.html</A>
+	<a href="https://github.com/tesch1/turbobadger">The HastyBadger GitHub
+	repository is here</a> -- notice that the default git branch is
+	'hastybadger'.
 
-The default skin looks like this:
+	Here's an example of TurboBadgerDemo running in the browser via
+	Emscripten: <a href="TurboBadgerDemo.html">TurboBadgerDemo.html</A>
 
-  \imageSize{screenshot_01.png,width:50%;}
-  \image html Demo/screenshot/screenshot_01.png
+	The default skin looks like this:
+
+	\imageSize{screenshot_01.png,width:50%;}
+	\image html Demo/screenshot/screenshot_01.png
 
 */
 
@@ -134,7 +140,7 @@ Needs to be implemented for file loading.
 
 */
 
-/** @page page_widgets Widgets
+/** @defgroup group_widgets Widgets
 
 \section sec_commonwidg List of common widgets
 
