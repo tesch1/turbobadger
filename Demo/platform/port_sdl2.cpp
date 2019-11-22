@@ -224,6 +224,7 @@ AppBackendSDL2::~AppBackendSDL2()
 }
 
 #ifdef __EMSCRIPTEN__
+
 //using namespace emscripten;
 static AppBackendSDL2 *backend;
 void mainloop()
@@ -240,25 +241,27 @@ void mainloop()
 	else
 		emscripten_set_main_loop_timing(EM_TIMING_RAF, 1);
 }
-#endif // __EMSCRIPTEN__
 
 void AppBackendSDL2::EventLoop()
 {
-#ifdef __EMSCRIPTEN__
 	backend = this;
 	emscripten_set_main_loop(mainloop, 0, 1);
-#else
+}
+
+#else // ! __EMSCRIPTEN__
+
+void AppBackendSDL2::EventLoop()
+{
 	SDL_Event event;
-	do
-	{
+	do {
 		// handle events
 		SDL_WaitEvent(&event);
 		if (!HandleSDLEvent(event))
 			SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Unhandled SDL event: 0x%x\n", event.type);
-
 	} while (!m_quit_requested);
-#endif
 }
+
+#endif // __EMSCRIPTEN__
 
 void AppBackendSDL2::OnAppEvent(const EVENT &ev)
 {

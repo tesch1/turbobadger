@@ -17,6 +17,13 @@ Current CircleCI build status: [![CircleCI](https://circleci.com/gh/tesch1/turbo
 
 Current TravisCI build status: [![Build Status](https://travis-ci.com/tesch1/turbobadger.svg?branch=hastybadger)](https://travis-ci.com/tesch1/turbobadger)
 
+Binaries of the demo programs for most platforms (macOS, Linux,
+Windows) are available on the
+[Releases](https://github.com/tesch1/turbobadger/releases) page. An
+online demo of the Emscripten port is here:
+[Emscripten](http://tesch1.github.io/turbobadger/TurboBadgerDemoSDL.html)
+port.
+
 Differences from TurboBadger
 ----------------------------
 

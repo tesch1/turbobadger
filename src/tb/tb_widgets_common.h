@@ -343,8 +343,8 @@ public:
 	virtual void SetValueDouble(double value);
 	virtual double GetValueDouble() const { return m_value; }
 
-	virtual void SetValue(long value) { SetValueDouble(value); }
-	virtual long GetValue() const { return GetValueDouble(); }
+	virtual void SetValue(long value) { SetValueDouble((double)value); }
+	virtual long GetValue() const { return (long)GetValueDouble(); }
 
 	virtual void OnInflate(const INFLATE_INFO &info);
 	virtual bool OnEvent(const TBWidgetEvent &ev);
@@ -391,13 +391,13 @@ public:
 	virtual VAL_T GetValueVal() const { return m_value; }
 
 	/** Give SetValue corrent precision. */
-	virtual void SetValue(long value) { SetValueVal(value); }
+	virtual void SetValue(long value) { SetValueVal((VAL_T)value); }
 	/** Give GetValue corrent precision. */
-	virtual long GetValue() const { return m_value; }
+	virtual long GetValue() const { return (long)m_value; }
 	/** Same as SetValue, but with double precision. */
-	virtual void SetValueDouble(double value) { SetValueVal(value); }
+	virtual void SetValueDouble(double value) { SetValueVal((VAL_T)value); }
 	/** Same as GetValue, but with double precision. */
-	virtual double GetValueDouble() const { return GetValueVal(); }
+	virtual double GetValueDouble() const { return (double)GetValueVal(); }
 
 	virtual void OnInflate(const INFLATE_INFO &info);
 	virtual void OnDeflate(const INFLATE_INFO &info);
