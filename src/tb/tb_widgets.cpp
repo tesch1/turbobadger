@@ -33,6 +33,27 @@ bool TBWidget::update_widget_states = true;
 bool TBWidget::update_skin_states = true;
 bool TBWidget::show_focus_state = false;
 
+static TBHashTableAutoDeleteOf<TBWidget::TOUCH_INFO> s_touch_info;
+
+TBWidget::TOUCH_INFO *TBWidget::GetTouchInfo(uint32_t id)
+{
+	return s_touch_info.Get(id);
+}
+
+static TBWidget::TOUCH_INFO *AddTouchInfo(uint32_t id)
+{
+	assert(!s_touch_info.Get(id));
+	TBWidget::TOUCH_INFO *ti = new TBWidget::TOUCH_INFO;
+	memset(ti, 0, sizeof(TBWidget::TOUCH_INFO));
+	s_touch_info.Add(id, ti);
+	return ti;
+}
+
+static void DeleteTouchInfo(uint32_t id)
+{
+	s_touch_info.Delete(id);
+}
+
 // == TBLongClickTimer ==================================================================
 
 /** One shot timer for long click event */
@@ -86,12 +107,23 @@ TBWidget::~TBWidget()
 	assert(!m_parent); ///< A widget must be removed from parent before deleted
 	m_packed.is_dying = true;
 
+	// Unreference from pointer capture
 	if (this == hovered_widget)
 		hovered_widget = nullptr;
 	if (this == captured_widget)
 		captured_widget = nullptr;
 	if (this == focused_widget)
 		focused_widget = nullptr;
+
+	// Unreference from touch info
+	TBHashTableIteratorOf<TOUCH_INFO> it(&s_touch_info);
+	while (TOUCH_INFO *ti = it.GetNextContent())
+	{
+		if (this == ti->hovered_widget)
+			ti->hovered_widget = nullptr;
+		if (this == ti->captured_widget)
+			ti->captured_widget = nullptr;
+	}
 
 	TBWidgetListener::InvokeWidgetDelete(this);
 	DeleteAllChildren();
@@ -1394,8 +1426,8 @@ void TBWidget::MaybeInvokeLongClickOrContextMenu(bool touch)
 void TBWidget::InvokePointerMove(int x, int y, MODIFIER_KEYS modifierkeys, bool touch)
 {
 	SetHoveredWidget(GetWidgetAt(x, y, true), touch);
-	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
 
+	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
 	if (target)
 	{
 		target->ConvertFromRoot(x, y);
@@ -1467,102 +1499,127 @@ void TBWidget::HandlePanningOnMove(int x, int y)
 	}
 }
 
+void TBWidget::InvokePointerCancel()
+{
+	if (captured_widget)
+		captured_widget->ReleaseCapture();
+}
+
+bool TBWidget::InvokeTouchDown(int x, int y, float tx, float ty, uint32_t id, int click_count, MODIFIER_KEYS modifierkeys)
+{
+	TOUCH_INFO *ti = AddTouchInfo(id);
+
+	if (!ti)
+        return false;
+
+	if (!ti->captured_widget)
+		ti->captured_widget = GetWidgetAt(x, y, true);
+	if (ti->captured_widget && !ti->captured_widget->GetState(WIDGET_STATE_DISABLED))
+		ti->hovered_widget = ti->captured_widget;
+
+	if (!ti->captured_widget)
+	    return false;
+
+    ti->captured_widget->ConvertFromRoot(x, y);
+    ti->move_widget_x = ti->down_widget_x = x;
+    ti->move_widget_y = ti->down_widget_y = y;
+    TBWidgetEvent ev(EVENT_TYPE_TOUCH_DOWN, x, y, true, modifierkeys);
+    ev.count = click_count;
+    ev.ref_id = id;
+    ti->captured_widget->InvokeEvent(ev);
+    return true;
+}
+
+bool TBWidget::InvokeTouchUp(int x, int y, float tx, float ty, uint32_t id, MODIFIER_KEYS modifierkeys)
+{
+	TOUCH_INFO *ti = GetTouchInfo(id);
+	if (!ti)
+	    return false;
+
+    if (!ti->captured_widget) {
+        DeleteTouchInfo(id);
+        return false;
+    }
+
+    ti->captured_widget->ConvertFromRoot(x, y);
+    TBWidgetEvent ev(EVENT_TYPE_TOUCH_UP, x, y, true, modifierkeys);
+    ev.ref_id = id;
+    ti->captured_widget->InvokeEvent(ev);
+    DeleteTouchInfo(id);
+    return true;
+}
+
+void TBWidget::InvokeTouchMove(int x, int y, float tx, float ty, uint32_t id, MODIFIER_KEYS modifierkeys)
+{
+	TOUCH_INFO *ti = GetTouchInfo(id);
+	if (!ti)
+		return;
+
+	ti->hovered_widget = GetWidgetAt(x, y, true);
+	if (!ti->captured_widget)
+	    return;
+
+    ti->captured_widget->ConvertFromRoot(x, y);
+    ti->move_widget_x = x;
+    ti->move_widget_y = y;
+    TBWidgetEvent ev(EVENT_TYPE_TOUCH_MOVE, x, y, true, modifierkeys);
+    ev.ref_id = id;
+    ti->captured_widget->InvokeEvent(ev);
+}
+
+void TBWidget::InvokeTouchCancel(uint32_t id)
+{
+	TOUCH_INFO *ti = GetTouchInfo(id);
+	if (!ti)
+	    return;
+
+    if (!ti->captured_widget) {
+        DeleteTouchInfo(id);
+        return;
+    }
+
+    TBWidgetEvent ev(EVENT_TYPE_TOUCH_CANCEL, 0, 0, true);
+    ev.ref_id = id;
+    ti->captured_widget->InvokeEvent(ev);
+    DeleteTouchInfo(id);
+}
+
+bool TBWidget::InvokeTouchGesture(int x, int y, float tx, float ty, float dTheta, float dDist, uint16_t numFingers)
+{
+	SetHoveredWidget(GetWidgetAt(x, y, true), true);
+
+	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
+	if (!target)
+	    return false;
+
+    target->ConvertFromRoot(x, y);
+    TBWidgetEvent ev(x, y, tx, ty, dTheta, dDist, numFingers);
+    target->InvokeEvent(ev);
+
+    // Return true when we have a target instead of InvokeEvent result. If a widget is
+    // hit is more interesting for callers than if the event was handled or not.
+    return true;
+}
+
 bool TBWidget::InvokeWheel(int x, int y, int delta_x, int delta_y, MODIFIER_KEYS modifierkeys)
 {
 	SetHoveredWidget(GetWidgetAt(x, y, true), true);
 
 	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
-	if (target)
-	{
-		target->ConvertFromRoot(x, y);
-		pointer_move_widget_x = x;
-		pointer_move_widget_y = y;
-		TBWidgetEvent ev(EVENT_TYPE_WHEEL, x, y, true, modifierkeys);
-		ev.delta_x = delta_x;
-		ev.delta_y = delta_y;
-		target->InvokeEvent(ev);
+	if (!target)
+	    return false;
 
-		// Return true when we have a target instead of InvokeEvent result. If a widget is
-		// hit is more interesting for callers than if the event was handled or not.
-		return true;
-	}
+    target->ConvertFromRoot(x, y);
+    pointer_move_widget_x = x;
+    pointer_move_widget_y = y;
+    TBWidgetEvent ev(EVENT_TYPE_WHEEL, x, y, true, modifierkeys);
+    ev.delta_x = delta_x;
+    ev.delta_y = delta_y;
+    target->InvokeEvent(ev);
 
-	return false;
-}
-
-bool TBWidget::InvokeMultiGesture(float dTheta, float dDist,
-								  int x, int y,
-								  float cx, float cy, uint16_t numFingers)
-{
-	SetHoveredWidget(GetWidgetAt(x, y, true), true);
-
-	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
-	if (target)
-	{
-		target->ConvertFromRoot(x, y);
-		TBWidgetEventMultiGesture ev(x, y, cx, cy, dTheta, dDist, numFingers);
-		target->InvokeEvent(ev);
-
-		// Return true when we have a target instead of InvokeEvent result. If a widget is
-		// hit is more interesting for callers than if the event was handled or not.
-		return true;
-	}
-
-	return false;
-}
-
-bool TBWidget::InvokeFingerMotion(int x, int y, float cx, float cy, float dx, float dy, int finger)
-{
-	SetHoveredWidget(GetWidgetAt(x, y, true), true);
-
-	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
-	if (target)
-	{
-		target->ConvertFromRoot(x, y);
-		TBWidgetEventFinger ev(EVENT_TYPE_FINGER_MOVE, x, y, cx, cy, dx, dy, finger);
-		target->InvokeEvent(ev);
-
-		// Return true when we have a target instead of InvokeEvent result. If a widget is
-		// hit is more interesting for callers than if the event was handled or not.
-		return true;
-	}
-	return false;
-}
-
-bool TBWidget::InvokeFingerDown(int x, int y, float cx, float cy, float dx, float dy, int finger)
-{
-	SetHoveredWidget(GetWidgetAt(x, y, true), true);
-
-	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
-	if (target)
-	{
-		target->ConvertFromRoot(x, y);
-		TBWidgetEventFinger ev(EVENT_TYPE_FINGER_DOWN, x, y, cx, cy, dx, dy, finger);
-		target->InvokeEvent(ev);
-
-		// Return true when we have a target instead of InvokeEvent result. If a widget is
-		// hit is more interesting for callers than if the event was handled or not.
-		return true;
-	}
-	return false;
-}
-
-bool TBWidget::InvokeFingerUp(int x, int y, float cx, float cy, float dx, float dy, int finger)
-{
-	SetHoveredWidget(GetWidgetAt(x, y, true), true);
-
-	TBWidget *target = captured_widget ? captured_widget : hovered_widget;
-	if (target)
-	{
-		target->ConvertFromRoot(x, y);
-		TBWidgetEventFinger ev(EVENT_TYPE_FINGER_UP, x, y, cx, cy, dx, dy, finger);
-		target->InvokeEvent(ev);
-
-		// Return true when we have a target instead of InvokeEvent result. If a widget is
-		// hit is more interesting for callers than if the event was handled or not.
-		return true;
-	}
-	return false;
+    // Return true when we have a target instead of InvokeEvent result. If a widget is
+    // hit is more interesting for callers than if the event was handled or not.
+    return true;
 }
 
 bool TBWidget::InvokeKey(int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifierkeys, bool down)

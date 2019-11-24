@@ -15,32 +15,60 @@ namespace tb {
 
 TBWidgetString::TBWidgetString()
 	: m_text_align(TB_TEXT_ALIGN_CENTER)
+	, m_width(0)
+	, m_height(0)
 {
+}
+
+void TBWidgetString::ValidatCachedSize(TBWidget *widget)
+{
+	const TBFontDescription fd = widget->GetCalculatedFontDescription();
+	if (!m_height || fd != m_fd)
+	{
+		m_fd = fd;
+		TBFontFace *font = g_font_manager->GetFontFace(fd);
+		m_width = font->GetStringWidth(m_text.CStr());
+		m_height = font->GetHeight();
+	}
 }
 
 int TBWidgetString::GetWidth(TBWidget *widget)
 {
-	return widget->GetFont()->GetStringWidth(m_text.CStr());
+	ValidatCachedSize(widget);
+	return m_width;
 }
 
 int TBWidgetString::GetHeight(TBWidget *widget)
 {
-	return widget->GetFont()->GetHeight();
+	ValidatCachedSize(widget);
+	return m_height;
+}
+
+bool TBWidgetString::SetText(const TBStr &text)
+{
+	// Invalidate cache
+	m_height = 0;
+	return m_text.Set(text);
+}
+
+bool TBWidgetString::GetText(TBStr &text) const
+{
+	return text.Set(m_text);
 }
 
 void TBWidgetString::Paint(TBWidget *widget, const TBRect &rect, const TBColor &color)
 {
+	ValidatCachedSize(widget);
 	TBFontFace *font = widget->GetFont();
-	int string_w = GetWidth(widget);
 
 	int x = rect.x;
 	if (m_text_align == TB_TEXT_ALIGN_RIGHT)
-		x += rect.w - string_w;
+		x += rect.w - m_width;
 	else if (m_text_align == TB_TEXT_ALIGN_CENTER)
-		x += MAX(0, (rect.w - string_w) / 2);
-	int y = rect.y + (rect.h - GetHeight(widget)) / 2;
+		x += MAX(0, (rect.w - m_width) / 2);
+	int y = rect.y + (rect.h - m_height) / 2;
 
-	if (string_w <= rect.w)
+	if (m_width <= rect.w)
 		font->DrawString(x, y, color, m_text.CStr());
 	else
 	{
@@ -83,12 +111,17 @@ TBTextField::TBTextField()
 
 bool TBTextField::SetText(const TBStr & text)
 {
-	if (m_text.m_text == text)
+	if (m_text.Equals(text))
 		return true;
 	m_cached_text_width = UPDATE_TEXT_WIDTH_CACHE;
 	Invalidate();
 	InvalidateLayout(INVALIDATE_LAYOUT_RECURSIVE);
 	return m_text.SetText(text);
+}
+
+bool TBTextField::GetText(TBStr &text) const
+{
+	return m_text.GetText(text);
 }
 
 void TBTextField::SetValueDouble(double value)

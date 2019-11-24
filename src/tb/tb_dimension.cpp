@@ -10,6 +10,7 @@
 #include "tb_value.h"
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 namespace tb {
 
@@ -38,42 +39,54 @@ void TBDimensionConverter::GetDstDPIFilename(const char *filename, TBTempBuffer 
 
 int TBDimensionConverter::DpToPx(int dp) const
 {
+	return (int) roundf(DpToPxF((float) dp));
+}
+
+float TBDimensionConverter::DpToPxF(float dp) const
+{
 	if (dp <= TB_INVALID_DIMENSION || dp == 0 || !NeedConversion())
 		return dp;
-	if (dp > 0)
-	{
-		dp = (dp * m_dst_dpi + m_src_dpi / 2) / m_src_dpi;
-		return MAX(dp, 1);
-	}
-	else
-	{
-		dp = (dp * m_dst_dpi - m_src_dpi / 2 + 1) / m_src_dpi;
-		return MIN(dp, -1);
-	}
+	return dp * m_dst_dpi / m_src_dpi;
 }
 
 int TBDimensionConverter::MmToPx(int mm) const
 {
+	return (int) roundf(MmToPxF((float) mm));
+}
+
+float TBDimensionConverter::MmToPxF(float mm) const
+{
 	if (mm <= TB_INVALID_DIMENSION || mm == 0)
 		return mm;
-
-	return (int) (mm * TBSystem::GetDPI() / 25.4f + 0.5f);
+	return mm * TBSystem::GetDPI() / 25.4f;
 }
 
 int TBDimensionConverter::GetPxFromString(const TBStr & str, int def_value) const
 {
 	if (!str || !is_start_of_number((const char *)str))
 		return def_value;
-	int len = str.Length();
-	int val = str.atoi();
-	// "dp" and unspecified unit is dp.
-	if ((len > 0 && isdigit(str[len - 1])) ||
-		(len > 2 && strcmp((const char *)str + len - 2, "dp") == 0))
-		return DpToPx(val);
-	else if (len > 2 && strcmp((const char *)str + len - 2, "mm") == 0)
-		return MmToPx(val);
-	else
+	const int len = str.Length();
+	const int val = str.atoi();
+	if (len > 2 && strcmp((const char *)str + len - 2, "px") == 0)
 		return val;
+	if (len > 2 && strcmp((const char *)str + len - 2, "mm") == 0)
+		return MmToPx(val);
+	// "dp", unspecified or unknown unit is treated as dp.
+	return DpToPx(val);
+}
+
+float TBDimensionConverter::GetPxFromStringF(const TBStr & str, float def_value) const
+{
+	if (!str || !is_start_of_number((const char *)str))
+		return def_value;
+	const int len = str.Length();
+	const float val = (float) atof((const char *)str);
+	if (len > 2 && strcmp((const char *)str + len - 2, "px") == 0)
+		return val;
+	if (len > 2 && strcmp((const char *)str + len - 2, "mm") == 0)
+		return MmToPxF(val);
+	// "dp", unspecified or unknown unit is treated as dp.
+	return DpToPxF(val);
 }
 
 int TBDimensionConverter::GetPxFromValue(TBValue *value, int def_value) const
@@ -83,9 +96,19 @@ int TBDimensionConverter::GetPxFromValue(TBValue *value, int def_value) const
 	if (value->GetType() == TBValue::TYPE_INT)
 		return DpToPx((int)value->GetInt());
 	else if (value->GetType() == TBValue::TYPE_FLOAT)
-		// FIX: We might want float versions of all dimension functions.
-		return DpToPx((int)value->GetFloat());
+		return (int) roundf(DpToPxF(value->GetFloat()));
 	return GetPxFromString(value->GetString(), def_value);
+}
+
+float TBDimensionConverter::GetPxFromValueF(TBValue *value, float def_value) const
+{
+	if (!value)
+		return def_value;
+	if (value->GetType() == TBValue::TYPE_INT)
+		return DpToPxF((float) value->GetInt());
+	else if (value->GetType() == TBValue::TYPE_FLOAT)
+		return DpToPxF(value->GetFloat());
+	return GetPxFromStringF(value->GetString(), def_value);
 }
 
 } // namespace tb

@@ -581,10 +581,10 @@ public:
 	TBTextFragmentContentWidget(TBWidget *parent, TBWidget *widget);
 	virtual ~TBTextFragmentContentWidget();
 
-	virtual void UpdatePos(int x, int y);
-	virtual int32_t GetWidth(TBFontFace *font, TBTextFragment *fragment);
-	virtual int32_t GetHeight(TBFontFace *font, TBTextFragment *fragment);
-	virtual int32_t GetBaseline(TBFontFace *font, TBTextFragment *fragment);
+	virtual void UpdatePos(const TBBlock *block, int x, int y);
+	virtual int32_t GetWidth(const TBBlock *block, TBFontFace *font, TBTextFragment *fragment);
+	virtual int32_t GetHeight(const TBBlock *block, TBFontFace *font, TBTextFragment *fragment);
+	virtual int32_t GetBaseline(const TBBlock *block, TBFontFace *font, TBTextFragment *fragment);
 private:
 	TBWidget *m_widget;
 };
@@ -601,25 +601,25 @@ TBTextFragmentContentWidget::~TBTextFragmentContentWidget()
 	delete m_widget;
 }
 
-void TBTextFragmentContentWidget::UpdatePos(int x, int y)
+void TBTextFragmentContentWidget::UpdatePos(const TBBlock *block, int x, int y)
 {
-	m_widget->SetRect(TBRect(x, y, GetWidth(nullptr, nullptr), GetHeight(nullptr, nullptr)));
+	m_widget->SetRect(TBRect(x, y, GetWidth(block, nullptr, nullptr), GetHeight(block, nullptr, nullptr)));
 }
 
-int32_t TBTextFragmentContentWidget::GetWidth(TBFontFace * /*font*/, TBTextFragment * /*fragment*/)
+int32_t TBTextFragmentContentWidget::GetWidth(const TBBlock *block, TBFontFace * /*font*/, TBTextFragment * /*fragment*/)
 {
 	return m_widget->GetRect().w ? m_widget->GetRect().w : m_widget->GetPreferredSize().pref_w;
 }
 
-int32_t TBTextFragmentContentWidget::GetHeight(TBFontFace * /*font*/, TBTextFragment * /*fragment*/)
+int32_t TBTextFragmentContentWidget::GetHeight(const TBBlock *block, TBFontFace * /*font*/, TBTextFragment * /*fragment*/)
 {
 	return m_widget->GetRect().h ? m_widget->GetRect().h : m_widget->GetPreferredSize().pref_h;
 }
 
-int32_t TBTextFragmentContentWidget::GetBaseline(TBFontFace *font, TBTextFragment *fragment)
+int32_t TBTextFragmentContentWidget::GetBaseline(const TBBlock *block, TBFontFace *font, TBTextFragment *fragment)
 {
-	int height = GetHeight(font, fragment);
-	return (height + fragment->block->CalculateBaseline(font)) / 2;
+	int height = GetHeight(block, font, fragment);
+	return (height + block->CalculateBaseline(font)) / 2;
 }
 
 // == TBEditFieldContentFactory ===================================================================

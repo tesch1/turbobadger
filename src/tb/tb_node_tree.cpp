@@ -75,7 +75,7 @@ TBNode *TBNode::GetNodeInternal(const char *name, int name_len) const
 	return nullptr;
 }
 
-bool TBNode::CloneChildren(TBNode *source)
+bool TBNode::CloneChildren(TBNode *source, bool follow_refs)
 {
 	TBNode *item = source->GetFirstChild();
 	while (item)
@@ -84,10 +84,10 @@ bool TBNode::CloneChildren(TBNode *source)
 		if (!new_child)
 			return false;
 
-		new_child->m_value.Copy(item->m_value);
+		new_child->m_value.Copy(follow_refs ? item->GetValueFollowRef() : item->m_value);
 		Add(new_child);
 
-		if (!new_child->CloneChildren(item))
+		if (!new_child->CloneChildren(item, follow_refs))
 			return false;
 		item = item->GetNext();
 	}
@@ -301,19 +301,22 @@ bool TBNode::ReadFile(const TBStr & filename, TB_NODE_READ_FLAGS flags)
 	return false;
 }
 
-void TBNode::ReadData(const char *data, TB_NODE_READ_FLAGS flags)
+bool TBNode::ReadData(const char *data, TB_NODE_READ_FLAGS flags)
 {
-	ReadData(data, strlen(data), flags);
+	return ReadData(data, strlen(data), flags);
 }
 
-void TBNode::ReadData(const char *data, int data_len, TB_NODE_READ_FLAGS flags)
+bool TBNode::ReadData(const char *data, int data_len, TB_NODE_READ_FLAGS flags)
 {
 	if (!(flags & TB_NODE_READ_FLAGS_APPEND))
 		Clear();
 	DataParser p;
 	TBNodeTarget t(this, "{data}");
-	p.Read(data, data_len, &t);
+	if (!p.Read(data, data_len, &t)) {
+		return false;
+	}
 	TBNodeRefTree::ResolveConditions(this);
+	return true;
 }
 
 void TBNode::Clear()

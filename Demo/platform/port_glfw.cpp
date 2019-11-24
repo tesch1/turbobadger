@@ -366,7 +366,7 @@ bool AppBackendGLFW::Init(App *app)
 		return false;
 	const int width = app->GetWidth() > 0 ? app->GetWidth() : 1920;
 	const int height = app->GetHeight() > 0 ? app->GetHeight() : 1080;
-	mainWindow = glfwCreateWindow(width, height, app->GetTitle(), NULL, NULL);
+	mainWindow = glfwCreateWindow(width, height, app->GetTitle(), nullptr, nullptr);
 	if (!mainWindow)
 	{
 		glfwTerminate();

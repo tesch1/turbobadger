@@ -62,7 +62,7 @@ class TBTextOfs
 {
 public:
 	TBTextOfs() : block(nullptr), ofs(0) {}
-	TBTextOfs(TBBlock *block, int32_t ofs) : block(block), ofs(ofs) {}
+	TBTextOfs(TBBlock * block, int32_t ofs) : block(block), ofs(ofs) {}
 
 	void Set(TBBlock *new_block, int32_t new_ofs) { block = new_block; ofs = new_ofs; }
 	void Set(const TBTextOfs &pos) { block = pos.block; ofs = pos.ofs; }
@@ -71,7 +71,7 @@ public:
 	bool SetGlobalOfs(TBStyleEdit *se, int32_t gofs);
 
 public:
-	TBBlock *block;
+	TBBlock * block;
 	int32_t ofs;
 };
 
@@ -91,8 +91,8 @@ public:
 	void SelectNothing();
 	void CorrectOrder();
 	void CopyToClipboard();
-	bool IsBlockSelected(TBBlock *block) const;
-	bool IsFragmentSelected(TBTextFragment *elm) const;
+	bool IsBlockSelected(const TBBlock * block) const;
+	bool IsFragmentSelected(const TBBlock * block, TBTextFragment *elm) const;
 	bool IsSelected() const;
 	void RemoveContent();
 	bool GetText(TBStr &text) const;
@@ -117,7 +117,7 @@ public:
 	void UpdatePos();
 	bool Move(bool forward, bool word);
 	bool Place(const TBPoint &point);
-	bool Place(TBBlock *block, int ofs, bool allow_snap = true, bool snap_forward = false);
+	bool Place(TBBlock * block, int ofs, bool allow_snap = true, bool snap_forward = false);
 	void Place(TB_CARET_POS place);
 	void AvoidLineBreak();
 	void Paint(int32_t translate_x, int32_t translate_y);
@@ -146,24 +146,37 @@ public:
 class TBTextProps
 {
 public:
-	class Data : public TBLinkOf<Data>
+	class Data
 	{
 	public:
 		TBFontDescription font_desc;
 		TBColor text_color;
 		bool underline;
 	};
-	TBTextProps(const TBFontDescription &font_desc, const TBColor &text_color);
+	TBTextProps() {}
 
+	void Reset(const TBFontDescription &font_desc, const TBColor &text_color);
 	Data *Push();
 	void Pop();
 
 	/** Get the font face from the current font description. */
-	TBFontFace *GetFont();
+	TBFontFace *GetFont() const;
 public:
-	TBLinkListOf<Data> data_list;
-	Data base_data;
+	int next_index;
+	TBListOf<Data> list;
+	Data base;
 	Data *data;
+};
+
+/** TBPaintProps holds paint related data during paint of TBStyleEdit. */
+
+class TBPaintProps
+{
+public:
+	TBBlock *block;
+	TBTextProps *props;
+	int32_t translate_x;
+	int32_t translate_y;
 };
 
 /** A block of text (a line, that might be wrapped) */
@@ -219,6 +232,7 @@ public:
 
 	TBStr str;
 	int32_t str_len;
+	uint32_t syntax_data;		///< Free to use in any way from TBSyntaxHighlighter subclasses
 
 private:
 	int GetStartIndentation(TBFontFace *font, int first_line_len) const;
@@ -255,6 +269,30 @@ private:
 	void Apply(TBStyleEdit *styledit, TBUndoEvent *e, bool reverse);
 };
 
+/** TBSyntaxHighlighter can be subclassed to give syntax highlighting on TBStyleEdit
+	without altering the text (without inserting style markup) */
+class TBSyntaxHighlighter
+{
+public:
+	virtual ~TBSyntaxHighlighter() {}
+
+	/** Called when all fragments has been updated in the given block and syntax info should
+		be updated. syntax_data can be stored in TBBlock and TBTextFragment */
+	virtual void OnFragmentsUpdated(TBBlock *block) {}
+
+	/** Called after any change in TBStyleEdit when all blocks that changed have been updated. */
+	virtual void OnChange(TBStyleEdit *styledit) {}
+
+	/** Called before painting each block */
+	virtual void OnPaintBlock(const TBPaintProps *props) {}
+
+	/** Called before painting each fragment */
+	virtual void OnBeforePaintFragment(const TBPaintProps *props, TBTextFragment *fragment) {}
+
+	/** Called after painting each fragment */
+	virtual void OnAfterPaintFragment(const TBPaintProps *props, TBTextFragment *fragment) {}
+};
+
 /** The textfragment baseclass for TBStyleEdit.
 
 	TODO: This object is allocated on vast amounts and need
@@ -272,45 +310,55 @@ public:
 				, len(0)
 				, line_ypos(0)
 				, line_height(0)
-				, block(nullptr)
+				, m_packed_init(0)
 				, content(content) {}
 	~TBTextFragment();
 
-	void Init(TBBlock *block, uint16_t ofs, uint16_t len);
+	void Init(const TBBlock * block, uint16_t ofs, uint16_t len);
 
-	void UpdateContentPos();
+	void UpdateContentPos(const TBBlock * block);
 
-	void BuildSelectionRegion(int32_t translate_x, int32_t translate_y, TBTextProps *props,
-		TBRegion &bg_region, TBRegion &fg_region);
-	void Paint(int32_t translate_x, int32_t translate_y, TBTextProps *props);
-	void Click(int button, uint32_t modifierkeys);
+	void BuildSelectionRegion(const TBPaintProps *props, TBRegion &bg_region, TBRegion &fg_region);
+	void Paint(const TBPaintProps *props);
+	void Click(const TBBlock *block, int button, uint32_t modifierkeys);
 
 	bool IsText() const					{ return !IsEmbedded(); }
 	bool IsEmbedded() const				{ return content ? true : false; }
-	bool IsBreak() const;
-	bool IsSpace() const;
-	bool IsTab() const;
+	bool IsBreak() const				{ return m_packed.is_break ? true : false; }
+	bool IsSpace() const				{ return m_packed.is_space ? true : false; }
+	bool IsTab() const					{ return m_packed.is_tab ? true : false; }
 
-	int32_t GetCharX(TBFontFace *font, int32_t ofs);
-	int32_t GetCharOfs(TBFontFace *font, int32_t x);
+	int32_t GetCharX(const TBBlock * block, TBFontFace *font, int32_t ofs);
+	int32_t GetCharOfs(const TBBlock * block, TBFontFace *font, int32_t x);
 
 	/** Get the stringwidth. Handles passwordmode, tab, linebreaks etc automatically. */
-	int32_t GetStringWidth(TBFontFace *font, const char *str, int len);
+	int32_t GetStringWidth(const TBBlock * block, TBFontFace *font, const char *str, int len);
 
-	bool GetAllowBreakBefore() const;
-	bool GetAllowBreakAfter() const;
+	bool GetAllowBreakBefore(const TBBlock * block) const;
+	bool GetAllowBreakAfter(const TBBlock * block) const;
 
-	const char *Str() const			{ return block->str.CStr() + ofs; }
+	const char *Str(const TBBlock * block) const { return block->str.CStr() + ofs; }
 
-	int32_t GetWidth(TBFontFace *font);
-	int32_t GetHeight(TBFontFace *font);
-	int32_t GetBaseline(TBFontFace *font);
+	int32_t GetWidth(const TBBlock * block, TBFontFace *font);
+	int32_t GetHeight(const TBBlock * block, TBFontFace *font);
+	int32_t GetBaseline(const TBBlock * block, TBFontFace *font);
 public:
 	int16_t xpos, ypos;
 	uint16_t ofs, len;
 	uint16_t line_ypos;
 	uint16_t line_height;
-	TBBlock *block;
+	union {
+		struct {
+			uint32_t is_break		: 1;  ///< Fragment is hard line break
+			uint32_t is_space		: 1;  ///< Fragment is white space
+			uint32_t is_tab			: 1;  ///< Fragment is tab
+			uint32_t syntax_data	: 10; ///< Free to use in any way from TBSyntaxHighlighter subclasses
+			uint32_t width			: 11; ///< width cache. Bit number need to match shift in WIDTH_CACHE_MASK.
+			uint32_t is_width_valid	: 1;  ///< width cache is set
+		} m_packed;
+		uint32_t m_packed_init;
+	};
+	static const uint32_t WIDTH_CACHE_MASK = (1 << 11) - 1;
 	TBTextFragmentContent *content;
 };
 
@@ -324,6 +372,7 @@ public:
 
 	void SetListener(TBStyleEditListener *listener);
 	void SetContentFactory(TBTextFragmentContentFactory *content_factory);
+	void SetSyntaxHighlighter(TBSyntaxHighlighter *syntax_highlighter);
 
 	void SetFont(const TBFontDescription &font_desc);
 
@@ -390,6 +439,7 @@ public:
 	TBStyleEditListener *listener;
 	TBTextFragmentContentFactory default_content_factory;
 	TBTextFragmentContentFactory *content_factory;
+	TBSyntaxHighlighter *syntax_highlighter;
 	int32_t layout_width;
 	int32_t layout_height;
 	int32_t content_width;
@@ -400,6 +450,7 @@ public:
 	TBCaret caret;
 	TBSelection selection;
 	TBUndoRedoStack undoredo;
+	TBTextProps text_props;
 
 	int32_t scroll_x;
 	int32_t scroll_y;
@@ -436,6 +487,8 @@ public:
 
 	/** Return true if changing layout_width and layout_height requires relayouting. */
 	bool GetSizeAffectsLayout() const;
+
+	void InvokeOnChange();
 };
 
 } // namespace tb

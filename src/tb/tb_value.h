@@ -134,6 +134,7 @@ public:
 	bool Equals(const TBValue & value) const;
 
 	TYPE GetType() const { return (TYPE) m_packed.type; }
+	bool IsNull() const { return m_packed.type == TYPE_NULL; }
 	bool IsString() const { return m_packed.type == TYPE_STRING; }
 	bool IsFloat() const { return m_packed.type == TYPE_FLOAT; }
 	bool IsInt() const { return m_packed.type == TYPE_INT; }

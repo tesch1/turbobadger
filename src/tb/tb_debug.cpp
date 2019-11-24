@@ -135,9 +135,7 @@ public:
 		// Skip these events for now
 		if (ev.IsPointerEvent())
 			return false;
-		if (ev.type == EVENT_TYPE_FINGER_DOWN ||
-			ev.type == EVENT_TYPE_FINGER_UP ||
-			ev.type == EVENT_TYPE_FINGER_MOVE)
+		if (ev.IsTouchEvent())
 			return false;
 
 		// Always ignore activity in this window (or we might get endless recursion)
@@ -197,6 +195,11 @@ public:
 		case EVENT_TYPE_POINTER_DOWN:	return "POINTER_DOWN";
 		case EVENT_TYPE_POINTER_UP:		return "POINTER_UP";
 		case EVENT_TYPE_POINTER_MOVE:	return "POINTER_MOVE";
+		case EVENT_TYPE_TOUCH_DOWN:		return "TOUCH_DOWN";
+		case EVENT_TYPE_TOUCH_UP:		return "TOUCH_UP";
+		case EVENT_TYPE_TOUCH_MOVE:		return "TOUCH_MOVE";
+		case EVENT_TYPE_TOUCH_CANCEL:	return "TOUCH_CANCEL";
+		case EVENT_TYPE_TOUCH_GESTURE:	return "TOUCH_GESTURE";
 		case EVENT_TYPE_WHEEL:			return "WHEEL";
 		case EVENT_TYPE_CHANGED:		return "CHANGED";
 		case EVENT_TYPE_KEY_DOWN:		return "KEY_DOWN";
@@ -204,9 +207,6 @@ public:
 		case EVENT_TYPE_SHORTCUT:		return "SHORT_CUT";
 		case EVENT_TYPE_CONTEXT_MENU:	return "CONTEXT_MENU";
 		case EVENT_TYPE_FILE_DROP:		return "FILE_DROP";
-		case EVENT_TYPE_FINGER_DOWN:	return "FINGER_DOWN";
-		case EVENT_TYPE_FINGER_UP:		return "FINGER_UP";
-		case EVENT_TYPE_FINGER_MOVE:	return "FINGER_MOVE";
 		default: return "[UNKNOWN]";
 		}
 	}

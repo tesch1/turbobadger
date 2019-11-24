@@ -56,32 +56,15 @@ static bool is_wordbreak(int8_t c)
 	switch(c)
 	{
 		case 0:
-		case '\n':
-		case '\r':
-		case '-':
-		case '\t':
-		case '\"':
-		case '(':
-		case ')':
-		case '/':
-		case '\\':
-		case '*':
-		case '+':
-		case ',':
-		case '.':
-		case ';':
-		case ':':
-		case '>':
-		case '<':
-		case '&':
-		case '#':
-		case '!':
-		case '=':
-		case '[':
-		case ']':
-		case '{':
-		case '}':
-		case '^':
+		case '\n': case '\r': case '\t':
+		case '\"': case '\'': case '/': case '\\':
+		case '[': case ']': case '{': case '}':
+		case '(': case ')': case '>': case '<':
+		case '-': case '+': case '*':
+		case ',': case '.': case ';': case ':':
+		case '&': case '|': case '#': case '!':
+		case '=': case '^': case '~': case '?':
+		case '@': case '$':
 			return true;
 	}
 	return is_space(c);
@@ -129,6 +112,8 @@ static bool is_never_break_after(const char *str, int ofs)
 	case '[':
 	case '{':
 	case '<':
+	case '@':
+	case '$':
 		return true;
 	case '\'':
 	case '"':
@@ -220,7 +205,7 @@ void TBSelection::CopyToClipboard()
 
 void TBSelection::Invalidate() const
 {
-	TBBlock *block = start.block;
+	TBBlock * block = start.block;
 	while (block)
 	{
 		block->Invalidate();
@@ -292,30 +277,30 @@ void TBSelection::SelectNothing()
 	stop.Set(nullptr, 0);
 }
 
-bool TBSelection::IsBlockSelected(TBBlock *block) const
+bool TBSelection::IsBlockSelected(const TBBlock * block) const
 {
 	if (!IsSelected())
 		return false;
 	return block->ypos >= start.block->ypos && block->ypos <= stop.block->ypos;
 }
 
-bool TBSelection::IsFragmentSelected(TBTextFragment *elm) const
+bool TBSelection::IsFragmentSelected(const TBBlock * block, TBTextFragment *elm) const
 {
 	if (!IsSelected())
 		return false;
 	if (start.block == stop.block)
 	{
-		if (elm->block != start.block)
+		if (block != start.block)
 			return false;
 		if (start.ofs < elm->ofs + elm->len && stop.ofs >= elm->ofs)
 			return true;
 		return false;
 	}
-	if (elm->block->ypos > start.block->ypos && elm->block->ypos < stop.block->ypos)
+	if (block->ypos > start.block->ypos && block->ypos < stop.block->ypos)
 		return true;
-	if (elm->block->ypos == start.block->ypos && elm->ofs + elm->len > start.ofs)
+	if (block->ypos == start.block->ypos && elm->ofs + elm->len > start.ofs)
 		return true;
-	if (elm->block->ypos == stop.block->ypos && elm->ofs < stop.ofs)
+	if (block->ypos == stop.block->ypos && elm->ofs < stop.ofs)
 		return true;
 	return false;
 }
@@ -350,7 +335,7 @@ void TBSelection::RemoveContent()
 		start.block->RemoveContent(start.ofs, start.block->str_len - start.ofs);
 
 		// Remove text in all block in between start and stop
-		TBBlock *block = start.block->GetNext();
+		TBBlock * block = start.block->GetNext();
 		while (block != stop.block)
 		{
 			if (!styledit->undoredo.applying)
@@ -390,7 +375,7 @@ bool TBSelection::GetText(TBStr &text) const
 	{
 		TBTempBuffer buf;
 		buf.Append(start.block->str.CStr() + start.ofs, start.block->str_len - start.ofs);
-		TBBlock *block = start.block->GetNext();
+		TBBlock * block = start.block->GetNext();
 		while (block != stop.block)
 		{
 			buf.Append(block->str.CStr(), block->str_len);
@@ -461,9 +446,9 @@ void TBCaret::UpdatePos()
 {
 	Invalidate();
 	TBTextFragment *fragment = GetFragment();
-	x = fragment->xpos + fragment->GetCharX(styledit->font, pos.ofs - fragment->ofs);
+	x = fragment->xpos + fragment->GetCharX(pos.block, styledit->font, pos.ofs - fragment->ofs);
 	y = fragment->ypos + pos.block->ypos;
-	height = fragment->GetHeight(styledit->font);
+	height = fragment->GetHeight(pos.block, styledit->font);
 	if (!height)
 	{
 		// If we don't have height, we're probably inside a style switch embed.
@@ -546,9 +531,9 @@ bool TBCaret::Move(bool forward, bool word)
 
 bool TBCaret::Place(const TBPoint &point)
 {
-	TBBlock *block = styledit->FindBlock(point.y);
+	TBBlock * block = styledit->FindBlock(point.y);
 	TBTextFragment *fragment = block->FindFragment(point.x, point.y - block->ypos);
-	int ofs = fragment->ofs + fragment->GetCharOfs(styledit->font, point.x - fragment->xpos);
+	int ofs = fragment->ofs + fragment->GetCharOfs(block, styledit->font, point.x - fragment->xpos);
 
 	if (Place(block, ofs))
 	{
@@ -570,7 +555,7 @@ void TBCaret::Place(TB_CARET_POS place)
 		Place(styledit->blocks.GetLast(), styledit->blocks.GetLast()->str_len);
 }
 
-bool TBCaret::Place(TBBlock *block, int ofs, bool allow_snap, bool snap_forward)
+bool TBCaret::Place(TBBlock * block, int ofs, bool allow_snap, bool snap_forward)
 {
 	if (block)
 	{
@@ -662,37 +647,38 @@ void TBCaret::SetGlobalOfs(int32_t gofs, bool allow_snap, bool snap_forward)
 
 // == TBTextProps =======================================================================
 
-TBTextProps::TBTextProps(const TBFontDescription &font_desc, const TBColor &text_color)
+void TBTextProps::Reset(const TBFontDescription &font_desc, const TBColor &text_color)
 {
-	base_data.font_desc = font_desc;
-	base_data.text_color = text_color;
-	base_data.underline = false;
-	data = &base_data;
+	next_index = 0;
+	base.font_desc = font_desc;
+	base.text_color = text_color;
+	base.underline = false;
+	data = &base;
 }
 
 TBTextProps::Data *TBTextProps::Push()
 {
-	if (Data *new_data = new Data)
+	if (next_index >= list.GetNumItems())
 	{
-		data_list.AddLast(new_data);
-		new_data->font_desc = data->font_desc;
-		new_data->text_color = data->text_color;
-		new_data->underline = data->underline;
-		data = new_data;
-		return data;
+		Data *data = new Data;
+		if (!data || !list.Add(data))
+			return nullptr;
 	}
-	return nullptr;
+	Data *next = list.Get(next_index++);
+	*next = *data;
+	data = next;
+	return data;
 }
 
 void TBTextProps::Pop()
 {
-	if (!data_list.GetLast())
+	if (!next_index)
 		return; // Unbalanced or we previosly got OOM.
-	data_list.Delete(data_list.GetLast());
-	data = data_list.GetLast() ? data_list.GetLast() : &base_data;
+	next_index--;
+	data = next_index > 0 ? list.Get(next_index - 1) : &base;
 }
 
-TBFontFace *TBTextProps::GetFont()
+TBFontFace *TBTextProps::GetFont() const
 {
 	if (!g_font_manager->HasFontFace(data->font_desc))
 		g_font_manager->CreateFontFace(data->font_desc);
@@ -708,6 +694,7 @@ TBBlock::TBBlock(TBStyleEdit *styledit)
 	, align(styledit->align)
 	, line_width_max(0)
 	, str_len(0)
+	, syntax_data(0)
 {
 }
 
@@ -806,7 +793,7 @@ void TBBlock::Split()
 	{
 		if (is_linebreak(str.CStr()[i]))
 		{
-			TBBlock *block = new TBBlock(styledit);
+			TBBlock * block = new TBBlock(styledit);
 			if (!block)
 				return;
 			styledit->blocks.AddAfter(block, this);
@@ -928,6 +915,8 @@ void TBBlock::Layout(bool update_fragments, bool propagate_height)
 			if (!more)
 				break;
 		}
+		if (styledit->syntax_highlighter)
+			styledit->syntax_highlighter->OnFragmentsUpdated(this);
 	}
 
 	// Layout
@@ -961,7 +950,7 @@ void TBBlock::Layout(bool update_fragments, bool propagate_height)
 			{
 				// Give the fragment the current x. Then tab widths are calculated properly in GetWidth.
 				fragment->xpos = line_xpos;
-				int fragment_w = fragment->GetWidth(styledit->font);
+				int fragment_w = fragment->GetWidth(this, styledit->font);
 
 				// Check if we overflow
 				bool overflow = line_xpos + fragment_w > styledit->layout_width;
@@ -973,9 +962,9 @@ void TBBlock::Layout(bool update_fragments, bool propagate_height)
 				}
 
 				// Check if this is a allowed break position
-				if (fragment->GetAllowBreakAfter())
+				if (fragment->GetAllowBreakAfter(this))
 				{
-					if (!fragment->GetNext() || fragment->GetNext()->GetAllowBreakBefore())
+					if (!fragment->GetNext() || fragment->GetNext()->GetAllowBreakBefore(this))
 					{
 						allowed_last_fragment = fragment;
 						line_width = line_xpos + fragment_w;
@@ -994,7 +983,7 @@ void TBBlock::Layout(bool update_fragments, bool propagate_height)
 			for (TBTextFragment *fragment = first_fragment_on_line; fragment; fragment = fragment->GetNext())
 			{
 				fragment->xpos = line_width;
-				line_width += fragment->GetWidth(styledit->font);
+				line_width += fragment->GetWidth(this, styledit->font);
 			}
 		}
 
@@ -1005,8 +994,8 @@ void TBBlock::Layout(bool update_fragments, bool propagate_height)
 		TBTextFragment *fragment = first_fragment_on_line;
 		while (fragment)
 		{
-			line_height = MAX(fragment->GetHeight(styledit->font), line_height);
-			line_baseline = MAX(fragment->GetBaseline(styledit->font), line_baseline);
+			line_height = MAX(fragment->GetHeight(this, styledit->font), line_height);
+			line_baseline = MAX(fragment->GetBaseline(this, styledit->font), line_baseline);
 
 			// These positions are not final. Will be adjusted below.
 			fragment->ypos = line_ypos;
@@ -1034,14 +1023,15 @@ void TBBlock::Layout(bool update_fragments, bool propagate_height)
 			fragment->line_height = line_height;
 
 			// Adjust the position
-			fragment->ypos += line_baseline - fragment->GetBaseline(styledit->font);
+			fragment->ypos += line_baseline - fragment->GetBaseline(this, styledit->font);
 			fragment->xpos += xofs;
 
 			// We now know the final position so update content.
-			fragment->UpdateContentPos();
+			fragment->UpdateContentPos(this);
 
 			// Total line height may now have changed a bit.
-			adjusted_line_height = MAX(line_baseline - fragment->GetBaseline(styledit->font) + fragment->GetHeight(styledit->font), adjusted_line_height);
+			adjusted_line_height = Max(adjusted_line_height,
+				line_baseline - fragment->GetBaseline(this, styledit->font) + fragment->GetHeight(this, styledit->font));
 
 			if (fragment == last_fragment_on_line)
 				break;
@@ -1081,7 +1071,7 @@ void TBBlock::SetSize(int32_t old_w, int32_t new_w, int32_t new_h, bool propagat
 	height = new_h;
 	if (dh != 0 && propagate_height)
 	{
-		TBBlock *block = GetNext();
+		TBBlock * block = GetNext();
 		while (block)
 		{
 			block->ypos = block->GetPrev()->ypos + block->GetPrev()->height;
@@ -1129,7 +1119,7 @@ TBTextFragment *TBBlock::FindFragment(int32_t x, int32_t y) const
 	{
 		if (y < fragment->line_ypos + fragment->line_height)
 		{
-			if (x < fragment->xpos + fragment->GetWidth(styledit->font))
+			if (x < fragment->xpos + fragment->GetWidth(this, styledit->font))
 				return fragment;
 			if (fragment->GetNext() && fragment->GetNext()->line_ypos > fragment->line_ypos)
 				return fragment;
@@ -1151,10 +1141,16 @@ void TBBlock::BuildSelectionRegion(int32_t translate_x, int32_t translate_y, TBT
 	if (!styledit->selection.IsBlockSelected(this))
 		return;
 
+	TBPaintProps paint_props;
+	paint_props.block = this;
+	paint_props.props = props;
+	paint_props.translate_x = translate_x;
+	paint_props.translate_y = translate_y + ypos;
+
 	TBTextFragment *fragment = fragments.GetFirst();
 	while (fragment)
 	{
-		fragment->BuildSelectionRegion(translate_x, translate_y + ypos, props, bg_region, fg_region);
+		fragment->BuildSelectionRegion(&paint_props, bg_region, fg_region);
 		fragment = fragment->GetNext();
 	}
 }
@@ -1163,10 +1159,26 @@ void TBBlock::Paint(int32_t translate_x, int32_t translate_y, TBTextProps *props
 {
 	TMPDEBUG(styledit->listener->DrawRect(TBRect(translate_x, translate_y + ypos, styledit->layout_width, height), TBColor(255, 200, 0, 128)));
 
+	TBPaintProps paint_props;
+	paint_props.block = this;
+	paint_props.props = props;
+	paint_props.translate_x = translate_x;
+	paint_props.translate_y = translate_y + ypos;
+
+	if (styledit->syntax_highlighter)
+		styledit->syntax_highlighter->OnPaintBlock(&paint_props);
+
 	TBTextFragment *fragment = fragments.GetFirst();
 	while (fragment)
 	{
-		fragment->Paint(translate_x, translate_y + ypos, props);
+		if (styledit->syntax_highlighter)
+			styledit->syntax_highlighter->OnBeforePaintFragment(&paint_props, fragment);
+
+		fragment->Paint(&paint_props);
+
+		if (styledit->syntax_highlighter)
+			styledit->syntax_highlighter->OnAfterPaintFragment(&paint_props, fragment);
+
 		fragment = fragment->GetNext();
 	}
 }
@@ -1178,31 +1190,35 @@ TBTextFragment::~TBTextFragment()
 	delete content;
 }
 
-void TBTextFragment::Init(TBBlock *block, uint16_t ofs, uint16_t len)
+void TBTextFragment::Init(const TBBlock * block, uint16_t ofs, uint16_t len)
 {
-	this->block = block; this->ofs = ofs; this->len = len;
+	this->ofs = ofs;
+	this->len = len;
+	m_packed.is_break = Str(block)[0] == '\r' || Str(block)[0] == '\n';
+	m_packed.is_space = is_space(Str(block)[0]);
+	m_packed.is_tab = Str(block)[0] == '\t';
 }
 
-void TBTextFragment::UpdateContentPos()
+void TBTextFragment::UpdateContentPos(const TBBlock * block)
 {
 	if (content)
-		content->UpdatePos(xpos, ypos + block->ypos);
+		content->UpdatePos(block, xpos, ypos + block->ypos);
 }
 
-void TBTextFragment::BuildSelectionRegion(int32_t translate_x, int32_t translate_y, TBTextProps *props,
-	TBRegion &bg_region, TBRegion &fg_region)
+void TBTextFragment::BuildSelectionRegion(const TBPaintProps *props, TBRegion &bg_region, TBRegion &fg_region)
 {
-	if (!block->styledit->selection.IsFragmentSelected(this))
+	const TBBlock *block = props->block;
+	if (!block->styledit->selection.IsFragmentSelected(block, this))
 		return;
 
-	int x = translate_x + xpos;
-	int y = translate_y + ypos;
-	TBFontFace *font = props->GetFont();
+	const int x = props->translate_x + xpos;
+	const int y = props->translate_y + ypos;
+	TBFontFace *font = props->props->GetFont();
 
 	if (content)
 	{
 		// Selected embedded content should add to the foreground region.
-		fg_region.IncludeRect(TBRect(x, y, GetWidth(font), GetHeight(font)));
+		fg_region.IncludeRect(TBRect(x, y, GetWidth(block, font), GetHeight(block, font)));
 		return;
 	}
 
@@ -1214,32 +1230,33 @@ void TBTextFragment::BuildSelectionRegion(int32_t translate_x, int32_t translate
 	sofs1 = MAX(sofs1, (int)ofs);
 	sofs2 = MIN(sofs2, (int)(ofs + len));
 
-	int s1x = GetStringWidth(font, block->str.CStr() + ofs, sofs1 - ofs);
-	int s2x = GetStringWidth(font, block->str.CStr() + sofs1, sofs2 - sofs1);
+	int s1x = GetStringWidth(block, font, block->str.CStr() + ofs, sofs1 - ofs);
+	int s2x = GetStringWidth(block, font, block->str.CStr() + sofs1, sofs2 - sofs1);
 
-	bg_region.IncludeRect(TBRect(x + s1x, y, s2x, GetHeight(font)));
+	bg_region.IncludeRect(TBRect(x + s1x, y, s2x, GetHeight(block, font)));
 }
 
-void TBTextFragment::Paint(int32_t translate_x, int32_t translate_y, TBTextProps *props)
+void TBTextFragment::Paint(const TBPaintProps *props)
 {
-	TBStyleEditListener *listener = block->styledit->listener;
+	TBStyleEditListener *listener = props->block->styledit->listener;
 
-	int x = translate_x + xpos;
-	int y = translate_y + ypos;
-	TBColor color = props->data->text_color;
-	TBFontFace *font = props->GetFont();
+	const int x = props->translate_x + xpos;
+	const int y = props->translate_y + ypos;
+	const TBColor color = props->props->data->text_color;
+	TBFontFace *font = props->props->GetFont();
+	TBBlock *block = props->block;
 
 	if (content)
 	{
-		content->Paint(this, translate_x, translate_y, props);
+		content->Paint(props, this);
 		return;
 	}
-	TMPDEBUG(listener->DrawRect(TBRect(x, y, GetWidth(font), GetHeight(font)), TBColor(255, 255, 255, 128)));
+	TMPDEBUG(listener->DrawRect(TBRect(x, y, GetWidth(block, font), GetHeight(block, font)), TBColor(255, 255, 255, 128)));
 
 	if (block->styledit->packed.password_on)
 	{
 		int cw = block->CalculateStringWidth(font, special_char_password);
-		int num_char = utf8::count_characters(Str(), len);
+		int num_char = utf8::count_characters(Str(block), len);
 		for(int i = 0; i < num_char; i++)
 			listener->DrawString(x + i * cw, y, font, color, special_char_password);
 	}
@@ -1252,66 +1269,76 @@ void TBTextFragment::Paint(int32_t translate_x, int32_t translate_y, TBTextProps
 		else if (IsSpace())
 			listener->DrawString(x, y, font, color, special_char_space);
 		else
-			listener->DrawString(x, y, font, color, Str(), len);
+			listener->DrawString(x, y, font, color, Str(block), len);
 	}
 	else if (!IsTab() && !IsBreak() && !IsSpace())
-		listener->DrawString(x, y, font, color, Str(), len);
+		listener->DrawString(x, y, font, color, Str(block), len);
 
-	if (props->data->underline)
+	if (props->props->data->underline)
 	{
 		int line_h = font->GetHeight() / 16;
 		line_h = MAX(line_h, 1);
-		listener->DrawRectFill(TBRect(x, y + GetBaseline(font) + 1, GetWidth(font), line_h), color);
+		listener->DrawRectFill(TBRect(x, y + GetBaseline(block, font) + 1, GetWidth(block, font), line_h), color);
 	}
 }
 
-void TBTextFragment::Click(int button, uint32_t modifierkeys)
+void TBTextFragment::Click(const TBBlock * block, int button, uint32_t modifierkeys)
 {
 	if (content)
-		content->Click(this, button, modifierkeys);
+		content->Click(block, this, button, modifierkeys);
 }
 
-int32_t TBTextFragment::GetWidth(TBFontFace *font)
+int32_t TBTextFragment::GetWidth(const TBBlock * block, TBFontFace *font)
 {
+	if (m_packed.is_width_valid)
+		return m_packed.width;
+	int32_t width = 0;
 	if (content)
-		return content->GetWidth(font, this);
-	if (IsBreak())
-		return 0;
-	if (IsTab())
-		return block->CalculateTabWidth(font, xpos);
-	return block->CalculateStringWidth(font, block->str.CStr() + ofs, len);
+		width = content->GetWidth(block, font, this);
+	else if (IsBreak())
+		width = 0;
+	else if (IsTab())
+		width = block->CalculateTabWidth(font, xpos);
+	else
+		width = block->CalculateStringWidth(font, block->str.CStr() + ofs, len);
+	if ((((uint32_t) width) & WIDTH_CACHE_MASK) == width)
+	{
+		m_packed.is_width_valid = 1;
+		m_packed.width = (uint32_t) width;
+	}
+	return width;
 }
 
-int32_t TBTextFragment::GetHeight(TBFontFace *font)
+int32_t TBTextFragment::GetHeight(const TBBlock * block, TBFontFace *font)
 {
 	if (content)
-		return content->GetHeight(font, this);
+		return content->GetHeight(block, font, this);
 	return block->CalculateLineHeight(font);
 }
 
-int32_t TBTextFragment::GetBaseline(TBFontFace *font)
+int32_t TBTextFragment::GetBaseline(const TBBlock * block, TBFontFace *font)
 {
 	if (content)
-		return content->GetBaseline(font, this);
+		return content->GetBaseline(block, font, this);
 	return block->CalculateBaseline(font);
 }
 
-int32_t TBTextFragment::GetCharX(TBFontFace *font, int32_t ofs)
+int32_t TBTextFragment::GetCharX(const TBBlock * block, TBFontFace *font, int32_t ofs)
 {
 	assert(ofs >= 0 && ofs <= len);
 
 	if (IsEmbedded() || IsTab())
-		return ofs == 0 ? 0 :  GetWidth(font);
+		return ofs == 0 ? 0 :  GetWidth(block, font);
 	if (IsBreak())
 		return 0;
 
 	return block->CalculateStringWidth(font, block->str.CStr() + this->ofs, ofs);
 }
 
-int32_t TBTextFragment::GetCharOfs(TBFontFace *font, int32_t x)
+int32_t TBTextFragment::GetCharOfs(const TBBlock * block, TBFontFace *font, int32_t x)
 {
 	if (IsEmbedded() || IsTab())
-		return x > GetWidth(font) / 2 ? 1 : 0;
+		return x > GetWidth(block, font) / 2 ? 1 : 0;
 	if (IsBreak())
 		return 0;
 
@@ -1331,43 +1358,32 @@ int32_t TBTextFragment::GetCharOfs(TBFontFace *font, int32_t x)
 	return len;
 }
 
-int32_t TBTextFragment::GetStringWidth(TBFontFace *font, const char *str, int len)
+int32_t TBTextFragment::GetStringWidth(const TBBlock * block, TBFontFace *font, const char *str, int len)
 {
+	if (len == 0)
+		return 0;
+	if (len == this->len)
+		return GetWidth(block, font);
 	if (IsTab())
-		return len == 0 ? 0 : block->CalculateTabWidth(font, xpos);
+		return block->CalculateTabWidth(font, xpos);
 	if (IsBreak())
-		return len == 0 ? 0 : 8;
+		return 8;
 	return block->CalculateStringWidth(font, str, len);
 }
 
-bool TBTextFragment::IsBreak() const
-{
-	return Str()[0] == '\r' || Str()[0] == '\n';
-}
-
-bool TBTextFragment::IsSpace() const
-{
-	return is_space(Str()[0]);
-}
-
-bool TBTextFragment::IsTab() const
-{
-	return Str()[0] == '\t';
-}
-
-bool TBTextFragment::GetAllowBreakBefore() const
+bool TBTextFragment::GetAllowBreakBefore(const TBBlock * block) const
 {
 	if (content)
-		return content->GetAllowBreakBefore();
+		return content->GetAllowBreakBefore(block);
 	if (len && !is_never_break_before(block->str.CStr(), ofs))
 		return true;
 	return false;
 }
 
-bool TBTextFragment::GetAllowBreakAfter() const
+bool TBTextFragment::GetAllowBreakAfter(const TBBlock * block) const
 {
 	if (content)
-		return content->GetAllowBreakAfter();
+		return content->GetAllowBreakAfter(block);
 	if (len && !is_never_break_after(block->str.CStr(), ofs + len - 1))
 		return true;
 	return false;
@@ -1378,6 +1394,7 @@ bool TBTextFragment::GetAllowBreakAfter() const
 TBStyleEdit::TBStyleEdit()
 	: listener(nullptr)
 	, content_factory(&default_content_factory)
+	, syntax_highlighter(nullptr)
 	, layout_width(0)
 	, layout_height(0)
 	, content_width(0)
@@ -1426,6 +1443,12 @@ void TBStyleEdit::SetContentFactory(TBTextFragmentContentFactory *content_factor
 		this->content_factory = &default_content_factory;
 }
 
+void TBStyleEdit::SetSyntaxHighlighter(TBSyntaxHighlighter *syntax_highlighter)
+{
+	this->syntax_highlighter = syntax_highlighter;
+	Reformat(true);
+}
+
 void TBStyleEdit::SetFont(const TBFontDescription &font_desc)
 {
 	if (this->font_desc == font_desc)
@@ -1443,7 +1466,7 @@ void TBStyleEdit::Clear(bool init_new)
 	if (init_new && blocks.GetFirst() && IsEmpty())
 		return;
 
-	for (TBBlock *block = blocks.GetFirst(); block; block = block->GetNext())
+	for (TBBlock * block = blocks.GetFirst(); block; block = block->GetNext())
 		block->Invalidate();
 	blocks.DeleteAll();
 
@@ -1540,7 +1563,7 @@ void TBStyleEdit::Reformat(bool update_fragments)
 {
 	int ypos = 0;
 	BeginLockScrollbars();
-	TBBlock *block = blocks.GetFirst();
+	TBBlock * block = blocks.GetFirst();
 	while (block)
 	{
 		// Update ypos directly instead of using "propagate_height" since propagating
@@ -1561,7 +1584,7 @@ int32_t TBStyleEdit::GetContentWidth()
 	{
 		packed.calculate_content_width_needed = 0;
 		content_width = 0;
-		TBBlock *block = blocks.GetFirst();
+		TBBlock * block = blocks.GetFirst();
 		while (block)
 		{
 			content_width = MAX(content_width, block->line_width_max);
@@ -1578,7 +1601,7 @@ int32_t TBStyleEdit::GetContentHeight() const
 
 void TBStyleEdit::Paint(const TBRect &rect, const TBFontDescription &font_desc, const TBColor &text_color)
 {
-	TBTextProps props(font_desc, text_color);
+	text_props.Reset(font_desc, text_color);
 
 	// Find the first visible block
 	TBBlock *first_visible_block = blocks.GetFirst();
@@ -1593,12 +1616,12 @@ void TBStyleEdit::Paint(const TBRect &rect, const TBFontDescription &font_desc, 
 	TBRegion bg_region, fg_region;
 	if (selection.IsSelected())
 	{
-		TBBlock *block = first_visible_block;
+		TBBlock * block = first_visible_block;
 		while (block)
 		{
 			if (block->ypos - scroll_y > rect.y + rect.h)
 				break;
-			block->BuildSelectionRegion(-scroll_x, -scroll_y, &props, bg_region, fg_region);
+			block->BuildSelectionRegion(-scroll_x, -scroll_y, &text_props, bg_region, fg_region);
 			block = block->GetNext();
 		}
 
@@ -1608,12 +1631,12 @@ void TBStyleEdit::Paint(const TBRect &rect, const TBFontDescription &font_desc, 
 	}
 
 	// Paint the content
-	TBBlock *block = first_visible_block;
+	TBBlock * block = first_visible_block;
 	while (block)
 	{
 		if (block->ypos - scroll_y > rect.y + rect.h)
 			break;
-		block->Paint(-scroll_x, -scroll_y, &props);
+		block->Paint(-scroll_x, -scroll_y, &text_props);
 		block = block->GetNext();
 	}
 
@@ -1667,7 +1690,7 @@ void TBStyleEdit::InsertText(const char *text, int32_t len, bool after_last, boo
 
 TBBlock *TBStyleEdit::FindBlock(int32_t y) const
 {
-	TBBlock *block = blocks.GetFirst();
+	TBBlock * block = blocks.GetFirst();
 	while (block)
 	{
 		if (y < block->ypos + block->height)
@@ -1712,9 +1735,9 @@ bool TBStyleEdit::KeyDown(int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifi
 		caret.Place(TBPoint(caret.wanted_x, caret.y - layout_height));
 	else if (special_key == TB_KEY_PAGE_DOWN)
 		caret.Place(TBPoint(caret.wanted_x, caret.y + layout_height + old_caret_elm->line_height));
-	else if (special_key == TB_KEY_HOME && modifierkeys & TB_CTRL)
+	else if (special_key == TB_KEY_HOME && (modifierkeys & TB_CTRL))
 		caret.Place(TBPoint(0, 0));
-	else if (special_key == TB_KEY_END && modifierkeys & TB_CTRL)
+	else if (special_key == TB_KEY_END && (modifierkeys & TB_CTRL))
 		caret.Place(TBPoint(32000, blocks.GetLast()->ypos + blocks.GetLast()->height));
 	else if (special_key == TB_KEY_HOME)
 		caret.Place(TBPoint(0, caret.y));
@@ -1758,7 +1781,7 @@ bool TBStyleEdit::KeyDown(int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifi
 
 	// Hooks
 	if (!move_caret && handled)
-		listener->OnChange();
+		InvokeOnChange();
 	if (special_key == TB_KEY_ENTER && !(modifierkeys & TB_CTRL))
 	{
 		if (listener->OnEnter())
@@ -1792,7 +1815,7 @@ void TBStyleEdit::Paste()
 	{
 		InsertText(text.CStr(), text.Length());
 		ScrollIfNeeded(true, true);
-		listener->OnChange();
+		InvokeOnChange();
 	}
 }
 
@@ -1801,7 +1824,7 @@ void TBStyleEdit::Delete()
 	if (selection.IsSelected())
 	{
 		selection.RemoveContent();
-		listener->OnChange();
+		InvokeOnChange();
 	}
 }
 
@@ -1810,7 +1833,7 @@ void TBStyleEdit::Undo()
 	if (CanUndo())
 	{
 		undoredo.Undo(this);
-		listener->OnChange();
+		InvokeOnChange();
 	}
 }
 
@@ -1819,7 +1842,7 @@ void TBStyleEdit::Redo()
 	if (CanRedo())
 	{
 		undoredo.Redo(this);
-		listener->OnChange();
+		InvokeOnChange();
 	}
 }
 
@@ -1873,7 +1896,7 @@ bool TBStyleEdit::MouseUp(const TBPoint &point, int button, MODIFIER_KEYS modifi
 	{
 		TBTextFragment *fragment = caret.pos.block->FindFragment(point.x + scroll_x, point.y + scroll_y - caret.pos.block->ypos);
 		if (fragment && fragment == mousedown_fragment)
-			fragment->Click(button, modifierkeys);
+			fragment->Click(caret.pos.block, button, modifierkeys);
 	}
 	return true;
 }
@@ -1945,7 +1968,7 @@ bool TBStyleEdit::SetText(const TBStr & text, TB_CARET_POS pos)
 	if (pos == TB_CARET_POS_END)
 		caret.Place(blocks.GetLast(), blocks.GetLast()->str_len);
 
-	listener->OnChange();
+	InvokeOnChange();
 	return true;
 }
 
@@ -1954,6 +1977,13 @@ bool TBStyleEdit::GetText(TBStr &text) const
 	TBSelection tmp_selection(this);
 	tmp_selection.SelectAll();
 	return tmp_selection.GetText(text);
+}
+
+void TBStyleEdit::InvokeOnChange()
+{
+	listener->OnChange();
+	if (syntax_highlighter)
+		syntax_highlighter->OnChange(this);
 }
 
 bool TBStyleEdit::IsEmpty() const
