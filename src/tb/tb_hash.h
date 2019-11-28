@@ -7,6 +7,7 @@
 #define TB_HASH_H
 
 #include "tb_types.h"
+#include "tb_str.h"
 
 namespace tb {
 

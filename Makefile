@@ -6,11 +6,11 @@ all:
 	[ ! -f ~/.emscripten ] || $(MAKE) em em-glfw
 
 glfw:
-	[ -d Build-glfw ] || ./build.sh -glfw -gl -o Build-glfw
+	[ -d Build-glfw ] || cmake . -BBuild-glfw -DTB_RENDERER=GL -DTB_BUILD_DEMO=GLFW
 	cd Build-glfw && $(MAKE) package
 
 sdl2:
-	[ -d Build-sdl2 ] || ./build.sh -sdl2 -gl3 -o Build-sdl2
+	[ -d Build-sdl2 ] || cmake . -BBuild-sdl2 -DTB_RENDERER=GL3 -DTB_BUILD_DEMO=SDL2
 	cd Build-sdl2 && $(MAKE) package
 
 Build-emsc/Makefile:
@@ -20,8 +20,11 @@ Build-emsc/Makefile:
 em-sdl2: Build-emsc/Makefile
 	cd Build-emsc && $(MAKE)
 
-em-glfw:
-	[ -d Build-emscgl ] || ./build.sh -gles2 -glfw -em -o Build-emscgl
+Build-emscgl/Makefile:
+	source ${HOME}/local/emsdk/emsdk_env.sh ; \
+	emconfigure cmake . -BBuild-emscgl -DTB_BUILD_DEMO=GLFW -DCMAKE_BUILD_TYPE=Debug
+
+em-glfw: Build-emscgl/Makefile
 	cd Build-emscgl && $(MAKE)
 
 em: em-sdl2 em-glfw
@@ -45,8 +48,9 @@ iosr: Build-ios/TurboBadger.xcodeproj
 	cd Build-ios && cmake --build . --target package --config Release
 
 lib:
-	[ -d Build-lib ] || ./build.sh -o Build-lib -gl3
-	cd Build-lib && $(MAKE) package
+	[ -d Build-lib ] || cmake . -BBuild-lib -DTB_BACKEND=GLFW -DTB_BUILD_GLFW=ON
+#	[ -d Build-lib ] || cmake . -BBuild-lib -DTB_BACKEND=SDL2 -DTB_BUILD_SDL2=ON
+	cd Build-lib && cmake --build . --config Release
 
 and:
 	cd DemoAndroid2 && ./gradlew build
