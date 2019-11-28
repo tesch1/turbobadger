@@ -10,11 +10,6 @@
 
 namespace tb {
 
-// On C++ compilers that support it, use const expr for hash so that
-// TBID comparisions turn into simple uint32_t comparisions compiletime.
-// Disabled for TB_RUNTIME_DEBUG_INFO builds, so TBID string debugging
-// is available.
-//
 // FNV constants
 static constexpr uint32_t basis = 2166136261U;
 static constexpr uint32_t prime = 16777619U;
