@@ -97,20 +97,21 @@ set (TB_BUILD_DEMO NO CACHE STRING "Build Demo application: NO, GLFW, SDL2, or A
 set_property (CACHE TB_BUILD_DEMO PROPERTY STRINGS NO GLFW SDL2 ANDROID)
 
 set (TB_CLIPBOARD_DEFAULT DUMMY)
+set (TB_BUILD_GLFW_DEFAULT OFF)
+set (TB_BUILD_SDL2_DEFAULT OFF)
 if (${TB_BUILD_DEMO} STREQUAL GLFW)
-  set (TB_CLIPBOARD_DEFAULT GLFW)
   set (TB_IMAGE_LOADER_STB ON)
   set (TB_BACKEND_DEFAULT GLFW)
+  set (TB_BUILD_GLFW_DEFAULT ON)
 elseif (${TB_BUILD_DEMO} STREQUAL SDL2)
-  set (TB_CLIPBOARD_DEFAULT SDL2)
   set (TB_IMAGE_LOADER_STB ON)
   set (TB_BACKEND_DEFAULT SDL2)
+  set (TB_BUILD_SDL2_DEFAULT ON)
 elseif (${TB_BUILD_DEMO} STREQUAL ANDROID)
-  set (TB_CLIPBOARD_DEFAULT DUMMY)
   set (TB_SYSTEM ANDROID)
   set (TB_IMAGE_LOADER_STB ON)
   set (TB_BACKEND_DEFAULT ANDROID)
-endif (${TB_BUILD_DEMO} STREQUAL GLFW)
+endif ()
 
 # The target system
 set (TB_SYSTEM "${TB_SYSTEM_DEFAULT}" CACHE STRING "System type")
@@ -121,6 +122,7 @@ set (TB_BACKEND "${TB_BACKEND_DEFAULT}" CACHE STRING "Backend")
 set_property (CACHE TB_BACKEND PROPERTY STRINGS GLFW SDL2 ANDROID)
 
 if (TB_BACKEND STREQUAL GLFW)
+  set (TB_CLIPBOARD_DEFAULT GLFW)
 elseif (TB_BACKEND STREQUAL SDL2)
   set (TB_CLIPBOARD_DEFAULT SDL2)
 elseif (${TB_BACKEND} STREQUAL ANDROID)
@@ -128,11 +130,10 @@ elseif (${TB_BACKEND} STREQUAL ANDROID)
 endif (TB_BACKEND STREQUAL GLFW)
 
 # Should any of the backend libraries be built?
-option (TB_BUILD_GLFW "Download and build the GLFW library." OFF)
-option (TB_BUILD_SDL2 "Download and build the SDL2 library." OFF)
+option (TB_BUILD_GLFW "Download and build the GLFW library." ${TB_BUILD_GLFW_DEFAULT})
+option (TB_BUILD_SDL2 "Download and build the SDL2 library." ${TB_BUILD_SDL2_DEFAULT})
 option (TB_BUILD_FREETYPE "Download and build the freetype library." OFF)
 option (TB_ALWAYS_SHOW_EDIT_FOCUS "Show the edit focus in TBEditField." ON)
-option (TB_RUNTIME_DEBUG_INFO "Always generate runtime debug info." ${TB_RUNTIME_DEBUG_INFO_DEFAULT})
 
 # Configure graphics renderer
 option (TB_RENDERER_BATCHER "Enable to get TBRendererBatcher" ON)
@@ -212,11 +213,18 @@ if (MSVC)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
 endif (MSVC)
 
+# Runtime debug info
+option (TB_RUNTIME_DEBUG_INFO "Always generate runtime debug info." ${TB_RUNTIME_DEBUG_INFO_DEFAULT})
 if (TB_RUNTIME_DEBUG_INFO)
   set (TB_RUNTIME_DEBUG_INFO_CONFIG "#define TB_RUNTIME_DEBUG_INFO 1")
 endif ()
 if (TB_ALWAYS_SHOW_EDIT_FOCUS)
   set (TB_ALWAYS_SHOW_EDIT_FOCUS_CONFIG "#define TB_ALWAYS_SHOW_EDIT_FOCUS 1")
+endif ()
+
+option (TB_LIBSTD "Provide std:: (libstdc++) interoperability." OFF)
+if (TB_LIBSTD)
+  set (TB_LIBSTD_CONFIG "#define TB_LIBSTD")
 endif ()
 
 if (EMSCRIPTEN)

@@ -20,7 +20,12 @@
 /** Enable for some handy runtime debugging, enabled by modifying
 	the various settings in g_tb_debug. A settings window can be
 	shown by calling ShowDebugInfoSettingsWindow. */
+//# define TB_RUNTIME_DEBUG_INFO
 ${TB_RUNTIME_DEBUG_INFO_CONFIG}
+
+/** Enable interoperability functions for std::* */
+//# define TB_LIBSTD
+${TB_LIBSTD_CONFIG}
 
 #ifndef NDEBUG
 /** Enable compilation of unit tests. */

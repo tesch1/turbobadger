@@ -87,7 +87,7 @@ public:
 
 	/** Return a image object for the given filename.
 		If it fails, the returned TBImage object will be empty. */
-	TBImage GetImage(const char *filename);
+	TBImage GetImage(const TBStr &filename);
 
 #ifdef TB_RUNTIME_DEBUG_INFO
 	/** Render the skin bitmaps on screen, to analyze fragment positioning. */

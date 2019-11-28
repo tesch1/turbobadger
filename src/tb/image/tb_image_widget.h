@@ -27,7 +27,7 @@ public:
 	TBImageWidget() {}
 
 	void SetImage(const TBImage &image) { m_image = image; }
-	void SetImage(const char *filename) { m_image = g_image_manager->GetImage(filename); }
+	void SetImage(const TBStr &filename) { m_image = g_image_manager->GetImage(filename); }
 
 	void SetAdaptTextColor(bool adapt) { m_adapt_text_color = adapt; }
 	virtual PreferredSize OnCalculatePreferredContentSize(const SizeConstraints &constraints);
