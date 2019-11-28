@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <utility>
+#ifdef TB_LIBSTD
 #include <string>
+#endif
 
 namespace tb {
 
@@ -29,6 +31,9 @@ protected:
 	char *s;
 public:
 	TBStrC(const char *str) : s(const_cast<char *>(str)) {}
+#ifdef TB_LIBSTD
+	//TBStrC(const char *str) : s(const_cast<char *>(str)) {}
+#endif
 
 	inline int Length() const							{ return (int)strlen(s); }
 	inline bool IsEmpty() const							{ return s[0] == 0; }
@@ -44,7 +49,9 @@ public:
 	bool operator !=(const TBStrC &b) const				{ return strcmp(s, b.s) != 0; }
 	bool operator <(const TBStrC &b) const				{ return strcmp(s, b.s) < 0; }
 
+#ifdef TB_LIBSTD
 	bool operator ==(const std::string &b) const		{ return s == b; }
+#endif
 };
 
 /** TBStr is a simple string class.
@@ -68,6 +75,9 @@ public:
 	TBStr(TBStr && str);
 	TBStr(const char* str);
 	TBStr(const char* str, int len);
+#ifdef TB_LIBSTD
+	TBStr(const std::string & str) : TBStr(str.c_str(), str.size()) {}
+#endif
 
 	bool Set(TBStr str) { *this = str; return true; }
 	bool SetFormatted(const char* format, ...) TB_POST_FORMAT(2,3);
@@ -104,8 +114,10 @@ public:
 	/// Cast to a writeable (char *) byob
 	explicit inline operator char *() const				{ return s; }
 
+#ifdef TB_LIBSTD
 	/// Implicit cast to a std::string
 	inline operator std::string() const					{ return std::string(s); }
+#endif
 
 	/// Cast to a bool - answers whether this TBStr is truly empty: s
 	/// == empty.  This is different from IsEmpty() because you can

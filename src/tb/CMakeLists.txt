@@ -136,7 +136,7 @@ endif ()
 target_include_directories (TurboBadgerLib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories (TurboBadgerLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL AND FALSE)
+#if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
   install (TARGETS TurboBadgerLib
     COMPONENT library
     RUNTIME DESTINATION bin
@@ -152,7 +152,7 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL AND FALSE)
     PATTERN "test files" EXCLUDE
     PATTERN "*.h")
   install (
-    FILE ${CMAKE_CURRENT_BINARY_DIR}/tb_config.h
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/tb_config.h
     DESTINATION include/tb
     COMPONENT library)
-endif ()
+#endif ()

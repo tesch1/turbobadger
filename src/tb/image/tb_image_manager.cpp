@@ -119,9 +119,9 @@ TBImageManager::~TBImageManager()
 	}
 }
 
-TBImage TBImageManager::GetImage(const char *filename)
+TBImage TBImageManager::GetImage(const TBStr &filename)
 {
-	uint32_t hash_key = TBGetHash(filename);
+	uint32_t hash_key = TBID(filename);
 	TBImageRep *image_rep = m_image_rep_hash.Get(hash_key);
 	if (!image_rep)
 	{
@@ -145,7 +145,7 @@ TBImage TBImageManager::GetImage(const char *filename)
 		}
 		//TBDebugOut(image_rep ? "TBImageManager - Loaded new image.\n" : "TBImageManager - Loading image failed.\n");
 		if (!image_rep) {
-			TBDebugPrint("TBImageManager - Loading image failed: '%s'\n", filename);
+			TBDebugPrint("TBImageManager - Loading image failed: '%s'\n", (const char *)filename);
 		}
 	}
 	return TBImage(image_rep);
