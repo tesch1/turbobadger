@@ -149,18 +149,18 @@ public:
 	}
 
 	/** Add a new item at the given index. */
-	bool AddItem(T *item, int index)
+	T * AddItem(T *item, int index)
 	{
 		if (m_items.Add(item, index))
 		{
 			InvokeItemAdded(index);
-			return true;
+			return item;
 		}
-		return false;
+		return nullptr;
 	}
 
 	/** Add a new item last. */
-	bool AddItem(T *item)				{ return AddItem(item, m_items.GetNumItems()); }
+	T * AddItem(T *item)				{ return AddItem(item, m_items.GetNumItems()); }
 
 	/** Get the item at the given index. */
 	T *GetItem(int index)				{ return m_items[index]; }

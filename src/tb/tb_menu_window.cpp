@@ -53,7 +53,7 @@ bool TBMenuWindow::OnEvent(const TBWidgetEvent &ev)
 		target_ev.ref_id = ev.ref_id;
 		InvokeEvent(target_ev);
 
-		// If target not deleted, close
+		// If target didn't already delete this, close this
 		if (this_widget.Get())
 			Close();
 		return true;

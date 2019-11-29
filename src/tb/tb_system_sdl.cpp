@@ -44,8 +44,8 @@ void TBDebugOut(const tb::TBStr & str)
 void TBDebugOut(const tb::TBStr & str)
 {
 	std::cerr << str.CStr();
-	SDL_Log("%s", str.CStr());
-	SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s", str.CStr());
+	//SDL_Log("%s", str.CStr());
+	//SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "%s", str.CStr());
 }
 #endif // ANDROID
 #endif // TB_RUNTIME_DEBUG_INFO
