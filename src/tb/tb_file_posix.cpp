@@ -75,7 +75,7 @@ TBFile *TBFile::Open(const TBStr & filename, TBFileMode mode)
 	if (!f) {
 		//char tmp[256];
 		//TBDebugPrint("Cwd: '%s'\n", getcwd(tmp, sizeof(tmp)));
-		TBDebugPrint("TBFile::Open, unable to open file '%s'\n", filename.CStr());
+		//TBDebugPrint("TBFile::Open, unable to open file '%s'\n", filename.CStr());
 	}
 #endif
 	if (!f)
