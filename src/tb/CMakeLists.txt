@@ -12,8 +12,9 @@ set (LOCAL_SRCS
   tb_debug.cpp
   tb_dimension.cpp
   tb_editfield.cpp
-  tb_file_posix.cpp
   tb_file_android.cpp
+  tb_file_posix.cpp
+  tb_file_sdl2.cpp
   tb_font_renderer.cpp
   tb_font_renderer_freetype.cpp
   tb_font_renderer_stb.cpp
@@ -47,7 +48,7 @@ set (LOCAL_SRCS
   tb_style_edit_content.cpp
   tb_system_android.cpp
   tb_system_linux.cpp
-  tb_system_sdl.cpp
+  tb_system_sdl2.cpp
   tb_system_win.cpp
   tb_tab_container.cpp
   tb_tempbuffer.cpp

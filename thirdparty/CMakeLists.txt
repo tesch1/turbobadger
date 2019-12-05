@@ -138,6 +138,7 @@ if (TB_BUILD_SDL2)
     #set (SDL_HAPTIC     OFF CACHE BOOL "" FORCE)
     #set (SDL_JOYSTICK   OFF CACHE BOOL "" FORCE)
     add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir" EXCLUDE_FROM_ALL)
+    set (SDL2_DIR "${source_dir}" CACHE STRING "Path to SDL2 sources" FORCE)
     add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
     if (SDL_VERSION VERSION_LESS "2.0.10")
       set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
