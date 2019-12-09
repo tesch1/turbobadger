@@ -21,11 +21,27 @@ class TBNode;
 struct INFLATE_INFO {
 	INFLATE_INFO(TBWidgetsReader *reader, TBWidget *target, TBNode *node, TBValue::TYPE sync_type)
 		: reader(reader), target(target), node(node) , sync_type(sync_type) {}
+
 	TBWidgetsReader *reader;
 
 	/** The widget that that will be parent to the inflated widget. */
 	TBWidget *target;
 	/** The node containing properties. */
+	TBNode *node;
+	/** The data type that should be synchronized through TBWidgetValue. */
+	TBValue::TYPE sync_type;
+};
+
+/** DEFLATE_INFO contains info passed to TBWidget::OnDeflate during widget deflate. */
+struct DEFLATE_INFO {
+	DEFLATE_INFO(TBWidgetsReader *reader, const TBWidget *target, TBNode *node, TBValue::TYPE sync_type)
+		: reader(reader), target(target), node(node) , sync_type(sync_type) {}
+
+	TBWidgetsReader *reader;
+
+	/** The widget that that will be parity to the node. */
+	const TBWidget *target;
+	/** The node receiving properties. */
 	TBNode *node;
 	/** The data type that should be synchronized through TBWidgetValue. */
 	TBValue::TYPE sync_type;
@@ -158,13 +174,13 @@ public:
 	bool LoadData(TBWidget *target, const char *data, int data_len);
 	void LoadNodeTree(TBWidget *target, TBNode *node);
 
-	bool DumpFile(TBWidget *source, const TBStr & filename);
-	bool DumpData(TBWidget *source, TBStr & data);
+	bool DumpFile(const TBWidget *source, const TBStr & filename);
+	bool DumpData(const TBWidget *source, TBStr & data);
 
 private:
 	bool Init();
 	bool CreateWidget(TBWidget *target, TBNode *node);
-	bool CreateNode(TBNode *target, TBWidget *widget);
+	bool CreateNode(TBNode *target, const TBWidget *widget);
 	TBLinkListOf<TBWidgetFactory> factories;
 };
 

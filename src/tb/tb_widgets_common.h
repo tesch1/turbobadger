@@ -93,7 +93,7 @@ public:
 	const TBStr & GetFormat() const { return m_format; }
 
 	virtual void OnInflate(const INFLATE_INFO &info);
-	virtual void OnDeflate(const INFLATE_INFO &info);
+	virtual void OnDeflate(const DEFLATE_INFO &info) const;
 	virtual PreferredSize OnCalculatePreferredContentSize(const SizeConstraints &constraints);
 	virtual void OnFontChanged();
 	virtual void OnPaint(const PaintProps &paint_props);
@@ -125,11 +125,11 @@ public:
 	/** Set if the text field should be allowed to squeeze below its
 		preferred size. If squeezable it may shrink to width 0. */
 	void SetSqueezable(bool squeezable) { m_textfield.SetSqueezable(squeezable); }
-	bool GetSqueezable() { return m_textfield.GetSqueezable(); }
+	bool GetSqueezable() const { return m_textfield.GetSqueezable(); }
 
 	/** Set to true if the button should fire repeatedly while pressed. */
 	void SetAutoRepeat(bool auto_repeat_click) { m_auto_repeat_click = auto_repeat_click; }
-	bool GetAutoRepeat() { return m_auto_repeat_click; }
+	bool GetAutoRepeat() const { return m_auto_repeat_click; }
 
 	/** Set to true if the button should toggle on and off, instead of just fire
 		click events. When it's on, it will have value 1 pressed state. */
@@ -145,7 +145,7 @@ public:
 	virtual long GetValue() const;
 
 	virtual void OnInflate(const INFLATE_INFO &info);
-	virtual void OnDeflate(const INFLATE_INFO &info);
+	virtual void OnDeflate(const DEFLATE_INFO &info) const;
 	virtual void OnCaptureChanged(bool captured);
 	virtual void OnSkinChanged();
 	virtual bool OnEvent(const TBWidgetEvent &ev);
@@ -410,7 +410,7 @@ public:
 	virtual double GetValueDouble() const { return (double)GetValueVal(); }
 
 	virtual void OnInflate(const INFLATE_INFO &info);
-	virtual void OnDeflate(const INFLATE_INFO &info);
+	virtual void OnDeflate(const DEFLATE_INFO &info) const;
 	virtual bool OnEvent(const TBWidgetEvent &ev);
 	virtual void OnResized(int old_w, int old_h);
 protected:

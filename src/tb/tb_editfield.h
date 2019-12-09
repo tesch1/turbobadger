@@ -124,7 +124,7 @@ public:
 	/** Set the edit type that is a hint for virtual keyboards about what the
 		content should be. */
 	void SetEditType(EDIT_TYPE type);
-	EDIT_TYPE GetEditType() { return m_edit_type; }
+	EDIT_TYPE GetEditType() const { return m_edit_type; }
 
 	/** Support custom skin condition properties. Currently supported properties are:
 		"edit-type", matching those of EDIT_TYPE.
@@ -173,7 +173,7 @@ public:
 	virtual void OnPaint(const PaintProps &paint_props);
 	virtual void OnPaintChildren(const PaintProps &paint_props);
 	virtual void OnInflate(const INFLATE_INFO &info);
-	virtual void OnDeflate(const INFLATE_INFO &info);
+	virtual void OnDeflate(const DEFLATE_INFO &info) const;
 	virtual void OnAdded();
 	virtual void OnFontChanged();
 	virtual void OnFocusChanged(bool focused);

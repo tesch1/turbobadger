@@ -143,7 +143,7 @@ public:
 	virtual PreferredSize OnCalculatePreferredContentSize(const SizeConstraints &constraints);
 
 	virtual void OnInflate(const INFLATE_INFO &info);
-	virtual void OnDeflate(const INFLATE_INFO &info);
+	virtual void OnDeflate(const DEFLATE_INFO &info) const;
 	/** Check if there's an interactible child at the location. */
 	virtual WIDGET_HIT_STATUS GetHitStatus(int x, int y);
 	virtual bool OnEvent(const TBWidgetEvent &ev);

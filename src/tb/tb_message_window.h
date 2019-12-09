@@ -52,7 +52,7 @@ public:
 
 	bool Show(const TBStr & title, const TBStr & message, TBMessageWindowSettings *settings = nullptr);
 
-	virtual TBWidget *GetEventDestination() { return m_target.Get(); }
+	virtual TBWidget *GetEventDestination() const { return m_target.Get(); }
 
 	virtual bool OnEvent(const TBWidgetEvent &ev);
 	virtual void OnDie();

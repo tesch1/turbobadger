@@ -246,7 +246,7 @@ static void OptCreateRect(TBNode * target, const char * name, const TBRect & val
 	}
 }
 
-void TBWidget::OnDeflate(const INFLATE_INFO &info)
+void TBWidget::OnDeflate(const DEFLATE_INFO &info) const
 {
 	TBNode * node = info.node;
 	OptCreateID(node, "id", GetID());
@@ -270,8 +270,16 @@ void TBWidget::OnDeflate(const INFLATE_INFO &info)
 		break;
 	}
 
-	if (TBNode *data_node = info.node->GetNode("data"))
-		data.Copy(data_node->GetValue());
+	switch (data.GetType()) // or check info.sync_type ?
+	{
+	case TBValue::TYPE_NULL:	break;
+	case TBValue::TYPE_STRING:	OptCreateString(node, "data", data.GetString(), ""); break;
+	case TBValue::TYPE_FLOAT:	OptCreateFloat( node, "data", data.GetFloat(), 0); break;
+	case TBValue::TYPE_INT:		OptCreateInt(   node, "data", data.GetInt(), 0); break;
+		//case TYPE_OBJECT:	OptCreateString(node, "data", data.GetString(), ""); break;
+		//case TYPE_ARRAY:	OptCreateString(node, "data", data.GetString(), ""); break;
+	default: break;
+	}
 
 	OptCreateInt(node, "is-group-root", GetIsGroupRoot(), false);
 	OptCreateInt(node, "is-focusable", GetIsFocusable(), false);
@@ -280,21 +288,10 @@ void TBWidget::OnDeflate(const INFLATE_INFO &info)
 	OptCreateFloat(node, "opacity", GetOpacity(), 1.);
 	OptCreateString(node, "text", GetText(), "");
 
-#if 0
-	if (TBStr connection = info.node->GetValueStringRaw("connection", nullptr))
+	if (GetConnection().GetName())
 	{
-		// If we already have a widget value with this name, just connect to it and the widget will
-		// adjust its value to it. Otherwise create a new widget value, and give it the value we
-		// got from the resource.
-		if (TBWidgetValue *value = g_value_group.GetValue(connection))
-			Connect(value);
-		else if (TBWidgetValue *value = g_value_group.CreateValueIfNeeded(connection, m_sync_type))
-		{
-			value->SetFromWidget(this);
-			Connect(value);
-		}
+		OptCreateInt(node, "connection", (int)GetConnection().GetName(), 0);
 	}
-#endif
 
 	MTEnum axis [] = {{"x", AXIS_X}, {"y", AXIS_Y}, {nullptr, 0}};
 	OptCreateEnum(node, "axis", GetAxis(), AXIS_X, axis);
@@ -334,32 +331,30 @@ void TBWidget::OnDeflate(const INFLATE_INFO &info)
 
 	OptCreateRect(node, "rect", GetRect());
 
-#if 0
-	if (TBNode *lp = info.node->GetNode("lp"))
+	const LayoutParams * lp = GetLayoutParams();
+    if (lp)
 	{
-		LayoutParams layout_params;
-		if (GetLayoutParams())
-			layout_params = *GetLayoutParams();
-		const TBDimensionConverter *dc = g_tb_skin->GetDimensionConverter();
-		if (TBStr str = lp->GetValueString("width", nullptr))
-			layout_params.SetWidth(dc->GetPxFromString(str, LayoutParams::UNSPECIFIED));
-		if (TBStr str = lp->GetValueString("height", nullptr))
-			layout_params.SetHeight(dc->GetPxFromString(str, LayoutParams::UNSPECIFIED));
-		if (TBStr str = lp->GetValueString("min-width", nullptr))
-			layout_params.min_w = dc->GetPxFromString(str, LayoutParams::UNSPECIFIED);
-		if (TBStr str = lp->GetValueString("max-width", nullptr))
-			layout_params.max_w = dc->GetPxFromString(str, LayoutParams::UNSPECIFIED);
-		if (TBStr str = lp->GetValueString("pref-width", nullptr))
-			layout_params.pref_w = dc->GetPxFromString(str, LayoutParams::UNSPECIFIED);
-		if (TBStr str = lp->GetValueString("min-height", nullptr))
-			layout_params.min_h = dc->GetPxFromString(str, LayoutParams::UNSPECIFIED);
-		if (TBStr str = lp->GetValueString("max-height", nullptr))
-			layout_params.max_h = dc->GetPxFromString(str, LayoutParams::UNSPECIFIED);
-		if (TBStr str = lp->GetValueString("pref-height", nullptr))
-			layout_params.pref_h = dc->GetPxFromString(str, LayoutParams::UNSPECIFIED);
-		SetLayoutParams(layout_params);
-	}
-#endif
+        if (lp->min_w == lp->max_w && lp->min_w == lp->pref_w)
+			OptCreateInt(node, "lp>width", lp->min_w);
+        else {
+            if (lp->min_w != LayoutParams::UNSPECIFIED)
+				OptCreateInt(node, "lp>min-width", lp->min_w);
+            if (lp->max_w != LayoutParams::UNSPECIFIED)
+				OptCreateInt(node, "lp>max-width", lp->max_w);
+            if (lp->pref_w != LayoutParams::UNSPECIFIED)
+				OptCreateInt(node, "lp>pref-width", lp->pref_w);
+        }
+        if (lp->min_h == lp->max_h && lp->min_h == lp->pref_h)
+			OptCreateInt(node, "lp>height", lp->min_h);
+        else {
+            if (lp->min_h != LayoutParams::UNSPECIFIED)
+				OptCreateInt(node, "lp>min-height", lp->min_w);
+            if (lp->max_h != LayoutParams::UNSPECIFIED)
+				OptCreateInt(node, "lp>max-height", lp->max_w);
+            if (lp->pref_h != LayoutParams::UNSPECIFIED)
+				OptCreateInt(node, "lp>pref-height", lp->pref_h);
+        }
+    }
 }
 
 TB_WIDGET_FACTORY(TBWindow, TBValue::TYPE_NULL, WIDGET_Z_TOP) {}
@@ -373,7 +368,7 @@ void TBButton::OnInflate(const INFLATE_INFO &info)
 	TBWidget::OnInflate(info);
 }
 
-void TBButton::OnDeflate(const INFLATE_INFO &info)
+void TBButton::OnDeflate(const DEFLATE_INFO &info) const
 {
 	TBNode * node = info.node;
 	TBWidget::OnDeflate(info);
@@ -428,7 +423,7 @@ void TBEditField::OnInflate(const INFLATE_INFO &info)
 	TBWidget::OnInflate(info);
 }
 
-void TBEditField::OnDeflate(const INFLATE_INFO &info)
+void TBEditField::OnDeflate(const DEFLATE_INFO &info) const
 {
 	TBNode * node = info.node;
 	TBWidget::OnDeflate(info);
@@ -523,7 +518,7 @@ void TBLayout::OnInflate(const INFLATE_INFO &info)
 	TBWidget::OnInflate(info);
 }
 
-void TBLayout::OnDeflate(const INFLATE_INFO &info)
+void TBLayout::OnDeflate(const DEFLATE_INFO &info) const
 {
 	TBNode * node = info.node;
 	TBWidget::OnDeflate(info);
@@ -641,7 +636,7 @@ void TBSliderX<VAL_T>::OnInflate(const INFLATE_INFO &info)
 }
 
 template <typename VAL_T>
-void TBSliderX<VAL_T>::OnDeflate(const INFLATE_INFO &info)
+void TBSliderX<VAL_T>::OnDeflate(const DEFLATE_INFO &info) const
 {
 	TBNode * node = info.node;
 	TBWidget::OnDeflate(info);
@@ -720,7 +715,7 @@ void TBTextField::OnInflate(const INFLATE_INFO &info)
 		SetFormat(std::move(format));
 	TBWidget::OnInflate(info);
 }
-void TBTextField::OnDeflate(const INFLATE_INFO &info)
+void TBTextField::OnDeflate(const DEFLATE_INFO &info) const
 {
 	TBNode * node = info.node;
 	TBWidget::OnDeflate(info);
@@ -878,7 +873,7 @@ void TBWidgetsReader::LoadNodeTree(TBWidget *target, TBNode *node)
 		CreateWidget(target, child);
 }
 
-bool TBWidgetsReader::DumpFile(TBWidget *source, const TBStr & filename)
+bool TBWidgetsReader::DumpFile(const TBWidget *source, const TBStr & filename)
 {
 	TBNode node;
 	if (!CreateNode(&node, source) || !node.WriteFile(filename))
@@ -886,7 +881,7 @@ bool TBWidgetsReader::DumpFile(TBWidget *source, const TBStr & filename)
 	return true;
 }
 
-bool TBWidgetsReader::DumpData(TBWidget *source, TBStr & data)
+bool TBWidgetsReader::DumpData(const TBWidget *source, TBStr & data)
 {
 	TBNode node;
 	if (!CreateNode(&node, source) || !node.WriteNode(data))
@@ -936,9 +931,9 @@ bool TBWidgetsReader::CreateWidget(TBWidget *target, TBNode *node)
 	return true;
 }
 
-bool TBWidgetsReader::CreateNode(TBNode *target, TBWidget *widget)
+bool TBWidgetsReader::CreateNode(TBNode *target, const TBWidget *widget)
 {
-	// Find a widget creator from the node name
+	// Find a widget factory from the node name
 	TBWidgetFactory *wc = nullptr;
 	TBValue::TYPE sync_type = TBValue::TYPE_NULL;
 	for (wc = factories.GetFirst(); wc; wc = wc->GetNext())
@@ -951,7 +946,8 @@ bool TBWidgetsReader::CreateNode(TBNode *target, TBWidget *widget)
 	TBNode *new_node = TBNode::Create(widget->GetClassName());
 	if (!new_node)
 		return false;
-	INFLATE_INFO info(this, widget, new_node, sync_type);
+
+	const DEFLATE_INFO info(this, widget, new_node, sync_type);
 
 	// Read properties and add i to the hierarchy.
 	widget->OnDeflate(info);

@@ -22,6 +22,9 @@ public:
 	TBID(const char *string)		{ Set(string); }
 	TBID(const TBID &id_)			{ Set(id_); }
 	TBID(const TBStr &id_)			{ Set((const char *)id_); }
+#ifdef TB_LIBSTD
+	TBID(const std::string & str)	{ Set(str.c_str()); }
+#endif
 
 #ifdef TB_RUNTIME_DEBUG_INFO
 	void Set(uint32_t newid);

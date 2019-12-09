@@ -69,7 +69,7 @@ public:
 
 	bool Show(const TBPopupAlignment &alignment);
 
-	virtual TBWidget *GetEventDestination() { return m_target.Get(); }
+	virtual TBWidget *GetEventDestination() const { return m_target.Get(); }
 
 	virtual bool OnEvent(const TBWidgetEvent &ev);
 private:

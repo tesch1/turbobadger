@@ -23,6 +23,7 @@ class TBScroller;
 class TBWidgetListener;
 class TBLongClickTimer;
 struct INFLATE_INFO;
+struct DEFLATE_INFO;
 
 // == Generic widget stuff =================================================
 
@@ -811,7 +812,7 @@ public:
 		children have been deflated. This will write generic widget
 		properties and add the widget to the node. If overridden, you
 		must call the super implementation. */
-	virtual void OnDeflate(const INFLATE_INFO &info);
+	virtual void OnDeflate(const DEFLATE_INFO &info) const;
 
 	/** Get hit status tests if this widget should be hit at the given coordinate.
 		The default implementation checks the visibility, ignored input flag, rectangle,
@@ -838,7 +839,7 @@ public:
 	inline TBWidget *GetParent() const { return m_parent; }
 
 	/** Get the widget that should receive the events this widget invoke. By default the parent. */
-	virtual TBWidget *GetEventDestination() { return m_parent; }
+	virtual TBWidget *GetEventDestination() const { return m_parent; }
 
 	/** Return translation the children should have. Any scrolling of child widgets
 		should be done with this method, by returning the wanted translation.
