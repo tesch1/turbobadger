@@ -158,7 +158,7 @@ if (EMSCRIPTEN)
   add_custom_target (run
     DEPENDS TurboBadgerDemo
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMAND "${EMSCRIPTEN_ROOT_PATH}/emrun" TurboBadgerDemo.html
+    COMMAND "${EMSCRIPTEN_ROOT_PATH}/emrun" --serve_after_exit TurboBadgerDemo.html
     )
 endif (EMSCRIPTEN)
 
