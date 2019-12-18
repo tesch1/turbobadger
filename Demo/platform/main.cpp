@@ -1,5 +1,6 @@
 #include "Application.h"
 
+#include <cstdio>
 #ifdef TB_SYSTEM_MACOSX
 #include <unistd.h>
 #include <mach-o/dyld.h>

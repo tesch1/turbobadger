@@ -69,6 +69,41 @@ function (add_resources RES_LIST_NAME RES_ROOT_PATH)
 
 endfunction ()
 
+function (stage_resources RES_LIST_NAME STAGE_DIR STAGED_FILES_VAR)
+  #message ("stage_resources (${RES_LIST_NAME} ${STAGE_DIR} ${STAGED_FILES_VAR})")
+  #
+  # example: stage_resources(RES_FILES "/tmp/blah" STAGED_FILES)
+  #
+  if (${RES_LIST_NAME} STREQUAL "" OR ${STAGE_DIR} STREQUAL "" OR ${STAGED_FILES_VAR} STREQUAL "")
+    message (FATAL_ERROR "usage: stage_resources(RES_LIST_NAME STAGE_DIR STAGED_FILES_VAR)")
+  endif ()
+
+  # create the stage dir if it doesn't exist yet
+  if (NOT EXISTS ${STAGE_DIR})
+    file (MAKE_DIRECTORY ${STAGE_DIR})
+  endif ()
+
+  # copy/create stage files, and targets for keeping them up to date
+  foreach (RES_FILE IN LISTS ${RES_LIST_NAME})
+    get_property (RES_LOCATION SOURCE ${RES_FILE} PROPERTY RES_LOCATION)
+    get_filename_component (FILE_NAME ${RES_FILE} NAME)
+    set (FULL_PATH ${STAGE_DIR}/${RES_LOCATION}/${FILE_NAME})
+    file (MAKE_DIRECTORY "${STAGE_DIR}/${RES_LOCATION}")
+    if (NOT EXISTS ${FULL_PATH})
+      file (COPY ${RES_FILE} DESTINATION ${STAGE_DIR}/${RES_LOCATION})
+    endif ()
+    add_custom_command (
+      DEPENDS ${RES_FILE}
+      OUTPUT ${FULL_PATH}
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${STAGE_DIR}/${RES_LOCATION}"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${RES_FILE}" "${STAGE_DIR}/${RES_LOCATION}"
+      )
+
+    list (APPEND ${STAGED_FILES_VAR} ${FULL_PATH})
+    set (${STAGED_FILES_VAR} ${${STAGED_FILES_VAR}} PARENT_SCOPE)
+  endforeach ()
+endfunction ()
+
 function (fixup_resources RES_LIST_NAME)
   #
   # example: fixup_resources(RES_FILES)

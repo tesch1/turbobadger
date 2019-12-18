@@ -45,12 +45,17 @@ add_resources (RES_FILES "${CMAKE_SOURCE_DIR}/src/tb/tests"
   test_tb_parser_included.tb.txt
   test_tb_parser_definitions.tb.txt)
 
-add_executable (TurboBadgerDemo MACOSX_BUNDLE WIN32 ${LOCAL_SRCS} ${RES_FILES})
+if (EMSCRIPTEN)
+  set (STAGE_DIR ${EXECUTABLE_OUTPUT_PATH}/stage)
+  stage_resources (RES_FILES ${STAGE_DIR} STAGED_FILES)
+else ()
+  set (STAGE_DIR ${EXECUTABLE_OUTPUT_PATH})
+  stage_resources (RES_FILES ${STAGE_DIR} STAGED_FILES)
+endif ()
+
+add_executable (TurboBadgerDemo MACOSX_BUNDLE WIN32 ${LOCAL_SRCS} ${STAGED_FILES})
 target_include_directories (TurboBadgerDemo PRIVATE ".")
 target_link_libraries (TurboBadgerDemo TurboBadgerLib ${EXTRA_LIBS})
-
-# Individually set the file's path properties
-fixup_resources (RES_FILES)
 
 if (APPLE)
   set (APPLE_DEVTEAM_ID "$ENV{APPLE_DEVTEAM_ID}" CACHE STRING "Apple code signing team ID")
@@ -124,7 +129,7 @@ endif (APPLE)
 
 install (TARGETS TurboBadgerDemo
   COMPONENT demoapp
-  BUNDLE DESTINATION "./" 
+  BUNDLE DESTINATION "./"
   RUNTIME DESTINATION "./")
 
 # Platform specific
@@ -134,21 +139,21 @@ if (CMAKE_COMPILER_IS_MINGW)
 endif (CMAKE_COMPILER_IS_MINGW)
 
 if (EMSCRIPTEN)
+  #cmake_minimum_required (VERSION 3.13.1)
+  #target_compile_options (TurboBadgerDemo PUBLIC "SHELL: -s FULL_ES2=1")
+  #target_compile_options (TurboBadgerDemo PUBLIC "SHELL: -s NO_EXIT_RUNTIME=1")
+  #target_compile_options (TurboBadgerDemo PUBLIC "SHELL: -s EVAL_CTORS=1")
+  #add_compile_options ("-s EVAL_CTORS=1")
+  #add_compile_options ("-s BINARYEN_TRAP_MODE=clamp")
+  #add_compile_options ("-s NO_EXIT_RUNTIME=1")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 ")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s FULL_ES2=1")
+  # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -Oz") # optional
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s EVAL_CTORS=1")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s BINARYEN_TRAP_MODE=clamp")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s NO_EXIT_RUNTIME=1")
   set (CMAKE_EXECUTABLE_SUFFIX ".html")
-  # default skin resources
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file /tmp/resources@/")
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file /tmp/demo01@demo01")
-  #set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --emrun")
-  # test files
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser.tb.txt@/")
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser_included.tb.txt@/")
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/src/tb/tests/test_tb_parser_definitions.tb.txt@/")
-
-  add_custom_command (TARGET TurboBadgerDemo
-    PRE_LINK
-    COMMAND rm -rf /tmp/resources /tmp/demo01
-    COMMAND rsync -a --exclude='*.psd' ${CMAKE_SOURCE_DIR}/resources /tmp/
-    COMMAND rsync -a --include='*/' --include='*.txt' --include='*.png' --exclude='*' ${CMAKE_CURRENT_SOURCE_DIR}/demo01 /tmp )
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --preload-file ${STAGE_DIR}@/")
 
   add_custom_target (run
     DEPENDS TurboBadgerDemo
