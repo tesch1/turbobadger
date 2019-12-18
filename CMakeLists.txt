@@ -199,9 +199,9 @@ set_property (CACHE TB_FONT_RENDERER PROPERTY STRINGS "TBBF" "FREETYPE" "STB")
 
 if (NOT EMSCRIPTEN)
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  add_compile_options (-g -Wall -Wextra -Wno-unused-parameter
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+  add_compile_options (-g -Wall -Wextra -Wno-unused-parameter)
+  add_compile_options ($<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>)
+  add_compile_options ($<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 endif ()
 endif ()
 
