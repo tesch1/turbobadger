@@ -121,9 +121,11 @@ TBBitmapGL::TBBitmapGL(TBRendererGL *renderer)
 TBBitmapGL::~TBBitmapGL()
 {
 	// Must flush and unbind before we delete the texture
-	if (m_renderer) m_renderer->FlushBitmap(this);
-	if (m_texture == m_renderer->m_current_texture)
-		m_renderer->BindBitmap(nullptr);
+	if (m_renderer) {
+		m_renderer->FlushBitmap(this);
+		if (m_texture == m_renderer->m_current_texture)
+			m_renderer->BindBitmap(nullptr);
+	}
 
 	GLCALL(glDeleteTextures(1, &m_texture));
 }
