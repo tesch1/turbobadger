@@ -367,8 +367,8 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 		//event.tfinger;
 		break;
 
-	case SDL_MOUSEMOTION: {
-		if (m_app->GetRoot() && !(ShouldEmulateTouchEvent() && !TBWidget::captured_widget))
+	case SDL_MOUSEMOTION:
+		if (m_app->GetRoot() && !(ShouldEmulateTouchEvent() && !TBWidget::captured_widget)) {
 			event.motion.x *= m_xscale;
 			event.motion.y *= m_yscale;
 			m_app->GetRoot()->InvokePointerMove(event.motion.x, event.motion.y,

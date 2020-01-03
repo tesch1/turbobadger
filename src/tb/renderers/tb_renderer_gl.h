@@ -127,10 +127,10 @@ public:
 	virtual void RenderBatch(Batch *batch);
 	virtual void SetClipRect(const TBRect &rect);
 
-#if defined(TB_RENDERER_GLES_2) || defined(TB_RENDERER_GL3)
 protected:
-	static const GLuint _NUM_VBOS = 256;
 	void BindBitmap(TBBitmap *bitmap);
+#if defined(TB_RENDERER_GLES_2) || defined(TB_RENDERER_GL3)
+	static const GLuint _NUM_VBOS = 256;
 	GLuint LoadShader(GLenum type, const GLchar * shaderSrc);
 	GLuint m_program;
 	bool m_hasvao;
@@ -141,11 +141,11 @@ protected:
 	GLint m_orthoLoc;
 	GLint m_texLoc;
 	TBBitmapGL m_white;
+#endif
 	GLuint m_current_texture;
 	TBRendererBatcher::Batch *m_current_batch;
 
 	friend class TBBitmapGL;
-#endif
 };
 
 } // namespace tb
