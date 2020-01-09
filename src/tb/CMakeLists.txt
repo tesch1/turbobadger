@@ -121,7 +121,8 @@ if (TB_BACKEND STREQUAL GLFW)
 endif ()
 
 if (TB_SYSTEM STREQUAL WINDOWS)
-  target_link_libraries (TurboBadgerLib PUBLIC GLEW)
+  find_package (GLEW REQUIRED)
+  target_link_libraries (TurboBadgerLib PUBLIC GLEW::GLEW)
 endif ()
 
 if (TB_FONT_RENDERER STREQUAL FREETYPE)

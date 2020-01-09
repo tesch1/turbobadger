@@ -14,6 +14,8 @@ matrix:
     language: cpp
     install:
     - choco install nsis 7zip
+    - choco install visualstudio2019buildtools --package-parameters "--includeRecommended --includeOptional"
+    - choco install visualstudio2019-workload-vctools
     script:
     - cmake . -BBuild      -DTB_RENDERER=GL3 -DTB_BUILD_DEMO=GLFW -DTB_BUILD_GLFW=ON #-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
     - cmake . -BBuild-sdl2 -DTB_RENDERER=GL  -DTB_BUILD_DEMO=SDL2 -DTB_BUILD_SDL2=ON #-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
