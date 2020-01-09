@@ -121,7 +121,6 @@ if (TB_BACKEND STREQUAL GLFW)
 endif ()
 
 if (TB_SYSTEM STREQUAL WINDOWS)
-  find_package (GLEW REQUIRED)
   target_link_libraries (TurboBadgerLib PUBLIC GLEW::GLEW)
 endif ()
 
