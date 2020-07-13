@@ -129,6 +129,10 @@ elseif (${TB_BACKEND} STREQUAL ANDROID)
   set (TB_CLIPBOARD_DEFAULT DUMMY)
 endif (TB_BACKEND STREQUAL GLFW)
 
+# C++ compiler options
+option (TB_NO_RTTI "Disable C++ RTTI." ON)
+option (TB_NO_EXCEPTIONS "Disable C++ Exceptions." ON)
+
 # Should any of the backend libraries be built?
 option (TB_BUILD_GLFW "Download and build the GLFW library." ${TB_BUILD_GLFW_DEFAULT})
 option (TB_BUILD_SDL2 "Download and build the SDL2 library." ${TB_BUILD_SDL2_DEFAULT})
@@ -200,8 +204,12 @@ set_property (CACHE TB_FONT_RENDERER PROPERTY STRINGS "TBBF" "FREETYPE" "STB")
 if (NOT EMSCRIPTEN)
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "GNU" OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   add_compile_options (-g -Wall -Wextra -Wno-unused-parameter)
-  add_compile_options ($<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>)
-  add_compile_options ($<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+  if (TB_NO_EXCEPTIONS)
+    add_compile_options ($<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>)
+  endif ()
+  if (TB_NO_RTTI)
+    add_compile_options ($<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+  endif ()
 endif ()
 endif ()
 
@@ -209,9 +217,13 @@ if (MSVC)
   add_definitions (-D_CRT_SECURE_NO_WARNINGS)
   add_definitions (-D_CRT_NONSTDC_NO_DEPRECATE)
   # Remove exception handling
-  string (REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+  if (TB_NO_EXCEPTIONS)
+    string (REPLACE "/EHsc" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+  endif ()
   # Remove rtti
-  string (REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+  if (TB_NO_RTTI)
+    string (REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+  endif ()
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
 endif (MSVC)
 
