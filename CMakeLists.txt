@@ -8,11 +8,11 @@ set (CMAKE_CXX_STANDARD 14)
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set (VERSION_MAJOR "0")
-set (VERSION_MINOR "1")
-set (VERSION_PATCH "0")
-set (VERSION_BUILD "-beta5") # ie "-beta1", or empty string if release: ""
-set (VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+set (TB_VERSION_MAJOR "0")
+set (TB_VERSION_MINOR "1")
+set (TB_VERSION_PATCH "0")
+set (TB_VERSION_BUILD "-beta6") # ie "-beta1", or empty string if release: ""
+set (TB_VERSION "${TB_VERSION_MAJOR}.${TB_VERSION_MINOR}.${TB_VERSION_PATCH}")
 
 #
 # This approach to labeling beta versions is in line with Apple's
@@ -23,10 +23,10 @@ set (VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 # world, dont even bother trying! :D This labelling with "-beta2" or
 # "" for releases also plays well with the other package generators.
 #
-if (VERSION_BUILD)
-  string (REGEX MATCH "[0-9]+" VERSION_BUILD_NUM ${VERSION_BUILD})
+if (TB_VERSION_BUILD)
+  string (REGEX MATCH "[0-9]+" TB_VERSION_BUILD_NUM ${TB_VERSION_BUILD})
 else ()
-  set (VERSION_BUILD_NUM "")
+  set (TB_VERSION_BUILD_NUM "")
 endif ()
 #################################################################################
 
@@ -384,10 +384,10 @@ if (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
 
   set (CPACK_PACKAGE_NAME "TurboBadgerLib")
   set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "TurboBadger UI Library")
-  set (CPACK_PACKAGE_VERSION "${VERSION}${VERSION_BUILD}")
-  set (CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
-  set (CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
-  set (CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
+  set (CPACK_PACKAGE_VERSION "${TB_VERSION}${TB_VERSION_BUILD}")
+  set (CPACK_PACKAGE_VERSION_MAJOR "${TB_VERSION_MAJOR}")
+  set (CPACK_PACKAGE_VERSION_MINOR "${TB_VERSION_MINOR}")
+  set (CPACK_PACKAGE_VERSION_PATCH "${TB_VERSION_PATCH}")
   set (CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
   set (CPACK_PACKAGE_URL "https://github.com/tesch1/turbobadger")
   set (CPACK_PACKAGE_VENDOR "nobody")

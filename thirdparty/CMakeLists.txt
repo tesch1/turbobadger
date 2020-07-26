@@ -82,38 +82,21 @@ if (TB_BUILD_SDL2)
   set (SDL_VERSION_HASH d4055424d556b4a908aa76fad63abd3c)
   set (SDL_VERSION 2.0.10)
   set (SDL_VERSION_HASH 5a2114f2a6f348bdab5bf52b994811db)
+  set (SDL_VERSION 2.0.12)
+  set (SDL_VERSION_HASH 783b6f2df8ff02b19bb5ce492b99c8ff)
 
-  if (ANDROID)
-    ExternalProject_Add (sdl2X
-      PREFIX sdl2X
-      # latest development version from HG
-      #URL https://hg.libsdl.org/SDL/archive/tip.tar.bz2
-      # some random (fixed) version from HG
-      URL https://hg.libsdl.org/SDL/archive/d6decc5d2464.tar.bz2
-      URL_HASH MD5=c14f6b8da34e895990d01915bc9d3a82
-      #URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
-      #URL_HASH "MD5=${SDL_VERSION_HASH}"
-      DOWNLOAD_DIR "${DOWNLOAD_DIR}"
-      UPDATE_COMMAND ""
-      PATCH_COMMAND ""
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND ""
-      INSTALL_COMMAND ""
-      LOG_DOWNLOAD ON)
-  else ()
-    ExternalProject_Add (sdl2X
-      PREFIX sdl2X
-      #HG_REPOSITORY https://hg.libsdl.org/SDL
-      URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
-      URL_HASH "MD5=${SDL_VERSION_HASH}"
-      DOWNLOAD_DIR "${DOWNLOAD_DIR}"
-      UPDATE_COMMAND ""
-      PATCH_COMMAND ""
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND ""
-      INSTALL_COMMAND ""
-      LOG_DOWNLOAD ON)
-  endif ()
+  ExternalProject_Add (sdl2X
+    PREFIX sdl2X
+    #HG_REPOSITORY https://hg.libsdl.org/SDL
+    URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+    URL_HASH "MD5=${SDL_VERSION_HASH}"
+    DOWNLOAD_DIR "${DOWNLOAD_DIR}"
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+    LOG_DOWNLOAD ON)
   ExternalProject_Get_Property (sdl2X source_dir)
 
   if (hasParent)
