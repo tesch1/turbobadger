@@ -31,7 +31,7 @@ endif ()
 project (TurboBadger
   VERSION "${TB_VERSION}"
   DESCRIPTION "Cross-platform GUI toolkit"
-  HOMEPAGE_URL "https://github.com/tesch1/turbobadger"
+  # HOMEPAGE_URL "https://github.com/tesch1/turbobadger"
   LANGUAGES CXX
   )
 #################################################################################
