@@ -321,15 +321,15 @@ endif ()
 if (${TB_BUILD_DEMO} STREQUAL ANDROID)
   #target_compile_definitions (TurboBadgerLib PUBLIC)
   add_library (TurboBadger SHARED
-    ./DemoAndroid2/app/src/main/jni/jni_glue.cpp
-    ./DemoAndroid2/app/src/main/jni/App.cpp
+    ./DemoAndroid/app/src/main/jni/jni_glue.cpp
+    ./DemoAndroid/app/src/main/jni/App.cpp
     )
   target_link_libraries (TurboBadger TurboBadgerLib)
   set_property (TARGET TurboBadger APPEND PROPERTY ANDROID_ASSETS_DIRECTORIES
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/language"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/default_skin")
 
-  set (DEMO_ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/DemoAndroid2/app/src/main/assets")
+  set (DEMO_ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/DemoAndroid/app/src/main/assets")
   #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/language")
   #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/font")
   #file (MAKE_DIRECTORY "${DEMO_ASSET_DIR}/assets/skin")
