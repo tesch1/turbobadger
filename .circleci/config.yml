@@ -31,7 +31,7 @@ commands:
           name: Build TurboBadger Android
           command: |
             echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
-            cd DemoAndroid2 && ./gradlew build
+            cd DemoAndroid && ./gradlew build
       - run:
           name: Build Failed
           when: on_fail
