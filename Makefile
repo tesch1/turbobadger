@@ -53,7 +53,7 @@ lib:
 	cd Build-lib && cmake --build . --config Release
 
 and:
-	cd DemoAndroid2 && ./gradlew build
+	cd DemoAndroid && ./gradlew build
 
 website: em-sdl2
 	./doc/ghpages.sh
