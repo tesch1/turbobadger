@@ -6,11 +6,11 @@ all:
 	[ ! -f ~/.emscripten ] || $(MAKE) em em-glfw
 
 glfw:
-	[ -d Build-glfw ] || cmake . -BBuild-glfw -DTB_RENDERER=GL -DTB_BUILD_DEMO=GLFW
+	[ -f Build-glfw/Makefile ] || cmake . -BBuild-glfw -DTB_RENDERER=GL -DTB_BUILD_DEMO=GLFW
 	cd Build-glfw && $(MAKE) package
 
 sdl2:
-	[ -d Build-sdl2 ] || cmake . -BBuild-sdl2 -DTB_RENDERER=GL3 -DTB_BUILD_DEMO=SDL2
+	[ -f Build-sdl2/Makefile ] || cmake . -BBuild-sdl2 -DTB_RENDERER=GL3 -DTB_BUILD_DEMO=SDL2
 	cd Build-sdl2 && $(MAKE) package
 
 Build-emsc/Makefile:

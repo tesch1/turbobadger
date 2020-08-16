@@ -11,11 +11,11 @@
 #ifndef TB_CONFIG_H
 #define TB_CONFIG_H
 
-#define TB_VERSION_MAJOR ${VERSION_MAJOR}
-#define TB_VERSION_MINOR ${VERSION_MINOR}
-#define TB_VERSION_REVISION ${VERSION_PATCH}
-#define TB_VERSION_BUILD ${VERSION_BUILD}
-#define TB_VERSION_STR "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}${VERSION_BUILD}"
+#define TB_VERSION_MAJOR ${TB_VERSION_MAJOR}
+#define TB_VERSION_MINOR ${TB_VERSION_MINOR}
+#define TB_VERSION_REVISION ${TB_VERSION_PATCH}
+#define TB_VERSION_BUILD ${TB_VERSION_BUILD}
+#define TB_VERSION_STR "${TB_VERSION_MAJOR}.${TB_VERSION_MINOR}.${TB_VERSION_PATCH}${TB_VERSION_BUILD}"
 
 /** Enable for some handy runtime debugging, enabled by modifying
 	the various settings in g_tb_debug. A settings window can be

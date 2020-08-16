@@ -375,8 +375,8 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 												GetModifierKeys(),
 												ShouldEmulateTouchEvent());
 
+		}
 		break;
-	}
 	case SDL_MOUSEBUTTONUP:
 	case SDL_MOUSEBUTTONDOWN: {
 		// Handle mouse clicks here.

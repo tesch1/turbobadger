@@ -1,18 +1,17 @@
 #
 # CMake file for hastybadger
 #
-project (TurboBadger CXX)
 cmake_minimum_required (VERSION 3.4.3)
 include (CheckCXXCompilerFlag)
 set (CMAKE_CXX_STANDARD 14)
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set (VERSION_MAJOR "0")
-set (VERSION_MINOR "1")
-set (VERSION_PATCH "0")
-set (VERSION_BUILD "-beta5") # ie "-beta1", or empty string if release: ""
-set (VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+set (TB_VERSION_MAJOR "0")
+set (TB_VERSION_MINOR "1")
+set (TB_VERSION_PATCH "0")
+set (TB_VERSION_BUILD "-beta7") # ie "-beta1", or empty string if release: ""
+set (TB_VERSION "${TB_VERSION_MAJOR}.${TB_VERSION_MINOR}.${TB_VERSION_PATCH}")
 
 #
 # This approach to labeling beta versions is in line with Apple's
@@ -23,11 +22,18 @@ set (VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 # world, dont even bother trying! :D This labelling with "-beta2" or
 # "" for releases also plays well with the other package generators.
 #
-if (VERSION_BUILD)
-  string (REGEX MATCH "[0-9]+" VERSION_BUILD_NUM ${VERSION_BUILD})
+if (TB_VERSION_BUILD)
+  string (REGEX MATCH "[0-9]+" TB_VERSION_BUILD_NUM ${TB_VERSION_BUILD})
 else ()
-  set (VERSION_BUILD_NUM "")
+  set (TB_VERSION_BUILD_NUM "")
 endif ()
+
+project (TurboBadger
+  VERSION "${TB_VERSION}"
+  DESCRIPTION "Cross-platform GUI toolkit"
+  # HOMEPAGE_URL "https://github.com/tesch1/turbobadger"
+  LANGUAGES CXX
+  )
 #################################################################################
 
 # Which types to generate for for Xcode and VS, default to Release
@@ -40,7 +46,7 @@ set (CMAKE_BUILD_TYPE "Debug" CACHE STRING "Set cmake build type")
 set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set (CMAKE_BUILD_TYPE "Debug")
-endif (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+endif ()
 
 # Import functions for resource files, ie add_resources()
 include ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddResources.cmake")
@@ -378,16 +384,21 @@ endif ()
 #################################################################################
 # CPack for TurboBadgerLib
 #
-if (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
+if (NOT TB_SUBDIRECTORY)
   set (CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
   set (CPACK_COMPONENTS_ALL library)
 
-  set (CPACK_PACKAGE_NAME "TurboBadgerLib")
-  set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "TurboBadger UI Library")
-  set (CPACK_PACKAGE_VERSION "${VERSION}${VERSION_BUILD}")
-  set (CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
-  set (CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
-  set (CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
+  if (TB_BUILD_DEMO)
+    set (CPACK_PACKAGE_NAME "TurboBadgerDemo")
+    set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "TurboBadger UI Demo")
+  else ()
+    set (CPACK_PACKAGE_NAME "TurboBadgerLib")
+    set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "TurboBadger UI Library")
+  endif ()
+  set (CPACK_PACKAGE_VERSION "${TB_VERSION}${TB_VERSION_BUILD}")
+  set (CPACK_PACKAGE_VERSION_MAJOR "${TB_VERSION_MAJOR}")
+  set (CPACK_PACKAGE_VERSION_MINOR "${TB_VERSION_MINOR}")
+  set (CPACK_PACKAGE_VERSION_PATCH "${TB_VERSION_PATCH}")
   set (CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
   set (CPACK_PACKAGE_URL "https://github.com/tesch1/turbobadger")
   set (CPACK_PACKAGE_VENDOR "nobody")
@@ -420,12 +431,12 @@ if (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
 
   include (CPack)
 
-endif (NOT TB_BUILD_DEMO AND NOT TB_SUBDIRECTORY)
+endif ()
 
 #################################################################################
 # Validate and print configuration
 #
-message (STATUS "TurboBadger configuration:")
+message (STATUS "TurboBadger ${TB_VERSION} configuration:")
 foreach (TB_VAR
     TB_BUILD_DEMO
     TB_SYSTEM
