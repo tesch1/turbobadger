@@ -1,0 +1,26 @@
+--- ../../Build-cc/turbobadger/thirdparty/sdl2X/src/sdl2X/CMakeLists.txt
++++ ./CMakeListSDL2.txt
+@@ -452,14 +452,14 @@
+
+     list(APPEND EXTRA_CFLAGS "-fno-strict-aliasing")
+   endif()
+
+-  check_c_compiler_flag(-Wdeclaration-after-statement HAVE_GCC_WDECLARATION_AFTER_STATEMENT)
+-  if(HAVE_GCC_WDECLARATION_AFTER_STATEMENT)
+-    check_c_compiler_flag(-Werror=declaration-after-statement HAVE_GCC_WERROR_DECLARATION_AFTER_STATEMENT)
+-    if(HAVE_GCC_WERROR_DECLARATION_AFTER_STATEMENT)
+-      list(APPEND EXTRA_CFLAGS "-Werror=declaration-after-statement")
+-    endif()
+-    list(APPEND EXTRA_CFLAGS "-Wdeclaration-after-statement")
+-  endif()
++  #check_c_compiler_flag(-Wdeclaration-after-statement HAVE_GCC_WDECLARATION_AFTER_STATEMENT)
++  #if(HAVE_GCC_WDECLARATION_AFTER_STATEMENT)
++    #check_c_compiler_flag(-Werror=declaration-after-statement HAVE_GCC_WERROR_DECLARATION_AFTER_STATEMENT)
++    #if(HAVE_GCC_WERROR_DECLARATION_AFTER_STATEMENT)
++    #  list(APPEND EXTRA_CFLAGS "-Werror=declaration-after-statement")
++    #endif()
++    #list(APPEND EXTRA_CFLAGS "-Wdeclaration-after-statement")
++  #endif()
+
+   if(DEPENDENCY_TRACKING)
+     check_c_source_compiles("

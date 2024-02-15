@@ -2,7 +2,7 @@
 # CMake file for turbobadger dependencies
 #
 
-cmake_minimum_required (VERSION 3.10.2)
+cmake_minimum_required (VERSION 3.4.3)
 project (turbobadger_thirdparty NONE)
 
 include (ExternalProject)
@@ -11,7 +11,6 @@ get_directory_property (hasParent PARENT_DIRECTORY)
 if (CMAKE_XCODE_BUILD_SYSTEM VERSION_GREATER_EQUAL 12)
   cmake_policy (SET CMP0114 NEW)
 endif ()
-cmake_policy (SET CMP0135 NEW)
 
 if (NOT WIN32)
   set (DOWNLOAD_DIR "$ENV{HOME}/Downloads")
@@ -32,16 +31,14 @@ if (hasParent)
   else ()
     set (CMAKE_FRAMEWORK_PATH "${CMAKE_SOURCE_DIR}/Frameworks.macOS")
   endif ()
-endif ()
+endif (hasParent)
 
 if (TB_BUILD_GLFW)
   # Download glfw
   ExternalProject_Add (GLFWEXT
     PREFIX GLFWEXT
-    # URL https://github.com/glfw/glfw/archive/3.3.tar.gz
-    # URL_HASH MD5=5be03812f5d109817e6558c3fab7bbe1
-    URL https://github.com/glfw/glfw/archive/refs/tags/3.3.4.tar.gz
-    URL_HASH MD5=8f8e5e931ef61c6a8e82199aabffe65a
+    URL https://github.com/glfw/glfw/archive/3.3.tar.gz
+    URL_HASH MD5=5be03812f5d109817e6558c3fab7bbe1
     DOWNLOAD_DIR "${DOWNLOAD_DIR}"
     #GIT_REPOSITORY "https://github.com/glfw/glfw.git"
     #GIT_TAG "3.3"
@@ -92,6 +89,8 @@ if (TB_BUILD_SDL2)
   set (SDL_VERSION 2.0.12)
   set (SDL_VERSION_HASH 783b6f2df8ff02b19bb5ce492b99c8ff)
 
+  set(PATH_ "${CMAKE_SOURCE_DIR}/CMakeListPatch.patch")
+  message(STATUS "${PATH_}")
   ExternalProject_Add (sdl2X
     PREFIX sdl2X
     #HG_REPOSITORY https://hg.libsdl.org/SDL
@@ -99,7 +98,7 @@ if (TB_BUILD_SDL2)
     URL_HASH "MD5=${SDL_VERSION_HASH}"
     DOWNLOAD_DIR "${DOWNLOAD_DIR}"
     UPDATE_COMMAND ""
-    PATCH_COMMAND ""
+    PATCH_COMMAND patch < "${PATH_}"
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
@@ -260,10 +259,8 @@ endif (TB_BUILD_FREETYPE)
 if (WIN32)
   ExternalProject_Add (GLEWX
     PREFIX GLEWX
-    #URL "https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0-win32.zip"
-    #URL_HASH MD5=32a72e6b43367db8dbea6010cd095355
-    URL "https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip"
-    URL_HASH MD5=1feddfe8696c192fa46a0df8eac7d4bf
+    URL "https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0-win32.zip"
+    URL_HASH MD5=32a72e6b43367db8dbea6010cd095355
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     UPDATE_COMMAND ""
     PATCH_COMMAND ""
