@@ -13,7 +13,9 @@
 #endif
 #ifdef TB_SYSTEM_LINUX
 #include <unistd.h>
-//#include <sys/auxv.h>
+#if !defined(__EMSCRIPTEN__)
+#include <sys/auxv.h>
+#endif
 #endif
 #ifdef TB_SYSTEM_WINDOWS
 #include <tchar.h>
