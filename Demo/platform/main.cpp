@@ -65,8 +65,11 @@ bool port_main(int argc, char* argv[])
 	{
 		for (int n = strlen(exec_path); n > 0 && exec_path[n-1] != '/'; n--)
 			exec_path[n-1] = '\0';
-		chdir(exec_path);
-		chdir("../Resources");
+		if (chdir(exec_path) ||
+            chdir("../Resources"))
+        {
+            printf("Unable to find resource directory '%s/../Resources'\n", exec_path);
+        }
 	}
 #elif defined(TB_SYSTEM_LINUX)
 	if (getauxval(AT_EXECFN))

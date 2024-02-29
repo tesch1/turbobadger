@@ -54,14 +54,15 @@ endif ()
 stage_resources (RES_FILES ${STAGE_DIR} STAGED_FILES)
 
 add_executable (TurboBadgerDemo MACOSX_BUNDLE WIN32 ${LOCAL_SRCS} ${STAGED_FILES})
+
 target_include_directories (TurboBadgerDemo PRIVATE ".")
 target_link_libraries (TurboBadgerDemo TurboBadgerLib ${EXTRA_LIBS})
 
 # file (WRITE "${CMAKE_CURRENT_BINARY_DIR}/STAGED_FILES.txt" "${STAGED_FILES}")
 # add_custom_target (xxx
 #   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-#   COMMAND echo ""${STAGED_FILES}"" > xxxxxxy
-#   )
+#   COMMAND "echo ""${STAGED_FILES}"" > xxxxxxy"
+# )
 
 if (APPLE)
   set (APPLE_DEVTEAM_ID "$ENV{APPLE_DEVTEAM_ID}" CACHE STRING "Apple code signing team ID")
@@ -130,7 +131,6 @@ if (APPLE)
       XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${APPLE_DEVTEAM_ID}"
     )
   endif ()
-
 endif (APPLE)
 
 install (TARGETS TurboBadgerDemo

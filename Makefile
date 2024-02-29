@@ -36,7 +36,7 @@ Build-osx/TurboBadger.xcodeproj:
 	cmake . -G Xcode -BBuild-osx -DTB_RENDERER=GL3 -DTB_BUILD_DEMO=SDL2
 
 osx: Build-osx/TurboBadger.xcodeproj
-	cd Build-osx && cmake --build . --target package --config Debug
+	cd Build-osx && cmake --build . -j 8 --target package --config Debug
 
 osxr: Build-osx/TurboBadger.xcodeproj
 	cd Build-osx && cmake --build . --target package --config Release

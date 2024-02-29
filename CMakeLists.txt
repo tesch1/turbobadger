@@ -338,7 +338,7 @@ if (${TB_BUILD_DEMO} STREQUAL ANDROID)
   add_library (TurboBadger SHARED
     ./DemoAndroid/app/src/main/jni/jni_glue.cpp
     ./DemoAndroid/app/src/main/jni/App.cpp
-    )
+  )
   target_link_libraries (TurboBadger TurboBadgerLib)
 
   set_property (TARGET TurboBadger APPEND PROPERTY ANDROID_ASSETS_DIRECTORIES
