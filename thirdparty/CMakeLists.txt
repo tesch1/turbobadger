@@ -38,10 +38,8 @@ if (TB_BUILD_GLFW)
   # Download glfw
   ExternalProject_Add (GLFWEXT
     PREFIX GLFWEXT
-    # URL https://github.com/glfw/glfw/archive/3.3.tar.gz
-    # URL_HASH MD5=5be03812f5d109817e6558c3fab7bbe1
-    URL https://github.com/glfw/glfw/archive/refs/tags/3.3.4.tar.gz
-    URL_HASH MD5=8f8e5e931ef61c6a8e82199aabffe65a
+    URL https://github.com/glfw/glfw/archive/refs/tags/3.3.10.tar.gz
+    URL_HASH MD5=f6e72e39141fb7f9e71017d52781ee42
     DOWNLOAD_DIR "${DOWNLOAD_DIR}"
     #GIT_REPOSITORY "https://github.com/glfw/glfw.git"
     #GIT_TAG "3.3"
