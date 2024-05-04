@@ -85,14 +85,8 @@ elseif (TB_BACKEND STREQUAL GLFW AND hasParent)
 endif (TB_BUILD_GLFW)
 
 if (TB_BUILD_SDL2)
-  set (SDL_VERSION 2.0.5)
-  set (SDL_VERSION_HASH d4055424d556b4a908aa76fad63abd3c)
-  set (SDL_VERSION 2.0.10)
-  set (SDL_VERSION_HASH 5a2114f2a6f348bdab5bf52b994811db)
-  set (SDL_VERSION 2.0.12)
-  set (SDL_VERSION_HASH 783b6f2df8ff02b19bb5ce492b99c8ff)
-  set (SDL_VERSION 2.30.0)
-  set (SDL_VERSION_HASH 3b0a35e1d794382dcd64d9da93870ea1)
+  set (SDL_VERSION 2.30.3)
+  set (SDL_VERSION_HASH 85ceed58290332fa4ef75a3dabfa1b89)
 
   ExternalProject_Add (sdl2X
     PREFIX sdl2X
