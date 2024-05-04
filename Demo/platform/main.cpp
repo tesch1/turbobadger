@@ -13,7 +13,9 @@
 #endif
 #ifdef TB_SYSTEM_LINUX
 #include <unistd.h>
+#if !defined(__EMSCRIPTEN__)
 #include <sys/auxv.h>
+#endif
 #endif
 #ifdef TB_SYSTEM_WINDOWS
 #include <tchar.h>
@@ -39,7 +41,7 @@ using namespace tb;
 
 bool port_main(int argc, char* argv[])
 {
-#if defined(TB_BACKEND_SDL2) && !defined(__EMSCRIPTEN__)
+#if defined(TB_BACKEND_SDL2) && defined(__EMSCRIPTEN__)
 	if (char *base_path = SDL_GetBasePath())
 	{
 #if !TARGET_OS_IPHONE
@@ -65,8 +67,11 @@ bool port_main(int argc, char* argv[])
 	{
 		for (int n = strlen(exec_path); n > 0 && exec_path[n-1] != '/'; n--)
 			exec_path[n-1] = '\0';
-		chdir(exec_path);
-		chdir("../Resources");
+		if (chdir(exec_path) ||
+            chdir("../Resources"))
+        {
+            printf("Unable to find resource directory '%s/../Resources'\n", exec_path);
+        }
 	}
 #elif defined(TB_SYSTEM_LINUX)
 	if (getauxval(AT_EXECFN))

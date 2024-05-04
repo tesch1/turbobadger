@@ -61,7 +61,7 @@ function (add_resources RES_LIST_NAME RES_ROOT_PATH)
       set_property (SOURCE ${RES_FILE} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${AR_DESTINATION}${RES_DIR}")
       set_property (SOURCE ${RES_FILE} PROPERTY RES_LOCATION "${AR_DESTINATION}${RES_DIR}")
 
-      #message ("${RES_FILE} -> '${AR_DESTINATION}' '${RES_DIR}'")
+      message ("${RES_FILE} -> '${AR_DESTINATION}' '${RES_DIR}'")
     endforeach ()
   endforeach ()
 
@@ -97,11 +97,15 @@ function (stage_resources RES_LIST_NAME STAGE_DIR STAGED_FILES_VAR)
       OUTPUT ${FULL_PATH}
       COMMAND ${CMAKE_COMMAND} -E make_directory "${STAGE_DIR}/${RES_LOCATION}"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different "${RES_FILE}" "${STAGE_DIR}/${RES_LOCATION}"
-      )
+    )
+
+    set_property (SOURCE ${FULL_PATH} PROPERTY MACOSX_PACKAGE_LOCATION "Resources/${RES_LOCATION}")
+
+    message ("** ${FULL_PATH} ===> 'Resources/${RES_LOCATION}'")
 
     list (APPEND ${STAGED_FILES_VAR} ${FULL_PATH})
-    set (${STAGED_FILES_VAR} ${${STAGED_FILES_VAR}} PARENT_SCOPE)
   endforeach ()
+  set (${STAGED_FILES_VAR} ${${STAGED_FILES_VAR}} PARENT_SCOPE)
 endfunction ()
 
 function (fixup_resources RES_LIST_NAME)

@@ -8,7 +8,8 @@ SRC_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 
 # make sure we're in the right place
 cd "${SRC_DIR}"
-[ -d DemoAndroid2/app ] || exit 1
+[ -d DemoAndroid/app ] || exit 1
+[ -d Demo/demo01 ] || exit 1
 [ -f doc/Doxyfile.in ] || exit 1
 [ "${SRC_DIR}/Build-emsc/doc/Doxyfile" ] || exit 1
 EMSCRIPTEN_FILES="
@@ -36,11 +37,9 @@ if [ ! -f "doc/html/index.html" ]; then
     git clone --depth 1 --branch gh-pages git@github.com:tesch1/turbobadger.git .
 fi
 
-cd       "${SRC_DIR}/doc/html"
-
-if [ x != x"$(ls)" ] ; then
-    git rm -rf *
-fi
+cd "${SRC_DIR}/Build-emsc/doc/html"
+echo "Removing old doxygen'd docs..."
+git rm -rf *
 
 # make the docs
 cd       "${SRC_DIR}/Build-emsc"

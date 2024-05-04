@@ -17,8 +17,8 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set (TB_VERSION_MAJOR "0")
 set (TB_VERSION_MINOR "1")
-set (TB_VERSION_PATCH "0")
-set (TB_VERSION_BUILD "-beta8") # ie "-beta1", or empty string if release: ""
+set (TB_VERSION_PATCH "1")
+set (TB_VERSION_BUILD "") # ie "-beta1", or empty string if release: ""
 set (TB_VERSION "${TB_VERSION_MAJOR}.${TB_VERSION_MINOR}.${TB_VERSION_PATCH}")
 
 #
@@ -338,7 +338,7 @@ if (${TB_BUILD_DEMO} STREQUAL ANDROID)
   add_library (TurboBadger SHARED
     ./DemoAndroid/app/src/main/jni/jni_glue.cpp
     ./DemoAndroid/app/src/main/jni/App.cpp
-    )
+  )
   target_link_libraries (TurboBadger TurboBadgerLib)
 
   set_property (TARGET TurboBadger APPEND PROPERTY ANDROID_ASSETS_DIRECTORIES

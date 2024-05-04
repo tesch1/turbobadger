@@ -14,26 +14,29 @@ sdl2:
 	cd Build-sdl2 && $(MAKE) package
 
 Build-emsc/Makefile:
-	source ${HOME}/local/emsdk/emsdk_env.sh ; \
-	emconfigure cmake . -BBuild-emsc -DTB_BUILD_DEMO=SDL2 -DCMAKE_BUILD_TYPE=Debug
+#	source ${HOME}/local/emsdk/emsdk_env.sh ; 
+	emcmake cmake . -BBuild-emsc -DTB_BUILD_DEMO=SDL2 -DCMAKE_BUILD_TYPE=Debug
 
 em-sdl2: Build-emsc/Makefile
 	cd Build-emsc && $(MAKE)
 
 Build-emscgl/Makefile:
-	source ${HOME}/local/emsdk/emsdk_env.sh ; \
-	emconfigure cmake . -BBuild-emscgl -DTB_BUILD_DEMO=GLFW -DCMAKE_BUILD_TYPE=Debug
+#	source ${HOME}/local/emsdk/emsdk_env.sh ;
+	emcmake cmake . -BBuild-emscgl -DTB_BUILD_DEMO=GLFW -DCMAKE_BUILD_TYPE=Debug
 
 em-glfw: Build-emscgl/Makefile
 	cd Build-emscgl && $(MAKE)
 
-em: em-sdl2 em-glfw
+em: em-sdl2 # em-glfw
+
+emrun:
+	cd Build-emsc && emrun TurboBadgerDemo.html
 
 Build-osx/TurboBadger.xcodeproj:
 	cmake . -G Xcode -BBuild-osx -DTB_RENDERER=GL3 -DTB_BUILD_DEMO=SDL2
 
 osx: Build-osx/TurboBadger.xcodeproj
-	cd Build-osx && cmake --build . --target package --config Debug
+	cd Build-osx && cmake --build . -j 8 --target package --config Debug
 
 osxr: Build-osx/TurboBadger.xcodeproj
 	cd Build-osx && cmake --build . --target package --config Release

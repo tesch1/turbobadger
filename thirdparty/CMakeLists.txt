@@ -11,6 +11,7 @@ get_directory_property (hasParent PARENT_DIRECTORY)
 if (CMAKE_XCODE_BUILD_SYSTEM VERSION_GREATER_EQUAL 12)
   cmake_policy (SET CMP0114 NEW)
 endif ()
+cmake_policy (SET CMP0135 NEW)
 
 if (NOT WIN32)
   set (DOWNLOAD_DIR "$ENV{HOME}/Downloads")
@@ -90,6 +91,8 @@ if (TB_BUILD_SDL2)
   set (SDL_VERSION_HASH 5a2114f2a6f348bdab5bf52b994811db)
   set (SDL_VERSION 2.0.12)
   set (SDL_VERSION_HASH 783b6f2df8ff02b19bb5ce492b99c8ff)
+  set (SDL_VERSION 2.30.0)
+  set (SDL_VERSION_HASH 3b0a35e1d794382dcd64d9da93870ea1)
 
   ExternalProject_Add (sdl2X
     PREFIX sdl2X
@@ -124,6 +127,10 @@ if (TB_BUILD_SDL2)
     set (SDL_STATIC_PIC ON  CACHE BOOL "" FORCE)
     set (SDL_TEST       OFF CACHE BOOL "" FORCE)
     set (SDL_RENDER     OFF CACHE BOOL "" FORCE)
+    set (SDL_ARMNEON    ON  CACHE BOOL "" FORCE)
+    set (SDL_ARMSIMD    ON  CACHE BOOL "" FORCE)
+
+    #set (ENV{CFLAGS}    "-std=c99")
     #set (SDL_HAPTIC     OFF CACHE BOOL "" FORCE)
     #set (SDL_JOYSTICK   OFF CACHE BOOL "" FORCE)
     add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir" EXCLUDE_FROM_ALL)
@@ -148,6 +155,7 @@ if (TB_BUILD_SDL2)
         message (FATAL_ERROR "Didn't create 'SDL2-static' target")
       endif ()
       target_link_libraries (SDL2-interface INTERFACE SDL2-static)
+      #target_compile_features (SDL2::SDL2 PRIVATE c_std_99)
     endif ()
   endif (hasParent)
 elseif (TB_BACKEND STREQUAL SDL2 AND hasParent)
@@ -259,8 +267,10 @@ endif (TB_BUILD_FREETYPE)
 if (WIN32)
   ExternalProject_Add (GLEWX
     PREFIX GLEWX
-    URL "https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0-win32.zip"
-    URL_HASH MD5=32a72e6b43367db8dbea6010cd095355
+    #URL "https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0-win32.zip"
+    #URL_HASH MD5=32a72e6b43367db8dbea6010cd095355
+    URL "https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip"
+    URL_HASH MD5=1feddfe8696c192fa46a0df8eac7d4bf
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     UPDATE_COMMAND ""
     PATCH_COMMAND ""

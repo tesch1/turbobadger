@@ -25,7 +25,7 @@ jobs:
             name: "Windows Latest MSVC",
             os: windows-latest,
             build_type: "Release",
-            generators: "Visual Studio 16 2019"
+            generators: "Visual Studio 17 2022"
           }
         # - {
         #     name: "Ubuntu_Latest_GCC",
@@ -41,7 +41,7 @@ jobs:
         #   }
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - name: Print env
@@ -79,7 +79,7 @@ jobs:
           include(ProcessorCount)
           ProcessorCount(NCPU)
           message("ncpu=${NCPU}")
-          message("::set-output name=ncpu::${NCPU}")
+          file(APPEND $ENV{GITHUB_OUTPUT} "ncpu=${NCPU}")
 
       - name: Configure
         shell: bash
@@ -110,7 +110,7 @@ jobs:
           ls -l build
 
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Package ${{ matrix.config.name }}
           path: |
@@ -134,7 +134,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           path: artifacts
       - run: |
