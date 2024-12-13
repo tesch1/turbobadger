@@ -41,6 +41,7 @@ if (TB_BUILD_GLFW)
     URL https://github.com/glfw/glfw/archive/refs/tags/3.3.10.tar.gz
     URL_HASH MD5=f6e72e39141fb7f9e71017d52781ee42
     DOWNLOAD_DIR "${DOWNLOAD_DIR}"
+    DOWNLOAD_NAME glfw-3.3.10.tar.gz
     #GIT_REPOSITORY "https://github.com/glfw/glfw.git"
     #GIT_TAG "3.3"
     #GIT_SHALLOW 1

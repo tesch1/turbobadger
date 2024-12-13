@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.4.3)
+cmake_minimum_required (VERSION 3.14.0)
 
 set (LOCAL_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/tb_config.h
