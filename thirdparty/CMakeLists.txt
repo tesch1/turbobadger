@@ -219,8 +219,10 @@ if (TB_BUILD_FREETYPE)
   #
   ExternalProject_Add (freetypeX
     PREFIX freetypeX
-    URL http://download.savannah.gnu.org/releases/freetype/freetype-2.9.1.tar.gz
-    URL_HASH MD5=3adb0e35d3c100c456357345ccfa8056
+    URL http://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.gz
+    URL_HASH MD5=ac1f0b517f62bd40d50bc995faa5741d
+    #URL http://download.savannah.gnu.org/releases/freetype/freetype-2.9.1.tar.gz
+    #URL_HASH MD5=3adb0e35d3c100c456357345ccfa8056
     #URL http://download.savannah.gnu.org/releases/freetype/freetype-2.8.1.tar.gz
     #URL_HASH MD5=c947b6b1c513e814cc9d7617a44bc6cf
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
