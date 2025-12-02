@@ -52,10 +52,16 @@ int TBSystem::GetPixelsPerLine()
 	return 40 * GetDPI() / 96;
 }
 
+int TBSystem::_dpi = 96;
+
 int TBSystem::GetDPI()
 {
-	// FIX: Implement!
-	return 96;
+	return _dpi;
+}
+
+void TBSystem::SetDPI(int dpi)
+{
+	_dpi = dpi;
 }
 
 } // namespace tb

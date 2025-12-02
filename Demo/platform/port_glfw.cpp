@@ -248,8 +248,16 @@ static void mouse_button_callback(GLFWwindow *window, int button, int action, in
 
 void cursor_position_callback(GLFWwindow *window, double x, double y)
 {
-	mouse_x = (int)x;
-	mouse_y = (int)y;
+	// GLFW gives cursor position in window coordinates, but we need framebuffer coordinates
+	// for high-DPI displays. Calculate the scale factor.
+	int window_w, window_h, fb_w, fb_h;
+	glfwGetWindowSize(window, &window_w, &window_h);
+	glfwGetFramebufferSize(window, &fb_w, &fb_h);
+	float scale_x = (float)fb_w / window_w;
+	float scale_y = (float)fb_h / window_h;
+
+	mouse_x = (int)(x * scale_x);
+	mouse_y = (int)(y * scale_y);
 	if (GetBackend(window)->GetRoot() && !(ShouldEmulateTouchEvent() && !TBWidget::captured_widget)) {
 		GetBackend(window)->GetRoot()->InvokePointerMove(mouse_x, mouse_y, GetModifierKeys(), ShouldEmulateTouchEvent());
 
@@ -265,8 +273,20 @@ void cursor_position_callback(GLFWwindow *window, double x, double y)
 
 static void scroll_callback(GLFWwindow *window, double x, double y)
 {
-	if (GetBackend(window)->GetRoot())
-		GetBackend(window)->GetRoot()->InvokeWheel(mouse_x, mouse_y, (float)x, -(float)y, GetModifierKeys());
+	if (GetBackend(window)->GetRoot()) {
+		// On high-DPI displays, we've scaled the DPI which makes GetPixelsPerLine() larger.
+		// Compensate by dividing the wheel delta by the scale factor, plus an additional
+		// factor to match comfortable scroll speed.
+		int window_w, window_h, fb_w, fb_h;
+		glfwGetWindowSize(window, &window_w, &window_h);
+		glfwGetFramebufferSize(window, &fb_w, &fb_h);
+		float scale = (float)fb_w / window_w;
+
+		GetBackend(window)->GetRoot()->InvokeWheel(mouse_x, mouse_y,
+												   (float)x / (scale * 2.0f),
+												   -(float)y / (scale * 2.0f),
+												   GetModifierKeys());
+	}
 }
 
 /** Reschedule the platform timer, or cancel it if fire_time is TB_NOT_SOON.
@@ -337,8 +357,12 @@ static void window_refresh_callback(GLFWwindow *window)
 static void window_size_callback(GLFWwindow *window, int w, int h)
 {
 	AppBackendGLFW *backend = GetBackend(window);
-	if (backend->m_app)
-		backend->m_app->OnResized(w, h);
+	if (backend->m_app) {
+		// Use framebuffer size, not window size, for high-DPI displays
+		int fb_width, fb_height;
+		glfwGetFramebufferSize(window, &fb_width, &fb_height);
+		backend->m_app->OnResized(fb_width, fb_height);
+	}
 }
 
 #if (GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 1)
@@ -400,7 +424,17 @@ bool AppBackendGLFW::Init(App *app)
 
 	// Create the App object for our demo
 	m_app = app;
-	m_app->OnBackendAttached(this, width, height);
+
+	// On high-DPI displays (Retina), framebuffer size != window size
+	// We need to use framebuffer size for rendering
+	int fb_width, fb_height;
+	glfwGetFramebufferSize(mainWindow, &fb_width, &fb_height);
+
+	// Calculate DPI scale factor and set it so TurboBadger scales UI appropriately
+	float scale = (float)fb_width / width;
+	TBSystem::SetDPI(96 * scale);
+
+	m_app->OnBackendAttached(this, fb_width, fb_height);
 
 	return true;
 }
