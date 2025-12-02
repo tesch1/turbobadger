@@ -5,7 +5,7 @@
 
 #include "tb_system.h"
 
-#ifdef TB_CLIPBOARD_SDL2
+#if defined(TB_CLIPBOARD_SDL2) || defined(TB_CLIPBOARD_SDL3)
 
 #define GL_GLEXT_PROTOTYPES 1
 

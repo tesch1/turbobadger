@@ -117,8 +117,8 @@ public:
 	EVENT_TYPE type;	///< Which type of event
 	int target_x;		///< X position in target widget. Set for all pointer events, click and wheel.
 	int target_y;		///< Y position in target widget. Set for all pointer events, click and wheel.
-	int delta_x;		///< Set for EVENT_TYPE_WHEEL. Positive is a turn right.
-	int delta_y;		///< Set for EVENT_TYPE_WHEEL. Positive is a turn against the user.
+	float delta_x;		///< Set for EVENT_TYPE_WHEEL. Positive is a turn right. Float for precision scrolling.
+	float delta_y;		///< Set for EVENT_TYPE_WHEEL. Positive is a turn against the user. Float for precision scrolling.
 	int count;			///< 1 for all events, but increased for
 						///  POINTER_DOWN event to 2 for doubleclick,
 						///  3 for tripleclick and so on. For FINGER
@@ -794,7 +794,7 @@ public:
 	virtual void OnResized(int old_w, int old_h);
 
 	/** Called when this widget has been scrolled. */
-	virtual void OnScroll(int /*scroll_x*/, int /*scroll_y*/) {}
+	virtual void OnScroll(double /*scroll_x*/, double /*scroll_y*/) {}
 
 	/** Called just after a child has been inflated into this widget.
 		The default implementation will resize the child to it's preferred size
@@ -1067,7 +1067,7 @@ public:
 	/** See TBWidget::InvokeEvent */
 	void InvokePointerMove(int x, int y, MODIFIER_KEYS modifierkeys, bool touch);
 	/** See TBWidget::InvokeEvent */
-	bool InvokeWheel(int x, int y, int delta_x, int delta_y, MODIFIER_KEYS modifierkeys);
+	bool InvokeWheel(int x, int y, float delta_x, float delta_y, MODIFIER_KEYS modifierkeys);
 
 	/** See TBWidget::InvokeEvent */
 	bool InvokeMultiGesture(float dTheta, float dDist, int targetx, int targety, float x, float y, uint16_t numFingers);

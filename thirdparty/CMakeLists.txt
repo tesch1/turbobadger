@@ -83,7 +83,7 @@ elseif (TB_BACKEND STREQUAL GLFW AND hasParent)
   endif (EMSCRIPTEN)
 endif (TB_BUILD_GLFW)
 
-if (TB_BUILD_SDL2)
+if (TB_BUILD_SDL2 OR TB_BUILD_SDL3)
   set (SDL_VERSION 3.2.26)
   # Note: MD5 hash to be verified after first download
   set (SDL_VERSION_HASH "")
@@ -140,7 +140,7 @@ if (TB_BUILD_SDL2)
       target_link_libraries (SDL2-interface INTERFACE SDL3-static)
     endif ()
   endif (hasParent)
-elseif (TB_BACKEND STREQUAL SDL2 AND hasParent)
+elseif ((TB_BACKEND STREQUAL SDL2 OR TB_BACKEND STREQUAL SDL3) AND hasParent)
   #
   # Not building SDL3, so try to find it
   #
@@ -200,7 +200,7 @@ elseif (TB_BACKEND STREQUAL SDL2 AND hasParent)
     set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS SDL_FRAMEWORK=1)
     target_link_libraries (SDL2-interface INTERFACE SDL3)
   endif (EMSCRIPTEN)
-endif (TB_BUILD_SDL2)
+endif (TB_BUILD_SDL2 OR TB_BUILD_SDL3)
 
 if (TB_BUILD_FREETYPE)
   #

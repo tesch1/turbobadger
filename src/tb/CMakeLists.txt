@@ -112,7 +112,7 @@ endif (ANDROID)
 
 set_property (TARGET TurboBadgerLib PROPERTY CXX_STANDARD 14)
 
-if (TB_BACKEND STREQUAL SDL2)
+if (TB_BACKEND STREQUAL SDL2 OR TB_BACKEND STREQUAL SDL3)
   target_link_libraries (TurboBadgerLib PUBLIC SDL2-interface)
 endif ()
 

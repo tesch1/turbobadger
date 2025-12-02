@@ -1467,7 +1467,7 @@ void TBWidget::HandlePanningOnMove(int x, int y)
 	}
 }
 
-bool TBWidget::InvokeWheel(int x, int y, int delta_x, int delta_y, MODIFIER_KEYS modifierkeys)
+bool TBWidget::InvokeWheel(int x, int y, float delta_x, float delta_y, MODIFIER_KEYS modifierkeys)
 {
 	SetHoveredWidget(GetWidgetAt(x, y, true), true);
 

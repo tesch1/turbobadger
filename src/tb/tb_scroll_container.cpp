@@ -88,8 +88,8 @@ void TBScrollContainerRoot::OnPaintChildren(const PaintProps &paint_props)
 void TBScrollContainerRoot::GetChildTranslation(int &x, int &y) const
 {
 	TBScrollContainer *sc = static_cast<TBScrollContainer *>(GetParent());
-	x = (int) -sc->m_scrollbar_x.GetValue();
-	y = (int) -sc->m_scrollbar_y.GetValue();
+	x = (int) -sc->m_scrollbar_x.GetValueDouble();
+	y = (int) -sc->m_scrollbar_y.GetValueDouble();
 }
 
 // == TBScrollContainer =======================================
@@ -212,7 +212,7 @@ bool TBScrollContainer::OnEvent(const TBWidgetEvent &ev)
 	if (ev.type == EVENT_TYPE_CHANGED && (ev.target == &m_scrollbar_x || ev.target == &m_scrollbar_y))
 	{
 		Invalidate();
-		OnScroll(m_scrollbar_x.GetValue(), m_scrollbar_y.GetValue());
+		OnScroll(m_scrollbar_x.GetValueDouble(), m_scrollbar_y.GetValueDouble());
 		return true;
 	}
 	else if (ev.type == EVENT_TYPE_WHEEL && ev.modifierkeys == TB_MODIFIER_NONE)

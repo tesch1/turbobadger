@@ -266,7 +266,7 @@ void cursor_position_callback(GLFWwindow *window, double x, double y)
 static void scroll_callback(GLFWwindow *window, double x, double y)
 {
 	if (GetBackend(window)->GetRoot())
-		GetBackend(window)->GetRoot()->InvokeWheel(mouse_x, mouse_y, (int)x, -(int)y, GetModifierKeys());
+		GetBackend(window)->GetRoot()->InvokeWheel(mouse_x, mouse_y, (float)x, -(float)y, GetModifierKeys());
 }
 
 /** Reschedule the platform timer, or cancel it if fire_time is TB_NOT_SOON.

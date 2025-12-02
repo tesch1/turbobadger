@@ -133,6 +133,9 @@ void AppBackendSDL2::QueueUserEvent(Sint32 code, void * data1, void * data2)
 
 bool AppBackendSDL2::Init(App *app)
 {
+	// Enable momentum scrolling on macOS trackpads
+	SDL_SetHint(SDL_HINT_MAC_SCROLL_MOMENTUM, "1");
+
 	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
 		SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
@@ -403,10 +406,16 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 		SDL_GetMouseState(&mouse_x, &mouse_y);
 		mouse_x *= m_xscale;
 		mouse_y *= m_yscale;
-		if (m_app->GetRoot())
+		if (m_app->GetRoot()) {
+			// SDL3 with momentum enabled provides deltas in an appropriate scale.
+			// Scale down slightly so TurboBadger's internal GetPixelsPerLine() multiplication
+			// gives a good scroll speed. Divide by a smaller factor for comfortable speed.
+			const float scale_factor = 5.0f;
 			m_app->GetRoot()->InvokeWheel(mouse_x, mouse_y,
-										  (int)event.wheel.x, -(int)event.wheel.y,
+										  event.wheel.x / scale_factor,
+										  -event.wheel.y / scale_factor,
 										  GetModifierKeys());
+		}
 		break;
 	}
 	// SDL_EVENT_MULTIGESTURE and SDL_EVENT_SYSWM removed in SDL3

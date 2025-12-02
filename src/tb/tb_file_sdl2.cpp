@@ -5,7 +5,7 @@
 
 #include "tb_system.h"
 
-#ifdef TB_FILE_SDL2
+#if defined(TB_FILE_SDL2) || defined(TB_FILE_SDL3)
 
 #include <SDL3/SDL.h>
 
