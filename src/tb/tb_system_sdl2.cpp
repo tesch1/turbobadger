@@ -21,11 +21,7 @@
 #endif
 
 #define GL_GLEXT_PROTOTYPES 1
-#ifdef SDL_FRAMEWORK
-#include "SDL2/SDL.h"
-#else
-#include "SDL.h"
-#endif
+#include <SDL3/SDL.h>
 
 #if defined(TB_RUNTIME_DEBUG_INFO)
 #ifdef ANDROID
@@ -74,7 +70,7 @@ double TBSystem::GetTimeMS()
 }
 
 static SDL_TimerID tb_sdl_timer_id = 0;
-static Uint32 tb_sdl_timer_callback(Uint32 /*interval*/, void * /*param*/)
+static Uint32 tb_sdl_timer_callback(void * /*userdata*/, SDL_TimerID /*timerID*/, Uint32 /*interval*/)
 {
 	double next_fire_time = TBMessageHandler::GetNextMessageFireTime();
 	double now = TBSystem::GetTimeMS();
@@ -83,19 +79,17 @@ static Uint32 tb_sdl_timer_callback(Uint32 /*interval*/, void * /*param*/)
 		// We timed out *before* we were supposed to (the OS is not playing nice).
 		// Calling ProcessMessages now won't achieve a thing so force a reschedule
 		// of the platform timer again with the same time.
-		return next_fire_time - now;
+		return (Uint32)(next_fire_time - now);
 	}
 
 	{
 		// queue a user event to cause the event loop to run
 		SDL_Event event;
-		SDL_UserEvent userevent;
-		userevent.type = SDL_USEREVENT;
-		userevent.code = 3;
-		userevent.data1 = NULL;
-		userevent.data2 = NULL;
-		event.type = SDL_USEREVENT;
-		event.user = userevent;
+		SDL_zero(event);
+		event.type = SDL_EVENT_USER;
+		event.user.code = 3;
+		event.user.data1 = NULL;
+		event.user.data2 = NULL;
 		SDL_PushEvent(&event);
 	}
 

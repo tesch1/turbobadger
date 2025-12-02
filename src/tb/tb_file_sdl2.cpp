@@ -7,51 +7,47 @@
 
 #ifdef TB_FILE_SDL2
 
-#ifdef SDL_FRAMEWORK
-#include "SDL2/SDL.h"
-#else
-#include "SDL.h"
-#endif
+#include <SDL3/SDL.h>
 
 namespace tb {
 
 class TBFileSDL2 : public TBFile
 {
 public:
-	TBFileSDL2(SDL_RWops *f) : _file(f) {}
-	virtual ~TBFileSDL2() { SDL_RWclose(_file); }
+	TBFileSDL2(SDL_IOStream *f) : _file(f) {}
+	virtual ~TBFileSDL2() { SDL_CloseIO(_file); }
 
 	virtual long Size()
 	{
-		return (long)SDL_RWsize(_file);
+		return (long)SDL_GetIOSize(_file);
 	}
 	virtual size_t Read(void *buf, size_t elemSize, size_t count)
 	{
-		return SDL_RWread(_file, buf, elemSize, count);
+		return SDL_ReadIO(_file, buf, elemSize * count) / elemSize;
 	}
 	virtual size_t Write(const void *buf, size_t elemSize, size_t count)
 	{
-		return SDL_RWwrite(_file, buf, elemSize, count);
+		return SDL_WriteIO(_file, buf, elemSize * count) / elemSize;
 	}
 	virtual size_t Write(const TBStr & str)
 	{
 		return Write(str.CStr(), str.Length(), 1);
 	}
 private:
-	SDL_RWops *_file;
+	SDL_IOStream *_file;
 };
 
 // static
 TBFile *TBFile::Open(const TBStr & filename, TBFileMode mode)
 {
-	SDL_RWops *f = nullptr;
+	SDL_IOStream *f = nullptr;
 	switch (mode)
 	{
 	case MODE_READ:
-		f = SDL_RWFromFile(filename.CStr(), "rb");
+		f = SDL_IOFromFile(filename.CStr(), "rb");
 		break;
 	case MODE_WRITETRUNC:
-		f = SDL_RWFromFile(filename.CStr(), "w");
+		f = SDL_IOFromFile(filename.CStr(), "w");
 		break;
 	default:
 		break;
@@ -67,7 +63,7 @@ TBFile *TBFile::Open(const TBStr & filename, TBFileMode mode)
 		return nullptr;
 	TBFileSDL2 *tbf = new TBFileSDL2(f);
 	if (!tbf)
-		SDL_RWclose(f);
+		SDL_CloseIO(f);
 	return tbf;
 }
 

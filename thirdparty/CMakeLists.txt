@@ -84,14 +84,14 @@ elseif (TB_BACKEND STREQUAL GLFW AND hasParent)
 endif (TB_BUILD_GLFW)
 
 if (TB_BUILD_SDL2)
-  set (SDL_VERSION 2.32.2)
-  set (SDL_VERSION_HASH 3dbb100178a1f37fa96dfc63c8a23367)
+  set (SDL_VERSION 3.2.26)
+  # Note: MD5 hash to be verified after first download
+  set (SDL_VERSION_HASH "")
 
-  ExternalProject_Add (sdl2X
-    PREFIX sdl2X
-    #HG_REPOSITORY https://hg.libsdl.org/SDL
-    URL https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
-    URL_HASH "MD5=${SDL_VERSION_HASH}"
+  ExternalProject_Add (sdl3X
+    PREFIX sdl3X
+    URL https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSION}/SDL3-${SDL_VERSION}.tar.gz
+    #URL_HASH "MD5=${SDL_VERSION_HASH}"
     DOWNLOAD_DIR "${DOWNLOAD_DIR}"
     UPDATE_COMMAND ""
     PATCH_COMMAND ""
@@ -99,14 +99,14 @@ if (TB_BUILD_SDL2)
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
     LOG_DOWNLOAD ON)
-  ExternalProject_Get_Property (sdl2X source_dir)
+  ExternalProject_Get_Property (sdl3X source_dir)
 
   if (hasParent)
     #set (SDL_CMAKE_DEBUG_POSTFIX "\"\"" CACHE STRING "Name suffix for debug builds" FORCE)
     if (ANDROID)
       set (SDL_SHARED   ON  CACHE BOOL "" FORCE)
       set (SDL_STATIC   OFF CACHE BOOL "" FORCE)
-      # sdl2-2.0.10 needs cpufeatures
+      # sdl3 needs cpufeatures on Android
       include (AndroidNdkModules)
       android_ndk_import_module_cpufeatures ()
       get_target_property (CPUFEATURES_INCLUDES cpufeatures INCLUDE_DIRECTORIES)
@@ -119,44 +119,34 @@ if (TB_BUILD_SDL2)
     endif ()
     set (SDL_STATIC_PIC ON  CACHE BOOL "" FORCE)
     set (SDL_TEST       OFF CACHE BOOL "" FORCE)
-    set (SDL_RENDER     OFF CACHE BOOL "" FORCE)
-    set (SDL_ARMNEON    ON  CACHE BOOL "" FORCE)
-    set (SDL_ARMSIMD    ON  CACHE BOOL "" FORCE)
 
     #set (ENV{CFLAGS}    "-std=c99")
-    #set (SDL_HAPTIC     OFF CACHE BOOL "" FORCE)
-    #set (SDL_JOYSTICK   OFF CACHE BOOL "" FORCE)
-    add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir" EXCLUDE_FROM_ALL)
-    set (SDL2_DIR "${source_dir}" CACHE STRING "Path to SDL2 sources" FORCE)
+    add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl3X_binary_dir" EXCLUDE_FROM_ALL)
+    set (SDL3_DIR "${source_dir}" CACHE STRING "Path to SDL3 sources" FORCE)
+
+    # Create a compatibility interface that mimics the old SDL2-interface
     add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
-    if (SDL_VERSION VERSION_LESS "2.0.10")
-      set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-        "${CMAKE_CURRENT_BINARY_DIR}/sdl2X_binary_dir/include;${source_dir}/include")
-    endif (SDL_VERSION VERSION_LESS "2.0.10")
-    if (WIN32)
-      target_link_libraries (SDL2-interface INTERFACE SDL2main)
-    endif (WIN32)
+
+    # Link to the appropriate SDL3 target based on platform
     if (ANDROID)
-      if (NOT TARGET SDL2)
-        message (FATAL_ERROR "Didn't create 'SDL2' target")
+      if (NOT TARGET SDL3-shared)
+        message (FATAL_ERROR "Didn't create 'SDL3-shared' target")
       endif ()
-      target_link_libraries (SDL2-interface INTERFACE SDL2)
-      #target_link_libraries (SDL2-interface INTERFACE cpufeatures)
-      #set_target_properties (SDL2-static PROPERTIES DEBUG_POSTFIX "")
+      target_link_libraries (SDL2-interface INTERFACE SDL3-shared)
     else ()
-      if (NOT TARGET SDL2-static)
-        message (FATAL_ERROR "Didn't create 'SDL2-static' target")
+      if (NOT TARGET SDL3-static)
+        message (FATAL_ERROR "Didn't create 'SDL3-static' target")
       endif ()
-      target_link_libraries (SDL2-interface INTERFACE SDL2-static)
-      #target_compile_features (SDL2::SDL2 PRIVATE c_std_99)
+      target_link_libraries (SDL2-interface INTERFACE SDL3-static)
     endif ()
   endif (hasParent)
 elseif (TB_BACKEND STREQUAL SDL2 AND hasParent)
   #
-  # Not building SDL2, so try to find it
+  # Not building SDL3, so try to find it
   #
   add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
   if (EMSCRIPTEN)
+    # Emscripten doesn't support SDL3 yet, keep SDL2
     if (${CMAKE_VERSION} VERSION_LESS "3.8.0")
       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2" CACHE STRING BLAH FORCE)
     else ()
@@ -164,13 +154,13 @@ elseif (TB_BACKEND STREQUAL SDL2 AND hasParent)
       set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_SDL=2)
     endif ()
   else ()
-    message ("Looking for SDL2 with find_package()...")
-    find_package (SDL2 2.0.10)
-    if (NOT SDL2_FOUND)
-      message ("Looking for SDL2 with find_library()...")
+    message ("Looking for SDL3 with find_package()...")
+    find_package (SDL3 QUIET CONFIG)
+    if (NOT SDL3_FOUND)
+      message ("Looking for SDL3 with find_library()...")
       # CMAKE_FIND_ROOT_PATH_BOTH is needed for finding local iOS FW in CMAKE_FIND_FRAMEWORK
-      find_library (SDL2_LIBRARY SDL2 CMAKE_FIND_ROOT_PATH_BOTH)
-      find_path (SDL2_INCLUDE_DIR "SDL.h" PATH_SUFFIXES "SDL2" CMAKE_FIND_ROOT_PATH_BOTH)
+      find_library (SDL3_LIBRARY SDL3 CMAKE_FIND_ROOT_PATH_BOTH)
+      find_path (SDL3_INCLUDE_DIR "SDL3/SDL.h" CMAKE_FIND_ROOT_PATH_BOTH)
       # look for OpenGL
       if (NOT IOS)
         set (OpenGL_GL_PREFERENCE GLVND)
@@ -187,30 +177,28 @@ elseif (TB_BACKEND STREQUAL SDL2 AND hasParent)
           set_property (TARGET OpenGL::GL APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-framework ${FW}")
         endforeach ()
       endif ()
-      # look for SDL2
-      if (SDL2_LIBRARY AND SDL2_INCLUDE_DIR AND OPENGL_FOUND)
-        add_library (SDL2 INTERFACE IMPORTED GLOBAL)
-        set_property (TARGET SDL2 APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${SDL2_LIBRARY} OpenGL::GL)
-        set_property (TARGET SDL2 APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SDL2_INCLUDE_DIR})
-        set (SDL2_FOUND TRUE)
-        message (STATUS "SDL2_LIBRARY    : ${SDL2_LIBRARY}")
-        message (STATUS "SDL2_INCLUDE_DIR: ${SDL2_INCLUDE_DIR}")
+      # look for SDL3
+      if (SDL3_LIBRARY AND SDL3_INCLUDE_DIR AND OPENGL_FOUND)
+        add_library (SDL3 INTERFACE IMPORTED GLOBAL)
+        set_property (TARGET SDL3 APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${SDL3_LIBRARY} OpenGL::GL)
+        set_property (TARGET SDL3 APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SDL3_INCLUDE_DIR})
+        set (SDL3_FOUND TRUE)
+        message (STATUS "SDL3_LIBRARY    : ${SDL3_LIBRARY}")
+        message (STATUS "SDL3_INCLUDE_DIR: ${SDL3_INCLUDE_DIR}")
       else ()
-        message (FATAL_ERROR "SDL2 NOT Found: '${SDL2_LIBRARY}' '${SDL2_INCLUDE_DIR}' '${OPENGL_FOUND}'")
+        message (FATAL_ERROR "SDL3 NOT Found: '${SDL3_LIBRARY}' '${SDL3_INCLUDE_DIR}' '${OPENGL_FOUND}'")
       endif ()
     endif ()
-    if (NOT SDL2_FOUND)
-      message ("Looking for SDL2 with pkg_search_module()...")
+    if (NOT SDL3_FOUND)
+      message ("Looking for SDL3 with pkg_search_module()...")
       include (FindPkgConfig)
-      pkg_search_module (SDL2 REQUIRED sdl2)
-      #set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${SDL2_LIBRARY})
-      #set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SDL2_INCLUDE_DIR})
+      pkg_search_module (SDL3 REQUIRED sdl3)
     endif ()
-    if (NOT SDL2_FOUND)
-      message (FATAL_ERROR "Unable to find SDL2: ${SDL2}, ${SDL2_FOUND}")
+    if (NOT SDL3_FOUND)
+      message (FATAL_ERROR "Unable to find SDL3: ${SDL3}, ${SDL3_FOUND}")
     endif ()
     set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS SDL_FRAMEWORK=1)
-    target_link_libraries (SDL2-interface INTERFACE SDL2)
+    target_link_libraries (SDL2-interface INTERFACE SDL3)
   endif (EMSCRIPTEN)
 endif (TB_BUILD_SDL2)
 

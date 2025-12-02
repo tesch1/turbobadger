@@ -9,14 +9,11 @@
 #ifdef __APPLE__
 #include <TargetConditionals.h>
 #endif
-#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
-#include "SDL2/SDL.h"
-#else
 #ifdef _WIN32
 #include <GL/glew.h>
 #endif
-#include "SDL.h"
-#endif
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 
 using namespace tb;
 

@@ -30,20 +30,20 @@ MODIFIER_KEYS GetModifierKeys()
 {
 	MODIFIER_KEYS code = TB_MODIFIER_NONE;
 	SDL_Keymod mods = SDL_GetModState();
-	if (mods & KMOD_ALT)	code |= TB_ALT;
-	if (mods & KMOD_CTRL)	code |= TB_CTRL;
-	if (mods & KMOD_SHIFT)	code |= TB_SHIFT;
-	if (mods & KMOD_GUI)	code |= TB_SUPER; // no idea what SUPER means, but doesn't seem to be used
+	if (mods & SDL_KMOD_ALT)	code |= TB_ALT;
+	if (mods & SDL_KMOD_CTRL)	code |= TB_CTRL;
+	if (mods & SDL_KMOD_SHIFT)	code |= TB_SHIFT;
+	if (mods & SDL_KMOD_GUI)	code |= TB_SUPER; // no idea what SUPER means, but doesn't seem to be used
 	return code;
 }
 
 MODIFIER_KEYS GetModifierKeys(SDL_Keymod mods)
 {
 	MODIFIER_KEYS code = TB_MODIFIER_NONE;
-	if (mods & KMOD_ALT)	code |= TB_ALT;
-	if (mods & KMOD_CTRL)	code |= TB_CTRL;
-	if (mods & KMOD_SHIFT)	code |= TB_SHIFT;
-	if (mods & KMOD_GUI)	code |= TB_SUPER; // no idea what SUPER means, but doesn't seem to be used
+	if (mods & SDL_KMOD_ALT)	code |= TB_ALT;
+	if (mods & SDL_KMOD_CTRL)	code |= TB_CTRL;
+	if (mods & SDL_KMOD_SHIFT)	code |= TB_SHIFT;
+	if (mods & SDL_KMOD_GUI)	code |= TB_SUPER; // no idea what SUPER means, but doesn't seem to be used
 	return code;
 }
 
@@ -123,22 +123,20 @@ void AppBackendSDL2::QueueUserEvent(Sint32 code, void * data1, void * data2)
 {
 	// queue a user event to cause the SDL event loop to run
 	SDL_Event event;
-	SDL_UserEvent userevent;
-	userevent.type = SDL_USEREVENT;
-	userevent.code = code;
-	userevent.data1 = data1;
-	userevent.data2 = data2;
-	event.type = SDL_USEREVENT;
-	event.user = userevent;
+	SDL_zero(event);
+	event.type = SDL_EVENT_USER;
+	event.user.code = code;
+	event.user.data1 = data1;
+	event.user.data2 = data2;
 	SDL_PushEvent(&event);
 }
 
 bool AppBackendSDL2::Init(App *app)
 {
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
+	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
 		SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
-		return 1;
+		return false;
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -157,7 +155,7 @@ bool AppBackendSDL2::Init(App *app)
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-	SDL_SetHint("SDL_HINT_ORIENTATIONS", "Portrait LandscapeLeft LandscapeRight");
+	SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait LandscapeLeft LandscapeRight");
 #if defined(TB_SYSTEM_ANDROID) || defined(TB_SYSTEM_IOS)
 	int width = 0;
 	int height = 0;
@@ -165,22 +163,15 @@ bool AppBackendSDL2::Init(App *app)
 	int width = app->GetWidth() > 0 ? app->GetWidth() : 1920;
 	int height = app->GetHeight() > 0 ? app->GetHeight() : 1080;
 #endif
-	mainWindow = SDL_CreateWindow(app->GetTitle(),
-								  SDL_WINDOWPOS_UNDEFINED,
-								  SDL_WINDOWPOS_UNDEFINED,
-								  width, height,
-								  //SDL_WINDOW_HIDDEN |
-								  SDL_WINDOW_SHOWN |
-								  SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
+	Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 #if defined(TB_SYSTEM_ANDROID)
-								  SDL_WINDOW_FULLSCREEN |
+	window_flags |= SDL_WINDOW_FULLSCREEN;
 #endif
-								  SDL_WINDOW_ALLOW_HIGHDPI
-								  );
+	mainWindow = SDL_CreateWindow(app->GetTitle(), width, height, window_flags);
 	if (!mainWindow)
 	{
 		SDL_Log("Unable to create window: %s\n", SDL_GetError());
-		return 1;
+		return false;
 	}
 	glContext = SDL_GL_CreateContext(mainWindow);
 	SDL_GL_MakeCurrent(mainWindow, glContext);
@@ -195,7 +186,7 @@ bool AppBackendSDL2::Init(App *app)
 	m_app = app;
 	SDL_GetWindowSize(mainWindow, &width, &height);
 	int pix_width, pix_height;
-	SDL_GL_GetDrawableSize(mainWindow, &pix_width, &pix_height);
+	SDL_GetWindowSizeInPixels(mainWindow, &pix_width, &pix_height);
 	m_xscale = (float)pix_width / width;
 	m_yscale = (float)pix_height / height;
 	TBSystem::SetDPI(96 * m_xscale);
@@ -212,7 +203,7 @@ AppBackendSDL2::~AppBackendSDL2()
 	tb_core_shutdown();
 
     // Close and destroy the window
-	SDL_GL_DeleteContext(glContext);
+	SDL_GL_DestroyContext(glContext);
     SDL_DestroyWindow(mainWindow);
 	SDL_Quit();
 
@@ -291,14 +282,14 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 {
 	bool handled = true;
 	switch (event.type) {
-	case SDL_KEYUP:
-	case SDL_KEYDOWN: {
+	case SDL_EVENT_KEY_UP:
+	case SDL_EVENT_KEY_DOWN: {
 		// SDL_KeyboardEvent
-		// Handle any key presses that wont also be SDL_TEXTINPUT here.
-		bool down = event.type == SDL_KEYDOWN;
-		MODIFIER_KEYS modifier = GetModifierKeys((SDL_Keymod)event.key.keysym.mod);
+		// Handle any key presses that wont also be SDL_EVENT_TEXT_INPUT here.
+		bool down = event.type == SDL_EVENT_KEY_DOWN;
+		MODIFIER_KEYS modifier = GetModifierKeys((SDL_Keymod)event.key.mod);
 		// handle keys
-		switch (event.key.keysym.sym)
+		switch (event.key.key)
 		{
 		case SDLK_F1:			InvokeKey(0, TB_KEY_F1, modifier, down); break;
 		case SDLK_F2:			InvokeKey(0, TB_KEY_F2, modifier, down); break;
@@ -349,9 +340,9 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 		case SDLK_PLUS:
 		case SDLK_MINUS:
 		default:
-			// skip key events that will appear as SDL_TEXTINPUT
+			// skip key events that will appear as SDL_EVENT_TEXT_INPUT
 			if (modifier & (TB_ALT | TB_CTRL)) {
-				unsigned int character = event.key.keysym.sym;
+				unsigned int character = event.key.key;
 				if (character >= 'a' && character <= 'z' && (modifier & TB_SHIFT))
 					character += ('A' - 'a');
 				InvokeKey(character, TB_KEY_UNDEFINED, modifier, down);
@@ -361,13 +352,13 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 		}
 		break;
 	}
-	case SDL_FINGERMOTION:
-	case SDL_FINGERDOWN:
-	case SDL_FINGERUP:
+	case SDL_EVENT_FINGER_MOTION:
+	case SDL_EVENT_FINGER_DOWN:
+	case SDL_EVENT_FINGER_UP:
 		//event.tfinger;
 		break;
 
-	case SDL_MOUSEMOTION:
+	case SDL_EVENT_MOUSE_MOTION:
 		if (m_app->GetRoot() && !(ShouldEmulateTouchEvent() && !TBWidget::captured_widget)) {
 			event.motion.x *= m_xscale;
 			event.motion.y *= m_yscale;
@@ -377,8 +368,8 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 
 		}
 		break;
-	case SDL_MOUSEBUTTONUP:
-	case SDL_MOUSEBUTTONDOWN: {
+	case SDL_EVENT_MOUSE_BUTTON_UP:
+	case SDL_EVENT_MOUSE_BUTTON_DOWN: {
 		// Handle mouse clicks here.
 		MODIFIER_KEYS modifier = GetModifierKeys();
 		event.button.x *= m_xscale;
@@ -388,14 +379,14 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 		if (event.button.button == SDL_BUTTON_LEFT)
 		{
 			int counter = event.button.clicks;
-			if (event.type == SDL_MOUSEBUTTONDOWN)
+			if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
 			{
 				m_app->GetRoot()->InvokePointerDown(x, y, counter, modifier, ShouldEmulateTouchEvent());
 			}
 			else
 				m_app->GetRoot()->InvokePointerUp(x, y, counter, modifier, ShouldEmulateTouchEvent());
 		}
-		else if (event.button.button == SDL_BUTTON_RIGHT && event.type == SDL_MOUSEBUTTONUP)
+		else if (event.button.button == SDL_BUTTON_RIGHT && event.type == SDL_EVENT_MOUSE_BUTTON_UP)
 		{
 			m_app->GetRoot()->InvokePointerMove(x, y, modifier, ShouldEmulateTouchEvent());
 			if (TBWidget::hovered_widget)
@@ -407,8 +398,8 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 		}
 	}
 		break;
-	case SDL_MOUSEWHEEL: {
-		int mouse_x, mouse_y;
+	case SDL_EVENT_MOUSE_WHEEL: {
+		float mouse_x, mouse_y;
 		SDL_GetMouseState(&mouse_x, &mouse_y);
 		mouse_x *= m_xscale;
 		mouse_y *= m_yscale;
@@ -418,16 +409,17 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 										  GetModifierKeys());
 		break;
 	}
-	case SDL_MULTIGESTURE:
-		//event.mgesture;
-		break;
-	case SDL_SYSWMEVENT:
-		//event.syswm;
-		break;
-	case SDL_TEXTEDITING:
+	// SDL_EVENT_MULTIGESTURE and SDL_EVENT_SYSWM removed in SDL3
+	// case SDL_EVENT_MULTIGESTURE:
+	//	//event.mgesture;
+	//	break;
+	// case SDL_EVENT_SYSWM:
+	//	//event.syswm;
+	//	break;
+	case SDL_EVENT_TEXT_EDITING:
 		//event.edit;
 		break;
-	case SDL_TEXTINPUT: {
+	case SDL_EVENT_TEXT_INPUT: {
 		MODIFIER_KEYS modifier = GetModifierKeys();
 		for (int ii = 0; event.text.text[ii]; ii++) {
 			unsigned int character = event.text.text[ii];
@@ -436,67 +428,52 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 		}
 		break;
 	}
-	case SDL_WINDOWEVENT: {
-		switch (event.window.event) {
-		case SDL_WINDOWEVENT_SHOWN:
-			//SDL_Log("Window %d shown", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_HIDDEN:
-			//SDL_Log("Window %d hidden", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_EXPOSED:
-			//SDL_Log("Window %d exposed", event.window.windowID);
-			OnAppEvent(EVENT_PAINT_REQUEST);
-			break;
-		case SDL_WINDOWEVENT_MOVED:
-			//SDL_Log("Window %d moved to %d,%d",
-			//		event.window.windowID, event.window.data1,
-			//		event.window.data2);
-			break;
-		case SDL_WINDOWEVENT_RESIZED:
-			if (m_app)
-				m_app->OnResized(event.window.data1, event.window.data2);
-			//SDL_Log("Window %d resized to %dx%d",
-			//		event.window.windowID, event.window.data1,
-			//		event.window.data2);
-			break;
-		case SDL_WINDOWEVENT_SIZE_CHANGED:
-			//SDL_Log("Window %d size changed to %dx%d",
-			//		event.window.windowID, event.window.data1,
-			//		event.window.data2);
-			break;
-		case SDL_WINDOWEVENT_MINIMIZED:
-			//SDL_Log("Window %d minimized", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_MAXIMIZED:
-			//SDL_Log("Window %d maximized", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_RESTORED:
-			//SDL_Log("Window %d restored", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_ENTER:
-			//SDL_Log("Mouse entered window %d", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_LEAVE:
-			//SDL_Log("Mouse left window %d", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_FOCUS_GAINED:
-			//SDL_Log("Window %d gained keyboard focus", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_FOCUS_LOST:
-			//SDL_Log("Window %d lost keyboard focus", event.window.windowID);
-			break;
-		case SDL_WINDOWEVENT_CLOSE:
-			//SDL_Log("Window %d closed", event.window.windowID);
-			break;
-		default:
-			handled = false;
-			SDL_Log("Window %d got unknown event %d", event.window.windowID, event.window.event);
-			break;
-		}
+	case SDL_EVENT_WINDOW_SHOWN:
+		//SDL_Log("Window %d shown", event.window.windowID);
 		break;
-	}
-	case SDL_USEREVENT:
+	case SDL_EVENT_WINDOW_HIDDEN:
+		//SDL_Log("Window %d hidden", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_EXPOSED:
+		//SDL_Log("Window %d exposed", event.window.windowID);
+		OnAppEvent(EVENT_PAINT_REQUEST);
+		break;
+	case SDL_EVENT_WINDOW_MOVED:
+		//SDL_Log("Window %d moved", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_RESIZED:
+		if (m_app)
+			m_app->OnResized(event.window.data1, event.window.data2);
+		//SDL_Log("Window %d resized", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+		//SDL_Log("Window %d pixel size changed", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_MINIMIZED:
+		//SDL_Log("Window %d minimized", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_MAXIMIZED:
+		//SDL_Log("Window %d maximized", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_RESTORED:
+		//SDL_Log("Window %d restored", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_MOUSE_ENTER:
+		//SDL_Log("Mouse entered window %d", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_MOUSE_LEAVE:
+		//SDL_Log("Mouse left window %d", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_FOCUS_GAINED:
+		//SDL_Log("Window %d gained keyboard focus", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_FOCUS_LOST:
+		//SDL_Log("Window %d lost keyboard focus", event.window.windowID);
+		break;
+	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+		//SDL_Log("Window %d close requested", event.window.windowID);
+		break;
+	case SDL_EVENT_USER:
 		if (event.user.code == 3) {
 			// user.code == 3 is sent by tb_sdl_timer_callback(Uint32 interval, void *param)
 			TBMessageHandler::ProcessMessages();
@@ -522,7 +499,7 @@ bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
 			}
 		}
 		break;
-	case SDL_QUIT:
+	case SDL_EVENT_QUIT:
 		m_quit_requested = true;
 		return true;
 	default:
