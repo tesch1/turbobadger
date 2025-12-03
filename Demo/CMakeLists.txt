@@ -33,10 +33,10 @@ if (TB_BUILD_DEMO STREQUAL GLFW)
     ./platform/glfw_extra_win.cpp)
 endif (TB_BUILD_DEMO STREQUAL GLFW)
 
-if (TB_BUILD_DEMO STREQUAL SDL2)
+if (TB_BUILD_DEMO STREQUAL SDL3)
   set (LOCAL_SRCS ${LOCAL_SRCS}
-    ./platform/port_sdl2.cpp)
-endif (TB_BUILD_DEMO STREQUAL SDL2)
+    ./platform/port_sdl3.cpp)
+endif (TB_BUILD_DEMO STREQUAL SDL3)
 
 add_resources (RES_FILES "${CMAKE_SOURCE_DIR}/resources" "*.txt" "*.png")
 add_resources (RES_FILES "${CMAKE_CURRENT_SOURCE_DIR}" "demo01/*.txt" "demo01/*.png")

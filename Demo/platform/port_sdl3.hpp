@@ -1,7 +1,7 @@
 // -*-  Mode: C++; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: t -*-
 #include "Application.h"
 
-#ifdef TB_BACKEND_SDL2
+#ifdef TB_BACKEND_SDL3
 
 #include "tb_widgets.h"
 #include "renderers/tb_renderer_gl.h"
@@ -17,18 +17,18 @@
 
 using namespace tb;
 
-class AppBackendSDL2 : public AppBackend
+class AppBackendSDL3 : public AppBackend
 {
 public:
 	bool Init(App *app);
-	AppBackendSDL2()	: m_quit_requested(false)
+	AppBackendSDL3()	: m_quit_requested(false)
 						, m_app(nullptr)
 						, m_renderer(nullptr)
 						, mainWindow(0)
 						, m_has_pending_update(false)
 						, m_xscale(1)
 						, m_yscale(1) {}
-	~AppBackendSDL2();
+	~AppBackendSDL3();
 
 	virtual void EventLoop();
 	virtual void OnAppEvent(const EVENT &ev);

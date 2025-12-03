@@ -6,7 +6,7 @@
 #include "tb_system.h"
 #include <iostream>
 
-#if defined(TB_BACKEND_SDL2) || defined(TB_BACKEND_SDL3)
+#ifdef TB_BACKEND_SDL3
 
 #include "tb_msg.h"
 #include "tb_types.h"
@@ -208,4 +208,4 @@ void TBSystem::SetDPI(int dpi)
 
 } // namespace tb
 
-#endif // TB_BACKEND_SDL2
+#endif // TB_BACKEND_SDL3

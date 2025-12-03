@@ -34,14 +34,14 @@
 #endif
 
 #include "port_glfw.hpp"
-#include "port_sdl2.hpp"
+#include "port_sdl3.hpp"
 #include "tb_tempbuffer.h"
 
 using namespace tb;
 
 bool port_main(int argc, char* argv[])
 {
-#if defined(TB_BACKEND_SDL2) && defined(__EMSCRIPTEN__)
+#if defined(TB_BACKEND_SDL3) && defined(__EMSCRIPTEN__)
 	if (char *base_path = SDL_GetBasePath())
 	{
 #if !TARGET_OS_IPHONE
@@ -102,8 +102,8 @@ bool port_main(int argc, char* argv[])
 #ifdef TB_BACKEND_GLFW
 	AppBackendGLFW *backend = new AppBackendGLFW();
 #endif
-#ifdef TB_BACKEND_SDL2
-	AppBackendSDL2 *backend = new AppBackendSDL2();
+#ifdef TB_BACKEND_SDL3
+	AppBackendSDL3 *backend = new AppBackendSDL3();
 #endif
 
 	if (!backend || !backend->Init(app))

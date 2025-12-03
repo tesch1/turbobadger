@@ -1,5 +1,5 @@
 // -*-  Mode: C++; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: t -*-
-#include "port_sdl2.hpp"
+#include "port_sdl3.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -112,14 +112,14 @@ static bool InvokeShortcut(int key, SPECIAL_KEY special_key, MODIFIER_KEYS modif
 	return TBWidget::focused_widget->InvokeEvent(ev);
 }
 
-bool AppBackendSDL2::InvokeKey(unsigned int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifierkeys, bool down)
+bool AppBackendSDL3::InvokeKey(unsigned int key, SPECIAL_KEY special_key, MODIFIER_KEYS modifierkeys, bool down)
 {
 	if (InvokeShortcut(key, special_key, modifierkeys, down))
 		return true;
 	return m_app->GetRoot()->InvokeKey(key, special_key, modifierkeys, down);
 }
 
-void AppBackendSDL2::QueueUserEvent(Sint32 code, void * data1, void * data2)
+void AppBackendSDL3::QueueUserEvent(Sint32 code, void * data1, void * data2)
 {
 	// queue a user event to cause the SDL event loop to run
 	SDL_Event event;
@@ -131,7 +131,7 @@ void AppBackendSDL2::QueueUserEvent(Sint32 code, void * data1, void * data2)
 	SDL_PushEvent(&event);
 }
 
-bool AppBackendSDL2::Init(App *app)
+bool AppBackendSDL3::Init(App *app)
 {
 	// Enable momentum scrolling on macOS trackpads
 	SDL_SetHint(SDL_HINT_MAC_SCROLL_MOMENTUM, "1");
@@ -198,7 +198,7 @@ bool AppBackendSDL2::Init(App *app)
 	return true;
 }
 
-AppBackendSDL2::~AppBackendSDL2()
+AppBackendSDL3::~AppBackendSDL3()
 {
 	m_app->OnBackendDetached();
 	m_app = nullptr;
@@ -218,7 +218,7 @@ AppBackendSDL2::~AppBackendSDL2()
 #ifdef __EMSCRIPTEN__
 
 //using namespace emscripten;
-static AppBackendSDL2 *backend;
+static AppBackendSDL3 *backend;
 void mainloop()
 {
 	// Event loop
@@ -234,7 +234,7 @@ void mainloop()
 		emscripten_set_main_loop_timing(EM_TIMING_RAF, 1);
 }
 
-void AppBackendSDL2::EventLoop()
+void AppBackendSDL3::EventLoop()
 {
 	backend = this;
 	emscripten_set_main_loop(mainloop, 0, 1);
@@ -242,7 +242,7 @@ void AppBackendSDL2::EventLoop()
 
 #else // ! __EMSCRIPTEN__
 
-void AppBackendSDL2::EventLoop()
+void AppBackendSDL3::EventLoop()
 {
 	SDL_Event event;
 	do {
@@ -255,7 +255,7 @@ void AppBackendSDL2::EventLoop()
 
 #endif // __EMSCRIPTEN__
 
-void AppBackendSDL2::OnAppEvent(const EVENT &ev)
+void AppBackendSDL3::OnAppEvent(const EVENT &ev)
 {
 	switch (ev)
 	{
@@ -281,7 +281,7 @@ void AppBackendSDL2::OnAppEvent(const EVENT &ev)
 }
 
 // Attempt to convert an sdl event to a TB event, return true if handled
-bool AppBackendSDL2::HandleSDLEvent(SDL_Event & event)
+bool AppBackendSDL3::HandleSDLEvent(SDL_Event & event)
 {
 	bool handled = true;
 	switch (event.type) {

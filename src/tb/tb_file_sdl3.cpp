@@ -5,17 +5,17 @@
 
 #include "tb_system.h"
 
-#if defined(TB_FILE_SDL2) || defined(TB_FILE_SDL3)
+#ifdef TB_FILE_SDL3
 
 #include <SDL3/SDL.h>
 
 namespace tb {
 
-class TBFileSDL2 : public TBFile
+class TBFileSDL3 : public TBFile
 {
 public:
-	TBFileSDL2(SDL_IOStream *f) : _file(f) {}
-	virtual ~TBFileSDL2() { SDL_CloseIO(_file); }
+	TBFileSDL3(SDL_IOStream *f) : _file(f) {}
+	virtual ~TBFileSDL3() { SDL_CloseIO(_file); }
 
 	virtual long Size()
 	{
@@ -61,7 +61,7 @@ TBFile *TBFile::Open(const TBStr & filename, TBFileMode mode)
 #endif
 	if (!f)
 		return nullptr;
-	TBFileSDL2 *tbf = new TBFileSDL2(f);
+	TBFileSDL3 *tbf = new TBFileSDL3(f);
 	if (!tbf)
 		SDL_CloseIO(f);
 	return tbf;
@@ -69,4 +69,4 @@ TBFile *TBFile::Open(const TBStr & filename, TBFileMode mode)
 
 } // namespace tb
 
-#endif // TB_FILE_POSIX
+#endif // TB_FILE_SDL3

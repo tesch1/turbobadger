@@ -5,7 +5,7 @@
 
 #include "tb_system.h"
 
-#if defined(TB_CLIPBOARD_SDL2) || defined(TB_CLIPBOARD_SDL3)
+#ifdef TB_CLIPBOARD_SDL3
 
 #define GL_GLEXT_PROTOTYPES 1
 
@@ -39,4 +39,4 @@ bool TBClipboard::GetText(TBStr &text)
 
 } // namespace tb
 
-#endif // TB_CLIPBOARD_SDL2
+#endif // TB_CLIPBOARD_SDL3

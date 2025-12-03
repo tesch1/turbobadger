@@ -83,7 +83,7 @@ elseif (TB_BACKEND STREQUAL GLFW AND hasParent)
   endif (EMSCRIPTEN)
 endif (TB_BUILD_GLFW)
 
-if (TB_BUILD_SDL2 OR TB_BUILD_SDL3)
+if (TB_BUILD_SDL3)
   set (SDL_VERSION 3.2.26)
   # Note: MD5 hash to be verified after first download
   set (SDL_VERSION_HASH "")
@@ -124,34 +124,34 @@ if (TB_BUILD_SDL2 OR TB_BUILD_SDL3)
     add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl3X_binary_dir" EXCLUDE_FROM_ALL)
     set (SDL3_DIR "${source_dir}" CACHE STRING "Path to SDL3 sources" FORCE)
 
-    # Create a compatibility interface that mimics the old SDL2-interface
-    add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
+    # Create SDL3-interface
+    add_library (SDL3-interface INTERFACE IMPORTED GLOBAL)
 
     # Link to the appropriate SDL3 target based on platform
     if (ANDROID)
       if (NOT TARGET SDL3-shared)
         message (FATAL_ERROR "Didn't create 'SDL3-shared' target")
       endif ()
-      target_link_libraries (SDL2-interface INTERFACE SDL3-shared)
+      target_link_libraries (SDL3-interface INTERFACE SDL3-shared)
     else ()
       if (NOT TARGET SDL3-static)
         message (FATAL_ERROR "Didn't create 'SDL3-static' target")
       endif ()
-      target_link_libraries (SDL2-interface INTERFACE SDL3-static)
+      target_link_libraries (SDL3-interface INTERFACE SDL3-static)
     endif ()
   endif (hasParent)
-elseif ((TB_BACKEND STREQUAL SDL2 OR TB_BACKEND STREQUAL SDL3) AND hasParent)
+elseif ((TB_BACKEND STREQUAL SDL3) AND hasParent)
   #
   # Not building SDL3, so try to find it
   #
-  add_library (SDL2-interface INTERFACE IMPORTED GLOBAL)
+  add_library (SDL3-interface INTERFACE IMPORTED GLOBAL)
   if (EMSCRIPTEN)
-    # Emscripten doesn't support SDL3 yet, keep SDL2
+    # Note: Emscripten SDL3 support
     if (${CMAKE_VERSION} VERSION_LESS "3.8.0")
-      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2" CACHE STRING BLAH FORCE)
+      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=3" CACHE STRING BLAH FORCE)
     else ()
-      set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_SDL=2)
-      set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_SDL=2)
+      set_property (TARGET SDL3-interface APPEND PROPERTY INTERFACE_COMPILE_OPTIONS -s USE_SDL=3)
+      set_property (TARGET SDL3-interface APPEND PROPERTY INTERFACE_LINK_OPTIONS    -s USE_SDL=3)
     endif ()
   else ()
     message ("Looking for SDL3 with find_package()...")
@@ -197,10 +197,10 @@ elseif ((TB_BACKEND STREQUAL SDL2 OR TB_BACKEND STREQUAL SDL3) AND hasParent)
     if (NOT SDL3_FOUND)
       message (FATAL_ERROR "Unable to find SDL3: ${SDL3}, ${SDL3_FOUND}")
     endif ()
-    set_property (TARGET SDL2-interface APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS SDL_FRAMEWORK=1)
-    target_link_libraries (SDL2-interface INTERFACE SDL3)
+    set_property (TARGET SDL3-interface APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS SDL_FRAMEWORK=1)
+    target_link_libraries (SDL3-interface INTERFACE SDL3)
   endif (EMSCRIPTEN)
-endif (TB_BUILD_SDL2 OR TB_BUILD_SDL3)
+endif (TB_BUILD_SDL3)
 
 if (TB_BUILD_FREETYPE)
   #

@@ -5,7 +5,7 @@ set (LOCAL_SRCS
   tb_bitmap_fragment.cpp
   tb_clipboard_dummy.cpp
   tb_clipboard_glfw.cpp
-  tb_clipboard_sdl2.cpp
+  tb_clipboard_sdl3.cpp
   tb_clipboard_win.cpp
   tb_color.cpp
   tb_core.cpp
@@ -14,7 +14,7 @@ set (LOCAL_SRCS
   tb_editfield.cpp
   tb_file_android.cpp
   tb_file_posix.cpp
-  tb_file_sdl2.cpp
+  tb_file_sdl3.cpp
   tb_font_renderer.cpp
   tb_font_renderer_freetype.cpp
   tb_font_renderer_stb.cpp
@@ -48,7 +48,7 @@ set (LOCAL_SRCS
   tb_style_edit_content.cpp
   tb_system_android.cpp
   tb_system_linux.cpp
-  tb_system_sdl2.cpp
+  tb_system_sdl3.cpp
   tb_system_win.cpp
   tb_tab_container.cpp
   tb_tempbuffer.cpp
@@ -73,7 +73,7 @@ set (LOCAL_SRCS
   utf8/utf8.cpp
   )
 
-if (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL2)
+if (TB_BUILD_DEMO STREQUAL GLFW OR TB_BUILD_DEMO STREQUAL SDL3)
   set (LOCAL_SRCS ${LOCAL_SRCS}
     tests/tb_test.cpp
     tests/test_tb_color.cpp
@@ -112,8 +112,8 @@ endif (ANDROID)
 
 set_property (TARGET TurboBadgerLib PROPERTY CXX_STANDARD 14)
 
-if (TB_BACKEND STREQUAL SDL2 OR TB_BACKEND STREQUAL SDL3)
-  target_link_libraries (TurboBadgerLib PUBLIC SDL2-interface)
+if (TB_BACKEND STREQUAL SDL3)
+  target_link_libraries (TurboBadgerLib PUBLIC SDL3-interface)
 endif ()
 
 if (TB_BACKEND STREQUAL GLFW)
