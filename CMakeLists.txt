@@ -2,7 +2,7 @@
 # CMake file for hastybadger
 #
 if (APPLE)
-  set (CMAKE_OSX_DEPLOYMENT_TARGET "11.3")
+  set (CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
 endif ()
 
 cmake_minimum_required (VERSION 3.10.2)
@@ -83,11 +83,13 @@ if (WIN32)
 endif ()
 
 if (APPLE)
-  set (CMAKE_OSX_DEPLOYMENT_TARGET "11.3")
+  set (CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
   if (IOS)
     set (TB_SYSTEM_DEFAULT IOS)
     set (TB_RENDERER_DEFAULT GLES_2)
     set (TB_BACKEND_DEFAULT SDL3)
+    # Build for arm64 only to avoid multi-arch libtool issues
+    set (CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "Build architectures for iOS" FORCE)
     #set (TB_BUILD_SDL3 ON CACHE STRING "Build SDL3")
   else ()
     set (TB_SYSTEM_DEFAULT MACOSX)

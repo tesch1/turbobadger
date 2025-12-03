@@ -45,10 +45,10 @@ Build-ios/TurboBadger.xcodeproj:
 	cmake . -G Xcode -BBuild-ios -DCMAKE_TOOLCHAIN_FILE=cmake/iOS.cmake -DTB_BUILD_DEMO=SDL3
 
 ios: Build-ios/TurboBadger.xcodeproj
-	cd Build-ios && cmake --build . --target package --config Debug
+	cd Build-ios && cmake --build . --target package --config Debug -- -allowProvisioningUpdates
 
 iosr: Build-ios/TurboBadger.xcodeproj
-	cd Build-ios && cmake --build . --target package --config Release
+	cd Build-ios && cmake --build . --target package --config Release -- -allowProvisioningUpdates
 
 lib:
 	[ -d Build-lib ] || cmake . -BBuild-lib -DTB_BACKEND=GLFW -DTB_BUILD_GLFW=ON

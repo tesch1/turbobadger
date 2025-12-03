@@ -119,6 +119,10 @@ if (TB_BUILD_SDL3)
     endif ()
     set (SDL_STATIC_PIC ON  CACHE BOOL "" FORCE)
     set (SDL_TEST       OFF CACHE BOOL "" FORCE)
+    # Disable Cocoa (macOS-only) for iOS builds
+    if (IOS)
+      set (SDL_COCOA    OFF CACHE BOOL "" FORCE)
+    endif ()
 
     #set (ENV{CFLAGS}    "-std=c99")
     add_subdirectory ("${source_dir}" "${CMAKE_CURRENT_BINARY_DIR}/sdl3X_binary_dir" EXCLUDE_FROM_ALL)

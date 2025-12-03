@@ -13,7 +13,6 @@
 #include <GL/glew.h>
 #endif
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
 
 using namespace tb;
 

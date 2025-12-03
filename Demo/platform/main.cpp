@@ -37,6 +37,10 @@
 #include "port_sdl3.hpp"
 #include "tb_tempbuffer.h"
 
+#ifdef TB_BACKEND_SDL3
+#include <SDL3/SDL_main.h>
+#endif
+
 using namespace tb;
 
 bool port_main(int argc, char* argv[])
@@ -133,6 +137,14 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	bool success = port_main(0, nullptr);
 	timeEndPeriod(1);
 	return success ? 0 : 1;
+}
+
+#elif defined(TB_BACKEND_SDL3)
+
+// SDL3 uses SDL_main for cross-platform main handling
+extern "C" int SDL_main(int argc, char* argv[])
+{
+	return port_main(argc, argv) ? 0 : 1;
 }
 
 #else // TB_SYSTEM_WINDOWS
