@@ -457,6 +457,17 @@ bool AppBackendSDL3::HandleSDLEvent(SDL_Event & event)
 		break;
 	case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
 		//SDL_Log("Window %d pixel size changed", event.window.windowID);
+		if (m_app && mainWindow)
+		{
+			int width, height;
+			SDL_GetWindowSize(mainWindow, &width, &height);
+			int pix_width, pix_height;
+			SDL_GetWindowSizeInPixels(mainWindow, &pix_width, &pix_height);
+			m_xscale = (float)pix_width / width;
+			m_yscale = (float)pix_height / height;
+			TBSystem::SetDPI(96 * m_xscale);
+			m_app->OnResized(pix_width, pix_height);
+		}
 		break;
 	case SDL_EVENT_WINDOW_MINIMIZED:
 		//SDL_Log("Window %d minimized", event.window.windowID);
