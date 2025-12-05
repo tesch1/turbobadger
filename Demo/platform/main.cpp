@@ -46,12 +46,12 @@ using namespace tb;
 bool port_main(int argc, char* argv[])
 {
 #if defined(TB_BACKEND_SDL3) && defined(__EMSCRIPTEN__)
-	if (char *base_path = SDL_GetBasePath())
+	if (const char *base_path = SDL_GetBasePath())
 	{
 #if !TARGET_OS_IPHONE
 		chdir(base_path);
 #endif
-		SDL_free(base_path);
+		SDL_free((void*)base_path);
 	}
 #elif defined(TB_SYSTEM_MACOSX)
 	{

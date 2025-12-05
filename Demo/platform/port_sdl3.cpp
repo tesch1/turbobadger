@@ -410,7 +410,13 @@ bool AppBackendSDL3::HandleSDLEvent(SDL_Event & event)
 			// SDL3 with momentum enabled provides deltas in an appropriate scale.
 			// Scale down slightly so TurboBadger's internal GetPixelsPerLine() multiplication
 			// gives a good scroll speed. Divide by a smaller factor for comfortable speed.
+#ifdef __EMSCRIPTEN__
+			// Web browsers provide smaller wheel deltas, so use less scaling
+			const float scale_factor = 1.5f;
+#else
+			// Native platforms with trackpad momentum need more scaling
 			const float scale_factor = 5.0f;
+#endif
 			m_app->GetRoot()->InvokeWheel(mouse_x, mouse_y,
 										  event.wheel.x / scale_factor,
 										  -event.wheel.y / scale_factor,
