@@ -53,15 +53,26 @@ int TBSystem::GetPixelsPerLine()
 	return 40 * GetDPI() / 96;
 }
 
+int TBSystem::_dpi = 0;
+
 int TBSystem::GetDPI()
 {
-	HDC hdc = GetDC(nullptr);
-	int DPI_x = GetDeviceCaps(hdc, LOGPIXELSX);
-	ReleaseDC(nullptr, hdc);
+	if (_dpi == 0)
+	{
+		HDC hdc = GetDC(nullptr);
+		int DPI_x = GetDeviceCaps(hdc, LOGPIXELSX);
+		ReleaseDC(nullptr, hdc);
 #if 0 // TEST CODE!
-	DPI_x *= 2;
+		DPI_x *= 2;
 #endif
-	return DPI_x;
+		return DPI_x;
+	}
+	return _dpi;
+}
+
+void TBSystem::SetDPI(int dpi)
+{
+	_dpi = dpi;
 }
 
 } // namespace tb
