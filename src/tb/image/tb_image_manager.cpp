@@ -147,6 +147,12 @@ TBImage TBImageManager::GetImage(const TBStr &filename)
 		if (!image_rep) {
 			TBDebugPrint("TBImageManager - Loading image failed: '%s'\n", (const char *)filename);
 		}
+#ifdef TB_RUNTIME_DEBUG_INFO
+		else {
+			TBDebugPrint("TBImageManager - Loaded image: '%s' (%dx%d)\n", (const char *)filename,
+				fragment ? fragment->Width() : 0, fragment ? fragment->Height() : 0);
+		}
+#endif
 	}
 	return TBImage(image_rep);
 }

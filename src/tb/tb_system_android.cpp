@@ -6,7 +6,7 @@
 #include "tb_system.h"
 
 #ifdef TB_SYSTEM_ANDROID
-#ifndef TB_BACKEND_SDL2
+#if !defined(TB_BACKEND_SDL2) && !defined(TB_BACKEND_SDL3)
 
 #include "tb_debug.h"
 #include "tb_str.h"
@@ -84,5 +84,5 @@ int TBSystem::GetDPI()
 
 } // namespace tb
 
-#endif // !TB_SYSTEM_SDL2
+#endif // !TB_BACKEND_SDL2 && !TB_BACKEND_SDL3
 #endif // TB_SYSTEM_ANDROID

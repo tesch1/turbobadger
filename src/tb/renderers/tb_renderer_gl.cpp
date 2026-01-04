@@ -233,7 +233,7 @@ TBRendererGL::TBRendererGL()
 	glAttachShader(m_program, fragmentShader);
 	GLCALL(glBindAttribLocation(m_program, 0, "xy"));
 	GLCALL(glBindAttribLocation(m_program, 1, "uv"));
-	GLCALL(glBindAttribLocation(m_program, 2, "color"));
+	GLCALL(glBindAttribLocation(m_program, 2, "col"));
 	glLinkProgram(m_program);
 	glGetProgramiv(m_program, GL_LINK_STATUS, &linked);
 	if (!linked)
@@ -345,6 +345,10 @@ void TBRendererGL::BeginPaint(int render_target_w, int render_target_h)
 	m_current_batch = nullptr;
 
 #if defined(TB_RENDERER_GLES_2) || defined(TB_RENDERER_GL3)
+	// Unbind any VAO that might be bound from other rendering (e.g., 3D scene)
+	// glBindVertexArray is always available on GLES 3.x and GL 3.x
+	// For GLES 2.0, it's an extension but modern Android typically has GLES 3.x
+	GLCALL(glBindVertexArray(0));
 	MakeOrtho(m_ortho, 0, (GLfloat)render_target_w, (GLfloat)render_target_h, 0, -1.0, 1.0);
 #else
 	glMatrixMode(GL_PROJECTION);

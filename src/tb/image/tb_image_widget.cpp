@@ -20,13 +20,21 @@ PreferredSize TBImageWidget::OnCalculatePreferredContentSize(const SizeConstrain
 
 void TBImageWidget::OnPaint(const PaintProps &paint_props)
 {
+	TBRect pr = GetPaddingRect();
+#ifdef TB_RUNTIME_DEBUG_INFO
+	// Debug: show red rectangle where image would be if image is missing
+	if (!m_image.GetBitmap()) {
+		TBDebugPrint("TBImageWidget::OnPaint - no bitmap, rect=(%d,%d,%d,%d)\n",
+			pr.x, pr.y, pr.w, pr.h);
+	}
+#endif
 	if (TBBitmapFragment *fragment = m_image.GetBitmap()) {
 		if (m_adapt_text_color)
-			g_renderer->DrawBitmapColored(GetPaddingRect(),
+			g_renderer->DrawBitmapColored(pr,
 										  TBRect(0, 0, m_image.Width(), m_image.Height()),
 										  paint_props.text_color, fragment);
 		else
-			g_renderer->DrawBitmap(GetPaddingRect(),
+			g_renderer->DrawBitmap(pr,
 								   TBRect(0, 0, m_image.Width(), m_image.Height()), fragment);
 	}
 }
