@@ -452,7 +452,10 @@ void TBRendererGL::RenderBatch(Batch *batch)
 
 void TBRendererGL::SetClipRect(const TBRect & /*rect*/)
 {
-	GLCALL(glScissor(m_clip_rect.x, m_screen_rect.h - (m_clip_rect.y + m_clip_rect.h), m_clip_rect.w, m_clip_rect.h));
+	// Add origin offset for safe area support (iOS notch, etc)
+	GLCALL(glScissor(m_clip_rect.x + m_origin_x,
+					 m_screen_rect.h - (m_clip_rect.y + m_clip_rect.h) + m_origin_y,
+					 m_clip_rect.w, m_clip_rect.h));
 }
 
 } // namespace tb

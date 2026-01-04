@@ -54,6 +54,10 @@ public:
 	virtual void BeginPaint(int render_target_w, int render_target_h);
 	virtual void EndPaint();
 
+	/** Set the screen origin offset for safe area support (iOS notch, etc).
+	    This offset is added to scissor rect coordinates. */
+	virtual void SetScreenOrigin(int x, int y) override { m_origin_x = x; m_origin_y = y; }
+
 	virtual void Translate(int dx, int dy);
 
 	virtual void SetOpacity(float opacity);
@@ -84,6 +88,8 @@ protected:
 	TBRect m_clip_rect;
 	int m_translation_x;
 	int m_translation_y;
+	int m_origin_x;		///< Screen origin X offset for safe area (scissor offset)
+	int m_origin_y;		///< Screen origin Y offset for safe area (scissor offset)
 
 	float m_u, m_v, m_uu, m_vv; ///< Some temp variables
 	Batch batch; ///< The one and only batch. this should be improved.

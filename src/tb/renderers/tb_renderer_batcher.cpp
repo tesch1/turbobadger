@@ -81,6 +81,7 @@ TBRendererBatcher::Vertex *TBRendererBatcher::Batch::Reserve(TBRendererBatcher *
 
 TBRendererBatcher::TBRendererBatcher()
 	: m_opacity(255), m_translation_x(0), m_translation_y(0)
+	, m_origin_x(0), m_origin_y(0)
 	, m_u(0), m_v(0), m_uu(0), m_vv(0)
 {
 }

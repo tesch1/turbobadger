@@ -748,7 +748,6 @@ TB_WIDGET_FACTORY(TBImageWidget, TBValue::TYPE_NULL, WIDGET_Z_TOP) {}
 void TBImageWidget::OnInflate(const INFLATE_INFO &info)
 {
 	if (TBStr filename = info.node->GetValueString("filename", nullptr)) {
-		TBDebugPrint("TBImageWidget::OnInflate - loading: '%s'\n", filename.CStr());
 		SetImage(filename.CStr());
 	}
 	SetAdaptTextColor(info.node->GetValueInt("adapt-text-color", false) ? true : false);

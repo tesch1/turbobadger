@@ -62,6 +62,10 @@ public:
 	virtual void BeginPaint(int render_target_w, int render_target_h) = 0;
 	virtual void EndPaint() = 0;
 
+	/** Set the screen origin offset for safe area support (iOS notch, etc).
+		This offset is added to scissor rect coordinates. Call after BeginPaint. */
+	virtual void SetScreenOrigin(int /*x*/, int /*y*/) {}
+
 	/** Translate all drawing with the given offset */
 	virtual void Translate(int dx, int dy) = 0;
 

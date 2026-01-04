@@ -62,8 +62,8 @@ include ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddResources.cmake")
 # Check if we're being built as an add_subdirectory() from another project
 get_directory_property (TB_SUBDIRECTORY PARENT_DIRECTORY)
 
-# Generate debug info for debug builds
-if (${CMAKE_BUILD_TYPE} MATCHES Deb)
+# Generate debug info for debug builds only (not RelWithDebInfo)
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   set (TB_RUNTIME_DEBUG_INFO_DEFAULT ON)
 else ()
   set (TB_RUNTIME_DEBUG_INFO_DEFAULT OFF)
