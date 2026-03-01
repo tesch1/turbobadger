@@ -179,7 +179,7 @@ bool TBEditField::GetCustomSkinCondition(const TBSkinCondition::CONDITION_INFO &
 void TBEditField::SetValueDouble(double value)
 {
 	TBStr v;
-	v.SetFormatted(m_format ? (const char *)m_format : "%.2f", value);
+	v.SetFormatted(m_format.IsEmpty() ? "%.2f" : (const char *)m_format, value);
 	SetText(v.CStr());
 }
 

@@ -108,8 +108,11 @@ bool TBWidgetValue::SyncToWidget(TBWidget *dst_widget)
 
 	m_syncing = true;
 	bool ret = true;
-	//switch (m_value.GetType())
-	switch (dst_widget->m_sync_type)
+	// When the stored value is a float, always use FLOAT path so
+	// SetValueDouble() is called and the widget's m_format is respected.
+	TBValue::TYPE sync_type = (m_value.GetType() == TBValue::TYPE_FLOAT)
+		? TBValue::TYPE_FLOAT : dst_widget->m_sync_type;
+	switch (sync_type)
 	{
 		case TBValue::TYPE_STRING:
 			ret = dst_widget->SetText(m_value.GetString());

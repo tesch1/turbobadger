@@ -94,7 +94,7 @@ bool TBTextField::SetText(const TBStr & text)
 void TBTextField::SetValueDouble(double value)
 {
 	TBStr v;
-	v.SetFormatted(m_format ? (const char *)m_format : "%.2f", value);
+	v.SetFormatted(m_format.IsEmpty() ? "%.2f" : (const char *)m_format, value);
 	SetText(v.CStr());
 }
 
