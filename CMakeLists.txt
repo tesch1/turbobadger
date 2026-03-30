@@ -2,7 +2,7 @@
 # CMake file for hastybadger
 #
 if (APPLE)
-  set (CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
+  set (CMAKE_OSX_DEPLOYMENT_TARGET "15.0")
 endif ()
 
 cmake_minimum_required (VERSION 3.10.2)
@@ -83,7 +83,7 @@ if (WIN32)
 endif ()
 
 if (APPLE)
-  set (CMAKE_OSX_DEPLOYMENT_TARGET "12.0")
+  set (CMAKE_OSX_DEPLOYMENT_TARGET "15.0")
   if (IOS)
     set (TB_SYSTEM_DEFAULT IOS)
     set (TB_RENDERER_DEFAULT GLES_2)
